@@ -1,0 +1,53 @@
+\documentclass[a4paper,10pt]{article}
+
+
+%opening
+\title{Howto QCANObserver}
+\author{Netseal}
+
+\begin{document}
+
+\maketitle
+\section{General}
+First you need to install the Drivers for your CAN-Hardware. Currently there is only support for the PEAK-System interfaces. The USB-Interface is the only tested one but the others should work out of the box. The Software is the very first release and might steel your Beer. So pay attention!
+
+
+\section{Driverinstallation}
+Go to www.peak-system.com and download the actual Drivers.
+Open a shell, go to the dirctory where you downloaded the gzip file and execute something like this:
+\begin{verbatim}
+ tar xvf peak-linux-driver*.tar.gz
+\end{verbatim} 
+It is necessary that you meet the prequisites from the driverdocumentation.
+At least there should be the Kernel-Headers of your running Kernel. Look in the documentation of your Linux-Distribution.\\
+Build the Modul:
+\begin{verbatim}
+cd peak-linux-driver-x.y
+make clean
+make
+su -c "make install"
+\end{verbatim} 
+If the compilation was successful, try to load the driver:
+
+\begin{verbatim}
+modprobe pcan
+\end{verbatim} 
+If no error occures:
+
+\begin{verbatim}
+lsmod | grep pcan
+\end{verbatim} 
+lsmod should show something like this:
+
+\begin{verbatim}
+pcan                   44412  0
+\end{verbatim} 
+
+\section{QT}
+If you haven't, you should install the QT4 libraries. Also you need the Qwt libs. Best you try to install them from you Distro's package manager.
+I found the QT-Creator useful. It is a lightwight IDE for GUI development.
+Open the .pro file inside of The Creator and add a Form-Class called Observer. It should be a dialog. 
+Here one should be able to add specific ID's. Display the States of the Items inside the Message that you got out of the Database.
+Follow your own ideas!
+
+\end{document}

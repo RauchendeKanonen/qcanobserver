@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<Database Name="KBL7">
+    <ID Id="20">
+	<Item0>
+	    <interpret Multiplier="1.0" Name="test" Offset="0" Datamask="00321000">
+	    </interpret>
+	</Item0>
+        <Item1>
+            <interpret Multiplier="1.0" Name="test" Offset="0" Datamask="00321000">
+            </interpret>
+        </Item1>
+        <Item2>
+            <interpret Multiplier="1.0" Name="test" Offset="0" Datamask="00321000">
+            </interpret>
+       </Item2>
+    </ID>
+    <ID Id="1b">
+        <Item0>
+            <interpret Multiplier="1.5" Name="Mit Unit" Offset="0" Datamask="10000000" Unit="km/h">
+            </interpret>
+        </Item0>
+        <Item1>
+            <interpret Multiplier="-1.5" Name="test2" Offset="0" Datamask="10000000" Unit="1/s">
+            </interpret>
+        </Item1>
+        <Item2>
+            <interpret Multiplier="1.0" Name="test" Offset="-10" Datamask="10000000">
+            </interpret>
+       </Item2>
+        <Item3>
+            <interpret Multiplier="1.0" Name="test" Offset="10" Datamask="10000000">
+            </interpret>
+        </Item3>
+        <Item4>
+            <interpret Multiplier="0.11" Name="test" Offset="5" Datamask="10000000">
+            </interpret>
+        </Item4>
+        <Item5>
+            <interpret Multiplier="-0.11" Name="test" Offset="-5" Datamask="10000000">
+            </interpret>
+       </Item5>
+    </ID>
+
+    <ID Id="25">
+        <Item0>
+            <interpret Multiplier="1.0" Name="test" Offset="0" Datamask="00321000">
+            </interpret>
+        </Item0>
+    </ID>
+
+
+    <ID Id="27">
+        <Item0>
+            <interpret Multiplier="1.0" Name="test" Offset="0" Datamask="00321000">
+            </interpret>
+        </Item0>
+    </ID>
+
+
+</Database>

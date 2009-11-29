@@ -34,7 +34,7 @@
 #include "FilterDialog.h"
 #include "graphicwindow.h"
 #include "processdatabase.h"
-
+#include "observerdialog.h"
 
 
 using namespace std;
@@ -46,10 +46,7 @@ namespace Ui
     class MainWindow;
 }
 
-typedef struct
-{
-    QList<QStandardItem*> * row;
-}TraceItems;
+
 
 
 
@@ -61,7 +58,7 @@ public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void closeEvent( QCloseEvent *e );
-    QList<CalRule*> *RuleList;
+    QList<CanFrameRuleSet*> *RuleList;
 private:
     StringListModel *TraceModel;
     Ui::MainWindow *ui;
@@ -71,6 +68,7 @@ private:
     QTimer *periodicTimer;
     ProcessDataBase *DB;
     GraphicWindow *GraphWnd[MAX_GRAPH_WINDOWS];
+    ObserverDialog *ObserverWnd [MAX_GRAPH_WINDOWS];
     int MsgCounter;
 
 signals:
@@ -84,6 +82,8 @@ public slots:
 
 
 private slots:
+    void on_actionAbout_triggered();
+    void on_actionObserverWindow_triggered();
     void on_tableView_clicked(QModelIndex index);
     void on_actionDatabase_triggered();
     void on_actionGraphicWindow_triggered();

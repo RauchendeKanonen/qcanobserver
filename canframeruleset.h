@@ -54,10 +54,10 @@ class IDCollection
 //!This Class is the Storrage Place for the Calculation Rules.
 //!It stores all Rules for one CAN ID. The access is done over a int Index which specifies the Rule
 
-class CalRule
+class CanFrameRuleSet
 {
     public:
-        CalRule(int AID, float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff);
+        CanFrameRuleSet(int AID, float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff);
         QString  getName(int Rule)   const               { return Set->at(Rule)->Name; }
         float getValue(char Data[8], int Rule);
         float getValue(char Data[8], QString RuleName, bool *OK);

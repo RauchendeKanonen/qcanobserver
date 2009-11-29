@@ -16,16 +16,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "stringlistmodel.h"
-
+ #include <QColor>
 
  int StringListModel::rowCount(const QModelIndex &parent) const
  {
-     return stringList[0].count();
+     return stringList->at(0)->count();
  }
 
  int StringListModel::columnCount(const QModelIndex &parent) const
  {
-     return 3;
+     return stringList->count();
  }
 
  QVariant StringListModel::data(const QModelIndex &index, int role) const
@@ -33,11 +33,14 @@
      if (!index.isValid())
          return QVariant();
 
-     if (index.row() >= stringList[0].size())
+     if(role == Qt::ForegroundRole)
+         return *ColorList.at(index.row());
+
+     if (index.row() >= stringList->at(index.column())->size())
          return QVariant();
 
      if (role == Qt::DisplayRole)
-         return stringList[index.column()].at(index.row());
+         return stringList->at(index.column())->at(index.row());
      else
          return QVariant();
  }
@@ -49,9 +52,12 @@
          return QVariant();
 
      if (orientation == Qt::Horizontal)
-         return QString("Column %1").arg(section);
+     {
+        return ColumnNames->at(section);
+     }
+
      else
-         return QString("Row %1").arg(section);
+         return QString("");
  }
 
  Qt::ItemFlags StringListModel::flags(const QModelIndex &index) const
@@ -62,12 +68,15 @@
      return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
  }
 
-  bool StringListModel::setData(const QModelIndex &index,
-                               const QVariant &value, int role)
- {
-     if (index.isValid() && role == Qt::EditRole) {
 
-         stringList[index.column()].replace(index.row(), value.toString());
+  bool StringListModel::setData(const QModelIndex &index,
+                               const QVariant &value, int role, QColor *color)
+ {
+     if (index.isValid() && role == Qt::EditRole)
+      {
+         if(ColorList.count() > index.column())
+            ColorList.replace(index.column(), color);
+         stringList->at(index.column())->replace(index.row(), value.toString());
          akt_index = index;
          return true;
      }
@@ -76,10 +85,13 @@
  bool StringListModel::insertRows(int position, int rows, const QModelIndex &parent)
  {
      //beginInsertRows(QModelIndex(), position, position+rows-1);
-     for (int row = 0; row < rows; ++row) {
-         stringList[0].insert(position, "");
-         stringList[1].insert(position, "");
-         stringList[2].insert(position, "");
+     for (int row = 0; row < rows; ++row)
+     {
+         ColorList.insert(position, new QColor());
+         for( int i = 0; i < stringList->count() ; i++ )
+         {
+            stringList->at(i)->insert(position, "");
+         }
      }
     akt_position += rows;
      //endInsertRows();

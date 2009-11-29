@@ -46,7 +46,7 @@ class QCanPlot : public QwtPlot
 class ItemCurveInfo
 {
     public:
-    ItemCurveInfo(CalRule *Set, int ARule)
+    ItemCurveInfo(CanFrameRuleSet *Set, int ARule)
     {
         Rule = ARule;
         Ruleset = Set;
@@ -60,7 +60,7 @@ class ItemCurveInfo
 
     QwtPlotCurve *PlotCurve;
     int Rule;
-    CalRule *Ruleset;
+    CanFrameRuleSet *Ruleset;
     QwtArray<double> x;
     QwtArray<double> y;
 };
@@ -73,19 +73,20 @@ class GraphicWindow : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(GraphicWindow)
 public:
-    explicit GraphicWindow(QWidget *parent = 0, QList<CalRule*> *RuleList = 0);
+    explicit GraphicWindow(QWidget *parent = 0, QList<CanFrameRuleSet*> *RuleList = 0);
     virtual ~GraphicWindow();
 protected:
     virtual void changeEvent(QEvent *e);
 public slots:
     void MainTimerSlot(void);
-    void addItemToDraw(CalRule*, int, QColor);
+    void addItemToDraw(CanFrameRuleSet*, int, QColor);
+    void deleteItemToDraw(CanFrameRuleSet*, int);
     void newMessage(CANMsgandTimeStruct *, int);
     void ClearAll();
 private:
     Ui::GraphicWindow *m_ui;
     QList<ItemCurveInfo*> Curves;
-    QList<CalRule*> *pRuleList;
+    QList<CanFrameRuleSet*> *pRuleList;
     CANDataItemSelector *Sel;
     QCanPlot *Plot;
 private slots:

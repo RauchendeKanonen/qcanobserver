@@ -68,11 +68,11 @@ ProcessDataBase::ProcessDataBase(QString FileName)
                 for(int c = 0 ; c < 8 ; c++ )
                     Mask[c] = atoi((char*)&MaskStr.at(c));
 
-                CalRule *rule = findId(id.toInt(NULL,16));
+                CanFrameRuleSet *rule = findId(id.toInt(NULL,16));
                 if(rule != NULL)
                     rule->addRule(/*id.toInt(NULL,16),*/ Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, UnitStr,false);
                 else
-                    list.append(new CalRule(id.toInt(NULL,16), Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, UnitStr,false));
+                    list.append(new CanFrameRuleSet(id.toInt(NULL,16), Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, UnitStr,false));
 
                 Item_ = ItemList.at(f);
             }
@@ -80,13 +80,13 @@ ProcessDataBase::ProcessDataBase(QString FileName)
         node = node.nextSibling();
     }
 }
-void ProcessDataBase::getRuleList(QList<CalRule*> **lst)
+void ProcessDataBase::getRuleList(QList<CanFrameRuleSet*> **lst)
 {
     list.count();
     *lst = &list;
 }
 
-CalRule* ProcessDataBase::findId(int id)
+CanFrameRuleSet* ProcessDataBase::findId(int id)
 {
     int count = list.count();
 
@@ -111,7 +111,7 @@ int ProcessDataBase::getNumOfValueNamePairs(int id)
 int ProcessDataBase::getValueNamePairs(char Data[8], int id, float *Value, QString *Name)
 {
     int count = list.count();
-    CalRule *Cal;
+    CanFrameRuleSet *Cal;
 
     for(int i = 0 ; 1 ; i ++ )
     {

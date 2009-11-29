@@ -24,6 +24,7 @@ ReadThread::ReadThread()
         MsgBuf = new MessageBufferInterface(1000);
         QObject::connect(this, SIGNAL(ClearAll()),
                      MsgBuf,SLOT(ClearAll()));
+        Dev = NULL;
 }
 
 
@@ -42,6 +43,9 @@ void ReadThread::setDev(QString PathArg, int BaudRate, int MsgType)
         ed->SetErrorMessage("Device could not be opened");
         ed->setModal(true);
         ed->show();
+        delete Dev;
+        Dev = NULL;
+        //delete ed;
         return;
     }
     
@@ -62,7 +66,13 @@ void ReadThread::setDev(QString PathArg, int BaudRate, int MsgType)
         Dev->CANClearFilters();
     }
  }
+bool ReadThread::isConfigured()
+{
+   if(Dev)
+       return true;
 
+   return false;
+}
 void ReadThread::run()
 {
     TPCANMsg Msg;
@@ -70,9 +80,17 @@ void ReadThread::run()
     QuitNow = 0;
     gettimeofday( &starttime, NULL);
 
+    if(Dev == NULL)
+    {
+        return;
+    }
+
     while(1)
     {
-        
+        if(QuitNow)
+        {
+            return;
+        }
         if(Dev->CANDeviceRead(&Msg))
         {
             gettimeofday( &tv, NULL);
@@ -86,10 +104,7 @@ void ReadThread::run()
                 ed->show();
             }
         }
-        if(QuitNow)
-        {
-            return;
-        }
+
     }
 }
 

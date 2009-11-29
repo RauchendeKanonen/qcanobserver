@@ -20,7 +20,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include <sys/time.h>
 MessageBufferInterface::MessageBufferInterface(int size)
 {
     tv_1.tv_sec = 0;
@@ -96,7 +96,7 @@ int MessageBufferInterface::Save(char *Filename)
     if((OUTFILE = open(Filename,O_CREAT|O_WRONLY|O_TRUNC,S_IRWXU|S_IRWXG|S_IRWXO))<=0)
       return -1;
 
-    int length = write(OUTFILE, CANMsgandTime, LengthOfBuf);
+    write(OUTFILE, CANMsgandTime, LengthOfBuf);
 
     return 0;
 }

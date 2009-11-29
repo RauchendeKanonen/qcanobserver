@@ -19,6 +19,8 @@
 #include "ui_mainwindow.h"
 #include <QFileDialog>
  #include <QMap>
+#include "errordialog.h"
+#include "aboutbox.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -35,6 +37,10 @@ MainWindow::MainWindow(QWidget *parent)
         GraphWnd[i] = NULL;
     }
 
+    for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
+    {
+        ObserverWnd[i] = NULL;
+    }
     periodicTimer = new QTimer( );
     connect(periodicTimer, SIGNAL(timeout()), this, SLOT(periodicUpdate()));
 
@@ -48,16 +54,28 @@ MainWindow::MainWindow(QWidget *parent)
     DB = NULL;
 
     ui->setupUi(this);
+    setWindowTitle("QCANObserver");
     ui->checkBox->setDisabled(true);
 
     ui->tableView->verticalHeader()->setDefaultSectionSize(15);
-    ui->tableView->horizontalHeader()->setDefaultSectionSize(100);
+    ui->tableView->horizontalHeader()->setDefaultSectionSize(200);
 
     ui->MsgLossWarning->setNumDigits(0);
+    QStringList *list = new QStringList();
+    list->append(QString("ID"));
+    list->append(QString("Data"));
+    list->append(QString("Time"));
+    TraceModel = new StringListModel(list);
 
-    TraceModel = new StringListModel();
-   
     ui->tableView->setModel(TraceModel);
+
+
+    //set the hight of the header
+
+    ui->tableView->setColumnWidth(0, 70);
+    ui->tableView->setColumnWidth(1, 300);
+    ui->tableView->setColumnWidth(2, 90);
+
 
 
     QObject::connect(this, SIGNAL(setDev(QString, int, int)),
@@ -82,7 +100,7 @@ void MainWindow::on_actionDevice_triggered()
 
     QObject::connect(this, SIGNAL(QuitThread()),
                      rt, SLOT(QuitThread()));
-
+    qd->setWindowTitle("Select a device");
     qd->setModal(true);
     qd->exec();
 
@@ -92,8 +110,21 @@ void MainWindow::on_actionDevice_triggered()
 
 void MainWindow::on_actionStart_triggered()
 {
-    rt->start();
-    periodicTimer->start(100);
+    if(rt->isConfigured())
+    {
+        rt->start();
+        periodicTimer->start(100);
+    }
+    else
+    {
+        ErrorDialog *ed = new ErrorDialog;
+        ed->SetErrorMessage("No Device is Configured!");
+        ed->setModal(true);
+        ed->show();
+
+        //delete ed;
+        return;
+    }
 }
 
 void MainWindow::on_actionStop_triggered()
@@ -128,15 +159,15 @@ void MainWindow::newMessage(CANMsgandTimeStruct *CANMsgandTime, int MsgCnt)
 
 
     QVariant Col0(IDString);
-    TraceModel->setData(index1,Col0,Qt::EditRole);
+    TraceModel->setData(index1,Col0,Qt::EditRole, new QColor(Qt::black));
 
     index1 = TraceModel->index(0, 1, QModelIndex());
     QVariant Col1(MsgString);
-    TraceModel->setData(index1,Col1,Qt::EditRole);
+    TraceModel->setData(index1,Col1,Qt::EditRole, new QColor(Qt::black));
 
     index1 = TraceModel->index(0, 2, QModelIndex());
     QVariant Col2(TimeString);
-    TraceModel->setData(index1,Col2,Qt::EditRole);
+    TraceModel->setData(index1,Col2,Qt::EditRole, new QColor(Qt::black));
 }
 
 
@@ -144,7 +175,11 @@ void MainWindow::on_actionClear_triggered()
 {
     emit ClearAll();
     delete TraceModel;
-    TraceModel = new StringListModel();
+    QStringList *list = new QStringList();
+    list->append(QString("ID"));
+    list->append(QString("Data"));
+    list->append(QString("Time"));
+    TraceModel = new StringListModel(list);
     MsgCounter = 0;
     ui->tableView->setModel(TraceModel);
 }
@@ -226,6 +261,10 @@ void MainWindow::closeEvent( QCloseEvent *e )
         if(GraphWnd[i] != NULL)
             delete GraphWnd[i];
 
+    for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
+        if(ObserverWnd[i] != NULL)
+            delete ObserverWnd[i];
+
     QMainWindow::closeEvent( e );
 }
 
@@ -238,6 +277,7 @@ void MainWindow::on_actionGraphicWindow_triggered()
             if(GraphWnd[i] == NULL)
             {
                 GraphWnd[i] = new GraphicWindow(NULL, RuleList);
+                GraphWnd[i]->setWindowTitle("GraphicWindow");
                 GraphWnd[i]->show();
 
                 connect(rt->MsgBuf, SIGNAL(newMessage(CANMsgandTimeStruct *,int)), GraphWnd[i], SLOT(newMessage(CANMsgandTimeStruct *,int)));
@@ -279,7 +319,6 @@ void MainWindow::on_tableView_clicked(QModelIndex index)
     QVariant IdVar = TraceModel->data(id_idx, Qt::DisplayRole);
     QString IdStr = IdVar.toString();
 
-    int id = IdStr.toInt(NULL, 16);
     char *data;
     data = (char*)DataStr.toStdString().c_str();
 
@@ -305,4 +344,34 @@ void MainWindow::on_tableView_clicked(QModelIndex index)
 //            ui->FrameInformationLable->setText(InformationText);
 //        }
     }
+}
+
+void MainWindow::on_actionObserverWindow_triggered()
+{
+    if(DB)
+    {
+        for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
+        {
+            if(ObserverWnd[i] == NULL)
+            {
+                ObserverWnd[i] = new ObserverDialog(NULL, RuleList);
+                ObserverWnd[i]->setWindowTitle("ObserverWindow");
+                ObserverWnd[i]->show();
+
+                connect(rt->MsgBuf, SIGNAL(newMessage(CANMsgandTimeStruct *,int)), ObserverWnd[i], SLOT(newMessage(CANMsgandTimeStruct *,int)));
+                connect(periodicTimer, SIGNAL(timeout()), ObserverWnd[i], SLOT(MainTimerSlot()));
+                connect(this, SIGNAL(ClearAll()), ObserverWnd[i], SLOT(ClearAll()));
+                return;
+            }
+        }
+    }
+    return;
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    AboutBox *about = new AboutBox();
+    about->setModal(true);
+    about->exec();
+    delete about;
 }

@@ -34,7 +34,7 @@ public:
     ReadThread();
     virtual void run();
     MessageBufferInterface *MsgBuf;
-
+    bool isConfigured();
 signals:
     void ClearAll();
 

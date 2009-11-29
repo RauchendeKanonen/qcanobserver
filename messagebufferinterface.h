@@ -21,7 +21,7 @@
 
 #include <pcan.h>
 
-    typedef struct CANMsgandTimeStruct
+struct CANMsgandTimeStruct
     {
         TPCANMsg CANMsg;
         struct timeval timev;

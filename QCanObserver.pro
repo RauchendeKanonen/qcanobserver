@@ -15,8 +15,10 @@ SOURCES += main.cpp \
     filterdef.cpp \
     graphicwindow.cpp \
     processdatabase.cpp \
-    calrule.cpp \
-    candataitemselector.cpp
+    candataitemselector.cpp \
+    observerdialog.cpp \
+    canframeruleset.cpp \
+    aboutbox.cpp
 HEADERS += mainwindow.h \
     readthread.h \
     DevDialog.h \
@@ -28,8 +30,10 @@ HEADERS += mainwindow.h \
     filterdef.h \
     graphicwindow.h \
     processdatabase.h \
-    calrule.h \
-    candataitemselector.h
+    candataitemselector.h \
+    observerdialog.h \
+    canframeruleset.h \
+    aboutbox.h
 FORMS += mainwindow.ui \
     DevDialog.ui \
     errordialog.ui \
@@ -38,7 +42,9 @@ FORMS += mainwindow.ui \
     filterdef.ui \
     filterdef.ui \
     graphicwindow.ui \
-    candataitemselector.ui
+    candataitemselector.ui \
+    observerdialog.ui \
+    aboutbox.ui
 INCLUDEPATH = /usr/include/qwt5/
 LIBS += -L/usr/lib/ \
     -lqwt \

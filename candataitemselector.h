@@ -28,7 +28,7 @@ class CANDataItemSelector : public QDialog {
     Q_OBJECT
     Q_DISABLE_COPY(CANDataItemSelector)
 public:
-    explicit CANDataItemSelector(QWidget *parent = 0, QList<CalRule*> *RuleList=0);
+    explicit CANDataItemSelector(QWidget *parent = 0, QList<CanFrameRuleSet*> *RuleList=0);
     virtual ~CANDataItemSelector();
 
 protected:
@@ -36,10 +36,12 @@ protected:
 
 private:
     Ui::CANDataItemSelector *m_ui;
-    QList<CalRule*> *pRuleList;
+    QList<CanFrameRuleSet*> *pRuleList;
 signals:
-    void addItemToDraw(CalRule*, int, QColor);
+    void addItemToDraw(CanFrameRuleSet*, int, QColor);
+    void deleteItemToDraw(CanFrameRuleSet*, int);
 private slots:
+    void on_DeleteItem_clicked();
     void on_AddItem_clicked();
     void on_pushButton_clicked();
     void on_ComboItemSelector_currentIndexChanged(int index);

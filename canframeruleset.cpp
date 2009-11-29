@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "calrule.h"
+#include "canframeruleset.h"
 
 
 //!The Constructor takes all the information for one Rule (Item in the XML Database).
@@ -23,7 +23,7 @@
 //!AMask describes how to put the data for this Rule(Value) together.
 //!12003400 as Mask leads to a Value collected of the first two bytes and the fith and sixth.
 //!The Bytes are shifted by the Value(in Bytes, not Bits) in the Mask into the Value.
-CalRule::CalRule(int AID, float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff)
+CanFrameRuleSet::CanFrameRuleSet(int AID, float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff)
 {
     Set = new QList <RuleInformation*>;
     Set->insert(0, new RuleInformation(AOffset, AMultiplier, AName, AMask, AUnit, AOnOff));
@@ -34,14 +34,14 @@ CalRule::CalRule(int AID, float AOffset, float AMultiplier, QString AName, int A
 //!AMask describes how to put the data for this Rule(Value) together.
 //!12003400 as Mask leads to a Value collected of the first two bytes and the fith and sixth.
 //!The Bytes are shifted by the Value(in Bytes, not Bits) in the Mask into the Value.
-int CalRule::addRule(float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff)
+int CanFrameRuleSet::addRule(float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff)
 {
     Set->insert(0, new RuleInformation(AOffset, AMultiplier, AName, AMask, AUnit, AOnOff));
     Rules++;
     return 1;
 }
 //!returns the number of Rules associated with an ID
-int CalRule::getNumOfRules(void)
+int CanFrameRuleSet::getNumOfRules(void)
 {
     return Rules;
 }
@@ -51,7 +51,7 @@ int CalRule::getNumOfRules(void)
 //!12003400 as Mask leads to a Value collected of the first two bytes and the fith and sixth.
 //!The Bytes are shifted by the Value(in Bytes, not Bits) in the Mask into the Value.
 //!The Value is then multiplied by the specified Multiplier, then the offset is substracted.
-float CalRule::getValue(char Data[8], int Rule)
+float CanFrameRuleSet::getValue(char Data[8], int Rule)
 {
     float Ret;
     long Value = 0;
@@ -80,14 +80,14 @@ float CalRule::getValue(char Data[8], int Rule)
     return Ret;
 }
 //!returns the ID
-int CalRule::getId(void)
+int CanFrameRuleSet::getId(void)
 {
     return ID;
 }
 //!Takes the CAN Frame Data, returns the Number of associated Rules and writes
 //!a QList <IDCollection*> to Col
 //!The Caller is liable for freeing the memory
-int CalRule::getIDCollection(char Data[8], QList <IDCollection*> *Col)
+int CanFrameRuleSet::getIDCollection(char Data[8], QList <IDCollection*> *Col)
 {
 
     for(int i = 0; i < Rules ; i ++ )
@@ -103,7 +103,7 @@ int CalRule::getIDCollection(char Data[8], QList <IDCollection*> *Col)
 }
 
 //!Returns the physical Unit for this Rule
-QString CalRule::getUnit(int Rule)
+QString CanFrameRuleSet::getUnit(int Rule)
 {
 
     return Set->at(Rule)->Unit;

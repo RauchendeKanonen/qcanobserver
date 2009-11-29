@@ -19,7 +19,7 @@
 #include "ui_graphicwindow.h"
 
 
-GraphicWindow::GraphicWindow(QWidget *parent, QList<CalRule*> *RuleList) :
+GraphicWindow::GraphicWindow(QWidget *parent, QList<CanFrameRuleSet*> *RuleList) :
     QWidget(parent),
     m_ui(new Ui::GraphicWindow)
 {
@@ -35,7 +35,8 @@ GraphicWindow::GraphicWindow(QWidget *parent, QList<CalRule*> *RuleList) :
     Plot->setAxisAutoScale(QwtPlot::xBottom);
 
     Sel = new CANDataItemSelector(NULL, pRuleList);
-    connect(Sel, SIGNAL(addItemToDraw(CalRule*, int, QColor)), this, SLOT(addItemToDraw(CalRule*, int, QColor)));
+    connect(Sel, SIGNAL(addItemToDraw(CanFrameRuleSet*, int, QColor)), this, SLOT(addItemToDraw(CanFrameRuleSet*, int, QColor)));
+    connect(Sel, SIGNAL(deleteItemToDraw(CanFrameRuleSet*, int)), this, SLOT(deleteItemToDraw(CanFrameRuleSet*, int)));
 }
 
 GraphicWindow::~GraphicWindow()
@@ -113,7 +114,10 @@ void GraphicWindow::on_GraphFromDB_clicked()
     Sel->show();
 }
 
-void GraphicWindow::addItemToDraw(CalRule* RuleSet, int Rule, QColor Color)
+
+//!SLOT that addes an Item to draw
+//!Takes a CalRule (specific for an ID) and the invoked Rule
+void GraphicWindow::addItemToDraw(CanFrameRuleSet* RuleSet, int Rule, QColor Color)
 {
     QBrush br(Qt::NoBrush);
     br.setColor(Color);
@@ -121,15 +125,17 @@ void GraphicWindow::addItemToDraw(CalRule* RuleSet, int Rule, QColor Color)
     Curves.append(new ItemCurveInfo(RuleSet, Rule));
     Curves.last()->PlotCurve->setBrush(br);
     Curves.last()->PlotCurve->setPen(Pen);
+}
+void GraphicWindow::deleteItemToDraw(CanFrameRuleSet* RuleSet, int Rule)
+{
+    for(int i = 0 ; i < Curves.count() ; i++ )
+    {
+        if(Curves.at(i)->Ruleset->getId() == RuleSet->getId())
+        {
+            Curves.at(i)->PlotCurve->detach();
+            Curves.removeAt(i);
+        }
+    }
 
-    //QwtText others = Plot->axisTitle(QwtPlot::yLeft);
-
-    //Plot->setAxisTitle(QwtPlot::yLeft, RuleSet->getUnit(Rule)+QString("\n")+others.text());
-    //m_ui->qwtPlot->set
-/*    QwtLegend *Legend = m_ui->qwtPlot->legend();
-    QwtLegendItem *Item = new QwtLegendItem(NULL);
-    Item->setText(QwtText(RuleSet->getName(Rule)));
-    Legend->insert(NULL,Item);
-
-    m_ui->qwtPlot->insertLegend(Legend, QwtPlot::BottomLegend, 1.0);*/
+    Plot->replot();
 }

@@ -17,9 +17,9 @@
 */
 #include "candataitemselector.h"
 #include "ui_candataitemselector.h"
-#include "calrule.h"
+#include "canframeruleset.h"
 
-CANDataItemSelector::CANDataItemSelector(QWidget *parent, QList<CalRule*> *RuleList) :
+CANDataItemSelector::CANDataItemSelector(QWidget *parent, QList<CanFrameRuleSet*> *RuleList) :
     QDialog(parent),
     m_ui(new Ui::CANDataItemSelector)
 {
@@ -121,4 +121,39 @@ void CANDataItemSelector::on_AddItem_clicked()
             return;
         }
     }
+}
+
+void CANDataItemSelector::on_DeleteItem_clicked()
+{
+    int index = m_ui->ComboItemColorSelector->currentIndex();
+    QString ColorName = m_ui->ComboItemColorSelector->itemText(index);
+    QColor Color(ColorName);
+
+
+    index = m_ui->ComboItemSelector->currentIndex();
+    QString RuleName = m_ui->ComboItemSelector->itemText(index);
+
+    QString IDStr = RuleName.right(-RuleName.indexOf(QString("<"))+RuleName.length()-1);
+    IDStr = IDStr.left(IDStr.indexOf(QString(">")));
+
+
+    QString RuleStr = RuleName.right(-RuleName.indexOf(QString('('))+RuleName.length()-1);
+    RuleStr = RuleStr.left(RuleStr.indexOf(QString(')')));
+
+    int id = IDStr.toInt(NULL, 16);
+    int Rule = RuleStr.toInt(NULL, 10);
+
+
+    if(m_ui->ItemsToDraw->selectionModel()->selectedRows(0).count())
+        m_ui->ItemsToDraw->takeItem(m_ui->ItemsToDraw->selectionModel()->selectedRows(0).at(0).row());
+
+    for(int i = 0; pRuleList->count() > i ; i ++ )
+    {
+        if(pRuleList->at(i)->getId() == id)
+        {
+            emit deleteItemToDraw(pRuleList->at(i), Rule);
+            return;
+        }
+    }
+
 }

@@ -61,7 +61,7 @@
     <value type="QString" >CONFIG_PROTECT=/usr/share/config /usr/kde/3.5/share/config /usr/kde/3.5/env /usr/kde/3.5/shutdown</value>
     <value type="QString" >CONFIG_PROTECT_MASK=/etc/sandbox.d /etc/env.d/java/ /etc/php/cli-php5/ext-active/ /etc/php/cgi-php5/ext-active/ /etc/php/apache2-php5/ext-active/ /etc/udev/rules.d /etc/fonts/fonts.conf /etc/gconf /etc/terminfo /etc/ca-certificates.conf /etc/texmf/web2c /etc/texmf/language.dat.d /etc/texmf/language.def.d /etc/texmf/updmap.d /etc/revdep-rebuild</value>
     <value type="QString" >CVS_RSH=ssh</value>
-    <value type="QString" >DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-RnIoK9fBBC,guid=e9cd0bb6d32977844a8ef9f24b11177d</value>
+    <value type="QString" >DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-IncaeqKcBV,guid=d05494d038703217ae21efaa4b1186bb</value>
     <value type="QString" >DESKTOP_SESSION=default</value>
     <value type="QString" >DESKTOP_STARTUP_ID=</value>
     <value type="QString" >DISPLAY=:0.0</value>
@@ -99,14 +99,14 @@
     <value type="QString" >ROOTPATH=/usr/kde/3.5/sbin:/usr/kde/3.5/bin:/usr/local/bin:/usr/bin:/bin:/opt/bin:/usr/i686-pc-linux-gnu/gcc-bin/4.3.2:/usr/qt/3/bin:/usr/games/bin</value>
     <value type="QString" >SBCL_HOME=/usr/lib/sbcl</value>
     <value type="QString" >SBCL_SOURCE_ROOT=/usr/lib/sbcl/src</value>
-    <value type="QString" >SESSION_MANAGER=local/atlas:@/tmp/.ICE-unix/7397,unix/atlas:/tmp/.ICE-unix/7397</value>
+    <value type="QString" >SESSION_MANAGER=local/atlas:@/tmp/.ICE-unix/6549,unix/atlas:/tmp/.ICE-unix/6549</value>
     <value type="QString" >SHELL=/bin/bash</value>
     <value type="QString" >SHLVL=1</value>
     <value type="QString" >USER=florian</value>
     <value type="QString" >XCURSOR_THEME=default</value>
     <value type="QString" >XDG_CONFIG_DIRS=/usr/kde/3.5/etc/xdg</value>
     <value type="QString" >XDG_DATA_DIRS=/usr/kde/3.5/share:/usr/local/share:/usr/share</value>
-    <value type="QString" >XDM_MANAGED=/var/run/xdmctl/xdmctl-:0,maysd,mayfn,sched,rsvd,method=classic</value>
+    <value type="QString" >XDM_MANAGED=/var/run/xdmctl/xdmctl-:0,maysd,mayfn,sched,rsvd,method=classic,auto</value>
     <value type="QString" >XERCESC_NLS_HOME=/usr/share/xerces-c/msg</value>
    </valuelist>
    <valuelist key="abstractProcess.arguments" type="QVariantList" >
@@ -130,7 +130,7 @@
     <value type="QString" >CONFIG_PROTECT=/usr/share/config /usr/kde/3.5/share/config /usr/kde/3.5/env /usr/kde/3.5/shutdown</value>
     <value type="QString" >CONFIG_PROTECT_MASK=/etc/sandbox.d /etc/env.d/java/ /etc/php/cli-php5/ext-active/ /etc/php/cgi-php5/ext-active/ /etc/php/apache2-php5/ext-active/ /etc/udev/rules.d /etc/fonts/fonts.conf /etc/gconf /etc/terminfo /etc/ca-certificates.conf /etc/texmf/web2c /etc/texmf/language.dat.d /etc/texmf/language.def.d /etc/texmf/updmap.d /etc/revdep-rebuild</value>
     <value type="QString" >CVS_RSH=ssh</value>
-    <value type="QString" >DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-RnIoK9fBBC,guid=e9cd0bb6d32977844a8ef9f24b11177d</value>
+    <value type="QString" >DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-IncaeqKcBV,guid=d05494d038703217ae21efaa4b1186bb</value>
     <value type="QString" >DESKTOP_SESSION=default</value>
     <value type="QString" >DESKTOP_STARTUP_ID=</value>
     <value type="QString" >DISPLAY=:0.0</value>
@@ -168,14 +168,14 @@
     <value type="QString" >ROOTPATH=/usr/kde/3.5/sbin:/usr/kde/3.5/bin:/usr/local/bin:/usr/bin:/bin:/opt/bin:/usr/i686-pc-linux-gnu/gcc-bin/4.3.2:/usr/qt/3/bin:/usr/games/bin</value>
     <value type="QString" >SBCL_HOME=/usr/lib/sbcl</value>
     <value type="QString" >SBCL_SOURCE_ROOT=/usr/lib/sbcl/src</value>
-    <value type="QString" >SESSION_MANAGER=local/atlas:@/tmp/.ICE-unix/7397,unix/atlas:/tmp/.ICE-unix/7397</value>
+    <value type="QString" >SESSION_MANAGER=local/atlas:@/tmp/.ICE-unix/6549,unix/atlas:/tmp/.ICE-unix/6549</value>
     <value type="QString" >SHELL=/bin/bash</value>
     <value type="QString" >SHLVL=1</value>
     <value type="QString" >USER=florian</value>
     <value type="QString" >XCURSOR_THEME=default</value>
     <value type="QString" >XDG_CONFIG_DIRS=/usr/kde/3.5/etc/xdg</value>
     <value type="QString" >XDG_DATA_DIRS=/usr/kde/3.5/share:/usr/local/share:/usr/share</value>
-    <value type="QString" >XDM_MANAGED=/var/run/xdmctl/xdmctl-:0,maysd,mayfn,sched,rsvd,method=classic</value>
+    <value type="QString" >XDM_MANAGED=/var/run/xdmctl/xdmctl-:0,maysd,mayfn,sched,rsvd,method=classic,auto</value>
     <value type="QString" >XERCESC_NLS_HOME=/usr/share/xerces-c/msg</value>
    </valuelist>
    <valuelist key="abstractProcess.arguments" type="QVariantList" >

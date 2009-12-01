@@ -21,7 +21,7 @@
 #include "errordialog.h"
 ReadThread::ReadThread()
 {
-        MsgBuf = new MessageBufferInterface(1000);
+        MsgBuf = new MessageBufferInterface(15000);
         QObject::connect(this, SIGNAL(ClearAll()),
                      MsgBuf,SLOT(ClearAll()));
         Dev = NULL;
@@ -91,18 +91,13 @@ void ReadThread::run()
         {
             return;
         }
-        if(Dev->CANDeviceRead(&Msg))
+        while(Dev->CANDeviceRead(&Msg))
         {
             gettimeofday( &tv, NULL);
             dt.tv_sec = tv.tv_sec - starttime.tv_sec;
             dt.tv_usec = tv.tv_usec;
-            if(!MsgBuf->AddMessage(&Msg, &dt))
-            {
-                ErrorDialog *ed = new ErrorDialog;
-                ed->SetErrorMessage("Messagebuffer overrun");
-                ed->setModal(true);
-                ed->show();
-            }
+            MsgBuf->AddMessage(&Msg, &dt);
+
         }
 
     }

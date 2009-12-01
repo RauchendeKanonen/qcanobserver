@@ -42,15 +42,15 @@
      </widget>
     </item>
     <item>
-     <widget class="QwtTextLabel" name="FrameInformationLable">
-      <property name="minimumSize">
+     <widget class="QLCDNumber" name="MsgCounter">
+      <property name="maximumSize">
        <size>
-        <width>0</width>
-        <height>40</height>
+        <width>50</width>
+        <height>16777215</height>
        </size>
       </property>
-      <property name="frameShape">
-       <enum>QFrame::Box</enum>
+      <property name="segmentStyle">
+       <enum>QLCDNumber::Flat</enum>
       </property>
      </widget>
     </item>
@@ -62,7 +62,7 @@
      <x>0</x>
      <y>0</y>
      <width>510</width>
-     <height>26</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -168,13 +168,6 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>QwtTextLabel</class>
-   <extends>QFrame</extends>
-   <header>qwt_text_label.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

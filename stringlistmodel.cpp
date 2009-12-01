@@ -100,7 +100,7 @@
  
  bool StringListModel::Update()
  {
-    beginInsertRows(QModelIndex(), updated_position, akt_position);
+    beginInsertRows(QModelIndex(), updated_position+1, akt_position);
     endInsertRows();
     updated_position = akt_position;
     emit dataChanged(updated_index, akt_index);

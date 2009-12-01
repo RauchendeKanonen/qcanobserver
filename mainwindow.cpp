@@ -57,6 +57,11 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle("QCANObserver");
     ui->checkBox->setDisabled(true);
 
+
+    ui->MsgCounter->setNumDigits(7);
+
+
+
     ui->tableView->verticalHeader()->setDefaultSectionSize(15);
     ui->tableView->horizontalHeader()->setDefaultSectionSize(200);
 
@@ -223,6 +228,11 @@ void MainWindow::on_actionLoad_triggered()
 void MainWindow::periodicUpdate(void)
 {
     TraceModel->Update();
+    int msgs = TraceModel->rowCount();
+
+    QString NumOfMsgs;
+    NumOfMsgs.sprintf("%d",msgs);
+    ui->MsgCounter->display(NumOfMsgs);
 }
 
 void MainWindow::on_checkBox_clicked(bool checked)

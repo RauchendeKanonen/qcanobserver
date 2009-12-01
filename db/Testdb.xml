@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <Database Name="KBL7">
-    <ID Id="20">
+    <ID Id="1">
 	<Item0>
-	    <interpret Multiplier="1.0" Name="test" Offset="0" Datamask="00321000">
+	    <interpret Multiplier="1.0" Name="8 Bit Counter" Offset="0" Datamask="10000000">
 	    </interpret>
 	</Item0>
-        <Item1>
-            <interpret Multiplier="1.0" Name="test" Offset="0" Datamask="00321000">
-            </interpret>
-        </Item1>
-        <Item2>
-            <interpret Multiplier="1.0" Name="test" Offset="0" Datamask="00321000">
-            </interpret>
-       </Item2>
     </ID>
     <ID Id="1b">
         <Item0>

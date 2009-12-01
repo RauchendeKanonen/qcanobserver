@@ -57,13 +57,15 @@ void ReadThread::setDev(QString PathArg, int BaudRate, int MsgType)
  {
     if(Place == HWFILTER)
     {
-        Dev->CANSetFilter(from, to, MSGTYPE_STANDARD);
+        if(Dev)
+            Dev->CANSetFilter(from, to, MSGTYPE_STANDARD);
     }
 
     //clear all
     if(Place == HWFILTER && from == -1 && to == -1)
     {
-        Dev->CANClearFilters();
+        if(Dev)
+           Dev->CANClearFilters();
     }
  }
 bool ReadThread::isConfigured()

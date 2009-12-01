@@ -20,7 +20,12 @@
 
  int StringListModel::rowCount(const QModelIndex &parent) const
  {
-     return stringList->at(0)->count();
+     if(parent.row()==-1 || parent.column()==-1)
+     {
+         int cnt = stringList->at(0)->count();// - (akt_position-updated_position);
+        return cnt;
+    }
+     return 0;
  }
 
  int StringListModel::columnCount(const QModelIndex &parent) const
@@ -101,8 +106,9 @@
  bool StringListModel::Update()
  {
     beginInsertRows(QModelIndex(), updated_position+1, akt_position);
-    endInsertRows();
     updated_position = akt_position;
+    endInsertRows();
+
     emit dataChanged(updated_index, akt_index);
     updated_index = akt_index;
     return true;

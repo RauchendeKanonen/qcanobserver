@@ -18,7 +18,9 @@ SOURCES += main.cpp \
     candataitemselector.cpp \
     observerdialog.cpp \
     canframeruleset.cpp \
-    aboutbox.cpp
+    aboutbox.cpp \
+    sendmsgdialog.cpp \
+    msgdefdialog.cpp
 HEADERS += mainwindow.h \
     readthread.h \
     DevDialog.h \
@@ -33,7 +35,9 @@ HEADERS += mainwindow.h \
     candataitemselector.h \
     observerdialog.h \
     canframeruleset.h \
-    aboutbox.h
+    aboutbox.h \
+    sendmsgdialog.h \
+    msgdefdialog.h
 FORMS += mainwindow.ui \
     DevDialog.ui \
     errordialog.ui \
@@ -44,9 +48,12 @@ FORMS += mainwindow.ui \
     graphicwindow.ui \
     candataitemselector.ui \
     observerdialog.ui \
-    aboutbox.ui
+    aboutbox.ui \
+    sendmsgdialog.ui \
+    msgdefdialog.ui
 INCLUDEPATH = /usr/include/qwt5/
 LIBS += -L/usr/lib/ \
     -lqwt \
     -lpcan
 QT += xml
+include(modeltest/modeltest.pri)

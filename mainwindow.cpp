@@ -21,6 +21,8 @@
  #include <QMap>
 #include "errordialog.h"
 #include "aboutbox.h"
+#include <modeltest.h>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -45,6 +47,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(periodicTimer, SIGNAL(timeout()), this, SLOT(periodicUpdate()));
 
     FilterDlg = new FilterDialog();
+    SendMsgDlg = new SendMsgDialog();
+
     QObject::connect(FilterDlg, SIGNAL(setFilter(int, int, int)),
                      rt, SLOT(setFilter(int, int, int)));
 
@@ -71,6 +75,7 @@ MainWindow::MainWindow(QWidget *parent)
     list->append(QString("Data"));
     list->append(QString("Time"));
     TraceModel = new StringListModel(list);
+    //new ModelTest(TraceModel, this);
 
     ui->tableView->setModel(TraceModel);
 
@@ -237,13 +242,10 @@ void MainWindow::periodicUpdate(void)
 
 void MainWindow::on_checkBox_clicked(bool checked)
 {
-    QRect Rect = this->geometry();
-    int w = Rect.width();
-    Rect.setX(Rect.x() + 600);
-    Rect.setWidth(w);
     if(checked)
     {
-        FilterDlg->setGeometry(Rect);
+        int x = this->geometry().x();
+        FilterDlg->move(x+600,0);
         FilterDlg->show();
     }
     else
@@ -264,7 +266,7 @@ void MainWindow::closeEvent( QCloseEvent *e )
 {
 
     delete FilterDlg;
-
+    delete SendMsgDlg;
 
     //Delete alle Graphic Windows
     for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
@@ -384,4 +386,19 @@ void MainWindow::on_actionAbout_triggered()
     about->setModal(true);
     about->exec();
     delete about;
+}
+
+void MainWindow::on_actionSendDialog_triggered()
+{
+
+
+}
+//add message
+void MainWindow::on_checkBox_2_toggled(bool checked)
+{
+    SendMsgDlg->move(this->pos().x(), this->pos().y()+this->geometry().height()+30);
+    if(checked)
+        SendMsgDlg->show();
+    else
+        SendMsgDlg->hide();
 }

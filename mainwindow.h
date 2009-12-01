@@ -35,6 +35,7 @@
 #include "graphicwindow.h"
 #include "processdatabase.h"
 #include "observerdialog.h"
+#include "sendmsgdialog.h"
 
 
 using namespace std;
@@ -70,6 +71,7 @@ private:
     GraphicWindow *GraphWnd[MAX_GRAPH_WINDOWS];
     ObserverDialog *ObserverWnd [MAX_GRAPH_WINDOWS];
     int MsgCounter;
+    SendMsgDialog *SendMsgDlg;
 
 signals:
     void setDev(QString PathArg, int BaudRate, int MsgType);
@@ -82,6 +84,8 @@ public slots:
 
 
 private slots:
+    void on_checkBox_2_toggled(bool checked);
+    void on_actionSendDialog_triggered();
     void on_actionAbout_triggered();
     void on_actionObserverWindow_triggered();
     void on_tableView_clicked(QModelIndex index);

@@ -72,6 +72,7 @@ class StringListModel : public QAbstractListModel
         endInsertColumns();
         akt_position = 0;
         updated_position = 0;
+        akt_index = this->index(0, 0, QModelIndex());
         updated_index = this->index(0, 0, QModelIndex());
      }
      ~StringListModel()

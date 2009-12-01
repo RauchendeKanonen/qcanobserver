@@ -23,9 +23,9 @@ FilterDialog::FilterDialog(QWidget *parent) :
     m_ui(new Ui::FilterDialog)
 {
     m_ui->setupUi(this);
-    m_ui->HWFilterText->setText(QwtText("Hardware Filter"));
-    m_ui->DBFilterText->setText(QwtText("Database Output Filter"));
-    m_ui->GraphicFilterText->setText(QwtText("Graphic Input Filter"));
+    m_ui->HWFilterText->setText(QwtText("Hardware\n Filter"));
+    m_ui->DBFilterText->setText(QwtText("Database Output\n Filter"));
+    m_ui->GraphicFilterText->setText(QwtText("Graphic Input\n Filter"));
     FilterDef = new Filterdef();
 
     QObject::connect(FilterDef, SIGNAL(acceptedFilter(int, int)),
@@ -106,6 +106,10 @@ void FilterDialog::on_pushButton_clicked()
 {
     int cnt = m_ui->lstInputFilter->count();
 
+    //delete all filters
+    emit setFilter(HWFILTER, -1 , -1);
+
+    //re-add the remaining filters
     for( int i = 0 ; cnt > i ; i++ )
     {
         QVariant var = m_ui->lstInputFilter->item(i)->data(Qt::DisplayRole);

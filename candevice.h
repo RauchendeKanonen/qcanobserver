@@ -44,6 +44,7 @@ public:
     int CANClearFilters(void);
 private:
     HANDLEI  DevHandle;
+    bool    isConfigured;
 };
 
 #endif // CANDEVICE_H

@@ -25,30 +25,35 @@
 class RuleInformation
 {
     public:
-    RuleInformation(float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff)
+    RuleInformation(float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AisEventItem, long AOnOffConstrain)
     {
         Unit = AUnit;
-        OnOff = AOnOff;
+        isEventItem = AisEventItem;
         Name = AName;
         Offset = AOffset;
         Multiplier = AMultiplier;
         memcpy(Mask, AMask, 8*sizeof(int));
+        OnOffConstrain = AOnOffConstrain;
     }
+
     QString     Unit;
-    bool        OnOff;
+    bool        isEventItem;
     int         Mask[8];
     QString     Name;
     float       Offset;
     float       Multiplier;
+    long        OnOffConstrain;
+
 };
 
 class IDCollection
 {
     public:
     QString     Unit;
-    bool        OnOff;
+    bool        isEventItem;
     QString     Name;
     float       Value;
+    int         Rule;
 };
 
 //!This Class is the Storrage Place for the Calculation Rules.
@@ -57,15 +62,17 @@ class IDCollection
 class CanFrameRuleSet
 {
     public:
-        CanFrameRuleSet(int AID, float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff);
+        CanFrameRuleSet(int AID, float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AisEventItem, long AOnOffConstrain);
         QString  getName(int Rule)   const               { return Set->at(Rule)->Name; }
         float getValue(char Data[8], int Rule);
         float getValue(char Data[8], QString RuleName, bool *OK);
         int getIDCollection(char Data[8], QList <IDCollection*> *Col);
-        int addRule(float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff);
+        int addRule(float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AisEventItem, long AOnOffConstrain);
         QString getUnit(int Rule);
         int getId(void);
         int getNumOfRules(void);
+        bool checkOnOff(char Data[8], int Rule);
+        unsigned long getMaskedData(unsigned char Data[8], int Rule);
 
     private:
         int         ID;

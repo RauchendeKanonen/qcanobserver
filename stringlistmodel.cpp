@@ -87,6 +87,21 @@
      }
      return false;
  }
+
+bool StringListModel::setData(const QModelIndex &index,
+                               const QVariant &value, int role)
+ {
+     if (index.isValid() && role == Qt::EditRole)
+      {
+         if(ColorList.count() > index.column())
+            ColorList.replace(index.column(), new QColor(Qt::black));
+         stringList->at(index.column())->replace(index.row(), value.toString());
+         akt_index = index;
+         return true;
+     }
+     return false;
+ }
+
  bool StringListModel::insertRows(int position, int rows, const QModelIndex &parent)
  {
      //beginInsertRows(QModelIndex(), position, position+rows-1);
@@ -118,10 +133,12 @@
  {
      beginRemoveRows(QModelIndex(), position, position+rows-1);
 
-     for (int row = 0; row < rows; ++row) {
-        stringList[0].removeAt(position);
-        stringList[1].removeAt(position);
-        stringList[2].removeAt(position);
+     for (int row = 0; row < rows; ++row)
+     {
+         for( int i = 0; i < stringList->count() ; i++ )
+         {
+            stringList->removeAt(i);
+         }
      }
 
      endRemoveRows();

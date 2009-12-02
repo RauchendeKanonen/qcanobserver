@@ -84,7 +84,8 @@ class StringListModel : public QAbstractListModel
          delete stringList;
          delete ColumnNames;
      }
-
+    bool setData(const QModelIndex &index,
+                               const QVariant &value, int role);
      int rowCount(const QModelIndex &parent = QModelIndex()) const;
      int columnCount(const QModelIndex &parent) const;
      QVariant data(const QModelIndex &index, int role) const;

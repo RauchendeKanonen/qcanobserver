@@ -52,27 +52,40 @@
      </layout>
     </item>
     <item>
-     <widget class="QLCDNumber" name="MsgLossWarning">
-      <property name="maximumSize">
-       <size>
-        <width>50</width>
-        <height>16777215</height>
-       </size>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="bottomMargin">
+       <number>5</number>
       </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLCDNumber" name="MsgCounter">
-      <property name="maximumSize">
-       <size>
-        <width>50</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="segmentStyle">
-       <enum>QLCDNumber::Flat</enum>
-      </property>
-     </widget>
+      <item>
+       <widget class="QwtTextLabel" name="TextLabelAddedMsgs"/>
+      </item>
+      <item>
+       <widget class="QLCDNumber" name="MsgCounter">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QwtTextLabel" name="TextLabelLostMsgs"/>
+      </item>
+      <item>
+       <widget class="QLCDNumber" name="MsgLossWarning">
+        <property name="maximumSize">
+         <size>
+          <width>50</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -193,6 +206,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QwtTextLabel</class>
+   <extends>QFrame</extends>
+   <header>qwt_text_label.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

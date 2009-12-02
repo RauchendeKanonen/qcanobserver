@@ -63,13 +63,17 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     ui->MsgCounter->setNumDigits(7);
+    ui->MsgLossWarning->setNumDigits(7);
+    ui->TextLabelAddedMsgs->setText(QwtText(QString("Added Messages:")));
+    ui->TextLabelLostMsgs->setText(QwtText(QString("Lost Messages:")));
+
 
 
 
     ui->tableView->verticalHeader()->setDefaultSectionSize(15);
     ui->tableView->horizontalHeader()->setDefaultSectionSize(200);
 
-    ui->MsgLossWarning->setNumDigits(0);
+
     QStringList *list = new QStringList();
     list->append(QString("ID"));
     list->append(QString("Data"));
@@ -80,7 +84,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableView->setModel(TraceModel);
 
 
-    //set the hight of the header
 
     ui->tableView->setColumnWidth(0, 70);
     ui->tableView->setColumnWidth(1, 300);
@@ -154,7 +157,7 @@ void MainWindow::newMessage(CANMsgandTimeStruct *CANMsgandTime, int MsgCnt)
 
     if(MsgCounter != MsgCnt)
     {
-        ui->MsgLossWarning->setNumDigits(1);
+        ui->MsgLossWarning->display(MsgCnt - MsgCounter);
     }
 
 
@@ -290,6 +293,7 @@ void MainWindow::on_actionGraphicWindow_triggered()
             {
                 GraphWnd[i] = new GraphicWindow(NULL, RuleList);
                 GraphWnd[i]->setWindowTitle("GraphicWindow");
+                GraphWnd[i]->move(this->pos().x()+this->geometry().width(), this->pos().y());
                 GraphWnd[i]->show();
 
                 connect(rt->MsgBuf, SIGNAL(newMessage(CANMsgandTimeStruct *,int)), GraphWnd[i], SLOT(newMessage(CANMsgandTimeStruct *,int)));
@@ -368,6 +372,7 @@ void MainWindow::on_actionObserverWindow_triggered()
             {
                 ObserverWnd[i] = new ObserverDialog(NULL, RuleList);
                 ObserverWnd[i]->setWindowTitle("ObserverWindow");
+                ObserverWnd[i]->move(this->pos().x()+this->geometry().width(), this->pos().y());
                 ObserverWnd[i]->show();
 
                 connect(rt->MsgBuf, SIGNAL(newMessage(CANMsgandTimeStruct *,int)), ObserverWnd[i], SLOT(newMessage(CANMsgandTimeStruct *,int)));

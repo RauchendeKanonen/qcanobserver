@@ -23,10 +23,10 @@
 //!AMask describes how to put the data for this Rule(Value) together.
 //!12003400 as Mask leads to a Value collected of the first two bytes and the fith and sixth.
 //!The Bytes are shifted by the Value(in Bytes, not Bits) in the Mask into the Value.
-CanFrameRuleSet::CanFrameRuleSet(int AID, float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff)
+CanFrameRuleSet::CanFrameRuleSet(int AID, float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff, long AOnOffConstrain)
 {
     Set = new QList <RuleInformation*>;
-    Set->insert(0, new RuleInformation(AOffset, AMultiplier, AName, AMask, AUnit, AOnOff));
+    Set->insert(0, new RuleInformation(AOffset, AMultiplier, AName, AMask, AUnit, AOnOff, AOnOffConstrain));
     ID = AID;
     Rules = 1;
 }
@@ -34,9 +34,9 @@ CanFrameRuleSet::CanFrameRuleSet(int AID, float AOffset, float AMultiplier, QStr
 //!AMask describes how to put the data for this Rule(Value) together.
 //!12003400 as Mask leads to a Value collected of the first two bytes and the fith and sixth.
 //!The Bytes are shifted by the Value(in Bytes, not Bits) in the Mask into the Value.
-int CanFrameRuleSet::addRule(float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff)
+int CanFrameRuleSet::addRule(float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AOnOff, long AOnOffConstrain)
 {
-    Set->insert(0, new RuleInformation(AOffset, AMultiplier, AName, AMask, AUnit, AOnOff));
+    Set->insert(0, new RuleInformation(AOffset, AMultiplier, AName, AMask, AUnit, AOnOff, AOnOffConstrain));
     Rules++;
     return 1;
 }
@@ -84,6 +84,51 @@ int CanFrameRuleSet::getId(void)
 {
     return ID;
 }
+
+unsigned long CanFrameRuleSet::getMaskedData(unsigned char Data[8], int Rule)
+{
+    unsigned long Value = 0;
+
+
+    if(Data[2] != 0)
+        Value = 0;
+
+
+    for( int i = 1 ; i <= 8 ; i++)
+    {
+        if(Set->at(Rule)->Mask[0] == i)
+            Value |= Data[0] << ((i-1)*8);
+        if(Set->at(Rule)->Mask[1] == i)
+            Value |= Data[1] << ((i-1)*8);
+        if(Set->at(Rule)->Mask[2] == i)
+            Value |= Data[2] << ((i-1)*8);
+        if(Set->at(Rule)->Mask[3] == i)
+            Value |= Data[3] << ((i-1)*8);
+        if(Set->at(Rule)->Mask[4] == i)
+            Value |= Data[4] << ((i-1)*8);
+        if(Set->at(Rule)->Mask[5] == i)
+            Value |= Data[5] << ((i-1)*8);
+        if(Set->at(Rule)->Mask[6] == i)
+            Value |= Data[6] << ((i-1)*8);
+        if(Set->at(Rule)->Mask[7] == i)
+            Value |= Data[7] << ((i-1)*8);
+    }
+
+  return Value;
+}
+
+
+bool CanFrameRuleSet::checkOnOff(char AData[8], int Rule)
+{
+    long Data = getMaskedData( (unsigned char*)AData, Rule);
+
+    if(Data == Set->at(Rule)->OnOffConstrain)
+        return true;
+
+    return false;
+
+}
+
 //!Takes the CAN Frame Data, returns the Number of associated Rules and writes
 //!a QList <IDCollection*> to Col
 //!The Caller is liable for freeing the memory
@@ -92,11 +137,27 @@ int CanFrameRuleSet::getIDCollection(char Data[8], QList <IDCollection*> *Col)
 
     for(int i = 0; i < Rules ; i ++ )
     {
+        if(Set->at(i)->isEventItem == true)
+        {
+            // has the event happened
+            if(checkOnOff(Data, i))
+            {
+                 IDCollection *locCol = new IDCollection();
+                 locCol->Name = getName(i);
+                 locCol->Value = 1;
+                 locCol->Unit = QString("Event");
+                 locCol->isEventItem = true;
+                 locCol->Rule = i;
+                 Col->append(locCol);
+            }
+            continue;
+        }
         IDCollection *locCol = new IDCollection();
         locCol->Value = getValue(Data,i);
         locCol->Name = getName(i);
         locCol->Unit = getUnit(i);
-
+        locCol->isEventItem = false;
+        locCol->Rule = i;
         Col->append(locCol);
     }
     return Rules;

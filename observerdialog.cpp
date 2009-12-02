@@ -67,28 +67,36 @@ void ObserverDialog::newMessage(CANMsgandTimeStruct *Msg, int Cnt)
         {
             QList <IDCollection*> Col;
             CANItems.at(i)->RuleSet->getIDCollection((char*)Msg->CANMsg.DATA, &Col);
+            CANItems.at(i)->Rule;
 
-            QString Name = Col.at(CANItems.at(i)->Rule)->Name;
-            QString Unit = Col.at(CANItems.at(i)->Rule)->Unit;
-            float Value = Col.at(CANItems.at(i)->Rule)->Value;
+            //is the Item available?
+            for(int c = 0; c < Col.count() ; c++)
+            {
+                if(CANItems.at(i)->Rule == Col.at(c)->Rule)
+                {
+                    QString Name = Col.at(c)->Name;
+                    QString Unit = Col.at(c)->Unit;
+                    float Value = Col.at(c)->Value;
 
-            QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
+                    QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
 
-            TraceModel->insertRows(0, 1, (const QModelIndex &)index1);
-
-
-            QVariant Col0(Name);
-            TraceModel->setData(index1,Col0,Qt::EditRole, CANItems.at(i)->Color);
+                    TraceModel->insertRows(0, 1, (const QModelIndex &)index1);
 
 
-            index1 = TraceModel->index(0, 1, QModelIndex());
+                    QVariant Col0(Name);
+                    TraceModel->setData(index1,Col0,Qt::EditRole, CANItems.at(i)->Color);
 
-            QVariant Col1(Value);
-            TraceModel->setData(index1,Col1,Qt::EditRole,  CANItems.at(i)->Color);
 
-            index1 = TraceModel->index(0, 2, QModelIndex());
-            QVariant Col2(Unit);
-            TraceModel->setData(index1,Col2,Qt::EditRole, CANItems.at(i)->Color);
+                    index1 = TraceModel->index(0, 1, QModelIndex());
+
+                    QVariant Col1(Value);
+                    TraceModel->setData(index1,Col1,Qt::EditRole,  CANItems.at(i)->Color);
+
+                    index1 = TraceModel->index(0, 2, QModelIndex());
+                    QVariant Col2(Unit);
+                    TraceModel->setData(index1,Col2,Qt::EditRole, CANItems.at(i)->Color);
+                }
+            }
         }
     }
 }

@@ -55,6 +55,7 @@ ProcessDataBase::ProcessDataBase(QString FileName)
             QString id = Rule.attribute( "Id" );
             for(int f = 1 ; !Item_.isNull() ; f ++ )
             {
+                bool    isEventItem = false;
                 QDomNode Interpret_ = Item_.firstChild();
                 QDomElement Interpret = Interpret_.toElement();
 
@@ -63,16 +64,22 @@ ProcessDataBase::ProcessDataBase(QString FileName)
                 QString Offset = Interpret.attribute( "Offset" );
                 QString MaskStr = Interpret.attribute( "Datamask" );
                 QString UnitStr = Interpret.attribute( "Unit" );
-                QString OnOffStr = Interpret.attribute( "OnOff" );
+
+                QString EventItem = Interpret.attribute( "EventItem" );
+                QString ConstrainValStr = Interpret.attribute( "Constrain" );
+                long ConstrainVal = ConstrainValStr.toLong(NULL, 16);
+                if(EventItem.compare("true", Qt::CaseSensitive) == 0)
+                    isEventItem = true;
+
                 int Mask[8];
                 for(int c = 0 ; c < 8 ; c++ )
                     Mask[c] = atoi((char*)&MaskStr.at(c));
 
                 CanFrameRuleSet *rule = findId(id.toInt(NULL,16));
                 if(rule != NULL)
-                    rule->addRule(/*id.toInt(NULL,16),*/ Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, UnitStr,false);
+                    rule->addRule(/*id.toInt(NULL,16),*/ Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, UnitStr, isEventItem, ConstrainVal);
                 else
-                    list.append(new CanFrameRuleSet(id.toInt(NULL,16), Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, UnitStr,false));
+                    list.append(new CanFrameRuleSet(id.toInt(NULL,16), Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, UnitStr, isEventItem, ConstrainVal));
 
                 Item_ = ItemList.at(f);
             }

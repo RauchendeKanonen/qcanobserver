@@ -30,7 +30,7 @@ public:
     ProcessDataBase(QString FileName);
     void getRuleList(QList<CanFrameRuleSet*> **lst);
 private:
-    int getValueNamePairs(char Data[8], int id, float *Value, QString *Name);
+    int getValueNamePairs(unsigned char Data[8], int id, float *Value, QString *Name);
     int getNumOfValueNamePairs(int id);
     QDomDocument domTree;
     QList<CanFrameRuleSet*> list;

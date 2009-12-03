@@ -79,8 +79,9 @@
  {
      if (index.isValid() && role == Qt::EditRole)
       {
-         if(ColorList.count() > index.column())
-            ColorList.replace(index.column(), color);
+//         if(ColorList.count() > index.column())
+         ColorList.replace(index.row(), color);
+
          stringList->at(index.column())->replace(index.row(), value.toString());
          akt_index = index;
          return true;
@@ -93,8 +94,8 @@ bool StringListModel::setData(const QModelIndex &index,
  {
      if (index.isValid() && role == Qt::EditRole)
       {
-         if(ColorList.count() > index.column())
-            ColorList.replace(index.column(), new QColor(Qt::black));
+//         if(ColorList.count() > index.column())
+            ColorList.replace(index.row(), new QColor(Qt::black));
          stringList->at(index.column())->replace(index.row(), value.toString());
          akt_index = index;
          return true;

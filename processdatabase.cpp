@@ -63,23 +63,38 @@ ProcessDataBase::ProcessDataBase(QString FileName)
                 QString Mul = Interpret.attribute( "Multiplier" );
                 QString Offset = Interpret.attribute( "Offset" );
                 QString MaskStr = Interpret.attribute( "Datamask" );
+                QString ConstrainMaskStr = Interpret.attribute( "ConstrainMask" );
+
                 QString UnitStr = Interpret.attribute( "Unit" );
 
                 QString EventItem = Interpret.attribute( "EventItem" );
                 QString ConstrainValStr = Interpret.attribute( "Constrain" );
+
+
                 long ConstrainVal = ConstrainValStr.toLong(NULL, 16);
                 if(EventItem.compare("true", Qt::CaseSensitive) == 0)
                     isEventItem = true;
 
                 int Mask[8];
-                for(int c = 0 ; c < 8 ; c++ )
-                    Mask[c] = atoi((char*)&MaskStr.at(c));
+                if(MaskStr.count()==8)
+                {
+                    for(int c = 0 ; c < 8 ; c++ )
+                        Mask[c] = atoi((char*)&MaskStr.at(c));
+                }
+
+                int ConstrainMask[8];
+                if(ConstrainMaskStr.count()==8)
+                {
+                    for(int c = 0 ; c < 8 ; c++ )
+                        ConstrainMask[c] = atoi((char*)&ConstrainMaskStr.at(c));
+                }
+
 
                 CanFrameRuleSet *rule = findId(id.toInt(NULL,16));
                 if(rule != NULL)
-                    rule->addRule(/*id.toInt(NULL,16),*/ Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, UnitStr, isEventItem, ConstrainVal);
+                    rule->addRule(Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, ConstrainMask, UnitStr, isEventItem, ConstrainVal);
                 else
-                    list.append(new CanFrameRuleSet(id.toInt(NULL,16), Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, UnitStr, isEventItem, ConstrainVal));
+                    list.append(new CanFrameRuleSet(id.toInt(NULL,16), Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, ConstrainMask, UnitStr, isEventItem, ConstrainVal));
 
                 Item_ = ItemList.at(f);
             }
@@ -115,7 +130,7 @@ int ProcessDataBase::getNumOfValueNamePairs(int id)
     }
     return -1;
 }
-int ProcessDataBase::getValueNamePairs(char Data[8], int id, float *Value, QString *Name)
+int ProcessDataBase::getValueNamePairs(unsigned char Data[8], int id, float *Value, QString *Name)
 {
     int count = list.count();
     CanFrameRuleSet *Cal;

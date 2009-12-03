@@ -42,6 +42,7 @@ public slots:
     void setDev(QString PathArg, int BaudRate, int MsgType);
     void QuitThread();
     void setFilter(int Place, int from, int to);
+    void sendCANMsg(TPCANMsg *);
 private:
      QString Path;
      CANDevice *Dev;

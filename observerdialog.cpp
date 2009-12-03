@@ -66,7 +66,7 @@ void ObserverDialog::newMessage(CANMsgandTimeStruct *Msg, int Cnt)
         if(Msg->CANMsg.ID == CANItems.at(i)->ID)
         {
             QList <IDCollection*> Col;
-            CANItems.at(i)->RuleSet->getIDCollection((char*)Msg->CANMsg.DATA, &Col);
+            CANItems.at(i)->RuleSet->getIDCollection((unsigned char*)Msg->CANMsg.DATA, &Col);
             CANItems.at(i)->Rule;
 
             //is the Item available?
@@ -81,8 +81,8 @@ void ObserverDialog::newMessage(CANMsgandTimeStruct *Msg, int Cnt)
                     QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
 
                     TraceModel->insertRows(0, 1, (const QModelIndex &)index1);
-
-
+                    //get the valid index
+                    index1 = TraceModel->index(0, 0, QModelIndex());
                     QVariant Col0(Name);
                     TraceModel->setData(index1,Col0,Qt::EditRole, CANItems.at(i)->Color);
 

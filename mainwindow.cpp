@@ -47,10 +47,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(periodicTimer, SIGNAL(timeout()), this, SLOT(periodicUpdate()));
 
     FilterDlg = new FilterDialog();
-    SendMsgDlg = new SendMsgDialog();
 
-    QObject::connect(FilterDlg, SIGNAL(setFilter(int, int, int)),
-                     rt, SLOT(setFilter(int, int, int)));
+    SendMsgDlg = new SendMsgDialog();
 
     QObject::connect(this, SIGNAL(ClearAll()),
                      rt, SIGNAL(ClearAll()));
@@ -59,7 +57,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->setupUi(this);
     setWindowTitle("QCANObserver");
-    ui->checkBox->setDisabled(true);
+
+    //Filter
+    ui->checkBox->setEnabled(false);
+    //SendMsgs
+    ui->checkBox_2->setEnabled(false);
 
 
     ui->MsgCounter->setNumDigits(7);
@@ -105,19 +107,27 @@ void MainWindow::on_actionDevice_triggered()
     DevDialog *qd = new DevDialog(this);
 
 
-
-
-
     QObject::connect(qd, SIGNAL(setDev(QString, int, int)),
                      this, SIGNAL(setDev(QString, int, int)));
 
     QObject::connect(this, SIGNAL(QuitThread()),
                      rt, SLOT(QuitThread()));
+
+    QObject::connect(SendMsgDlg, SIGNAL(sendCANMsg(TPCANMsg *)),
+                     rt, SLOT(sendCANMsg(TPCANMsg *)));
+
+    QObject::connect(FilterDlg, SIGNAL(setFilter(int, int, int)),
+                     rt, SLOT(setFilter(int, int, int)));
+
+
     qd->setWindowTitle("Select a device");
     qd->setModal(true);
     qd->exec();
 
+    //Filter
     ui->checkBox->setEnabled(true);
+    //SendMsgs
+    ui->checkBox_2->setEnabled(true);
     delete qd;
 }
 
@@ -170,7 +180,7 @@ void MainWindow::newMessage(CANMsgandTimeStruct *CANMsgandTime, int MsgCnt)
     QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
     TraceModel->insertRows(0, 1, (const QModelIndex &)index1);
 
-
+    index1 = TraceModel->index(0, 0, QModelIndex());
     QVariant Col0(IDString);
     TraceModel->setData(index1,Col0,Qt::EditRole, new QColor(Qt::black));
 
@@ -210,7 +220,6 @@ void MainWindow::on_actionSave_triggered()
     }
     else
         return;
-
 }
 
 void MainWindow::on_actionLoad_triggered()

@@ -65,7 +65,7 @@ void GraphicWindow::newMessage(CANMsgandTimeStruct *Msg, int Cnt)
         if(Msg->CANMsg.ID == Curves.at(i)->Ruleset->getId())
         {
             QList <IDCollection*> Col;
-            Curves.at(i)->Ruleset->getIDCollection((char*)Msg->CANMsg.DATA,&Col);
+            Curves.at(i)->Ruleset->getIDCollection((unsigned char*)Msg->CANMsg.DATA,&Col);
             Curves.at(i)->y.append(Col.at(Curves.at(i)->Rule)->Value);
             Curves.at(i)->x.append((double)Msg->timev.tv_sec + (double)Msg->timev.tv_usec/1000000.0);
             Plot->setAxisScale(QwtPlot::xBottom, Curves.at(i)->x.last()-10,Curves.at(i)->x.last(), 10);

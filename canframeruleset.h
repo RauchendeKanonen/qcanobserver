@@ -25,7 +25,7 @@
 class RuleInformation
 {
     public:
-    RuleInformation(float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AisEventItem, long AOnOffConstrain)
+    RuleInformation(float AOffset, float AMultiplier, QString AName, int AMask[8], int AConstrainMask[8], QString AUnit, bool AisEventItem, long AOnOffConstrain)
     {
         Unit = AUnit;
         isEventItem = AisEventItem;
@@ -34,15 +34,17 @@ class RuleInformation
         Multiplier = AMultiplier;
         memcpy(Mask, AMask, 8*sizeof(int));
         OnOffConstrain = AOnOffConstrain;
+        memcpy(ConstrainMask, AConstrainMask, 8*sizeof(int));
     }
 
     QString     Unit;
     bool        isEventItem;
     int         Mask[8];
+    int         ConstrainMask[8];
     QString     Name;
     float       Offset;
     float       Multiplier;
-    long        OnOffConstrain;
+    long long   OnOffConstrain;
 
 };
 
@@ -62,21 +64,22 @@ class IDCollection
 class CanFrameRuleSet
 {
     public:
-        CanFrameRuleSet(int AID, float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AisEventItem, long AOnOffConstrain);
+        CanFrameRuleSet(int AID, float AOffset, float AMultiplier, QString AName, int AMask[8], int AConstrainMask[8], QString AUnit, bool AisEventItem, long AOnOffConstrain);
         QString  getName(int Rule)   const               { return Set->at(Rule)->Name; }
-        float getValue(char Data[8], int Rule);
-        float getValue(char Data[8], QString RuleName, bool *OK);
-        int getIDCollection(char Data[8], QList <IDCollection*> *Col);
-        int addRule(float AOffset, float AMultiplier, QString AName, int AMask[8], QString AUnit, bool AisEventItem, long AOnOffConstrain);
+        float getValue(unsigned char Data[8], int Rule);
+        float getValue(unsigned char Data[8], QString RuleName, bool *OK);
+        int getIDCollection(unsigned char Data[8], QList <IDCollection*> *Col);
+        int addRule(float AOffset, float AMultiplier, QString AName, int AMask[8], int AConstrainMask[8], QString AUnit, bool AisEventItem, long AOnOffConstrain);
         QString getUnit(int Rule);
         int getId(void);
         int getNumOfRules(void);
-        bool checkOnOff(char Data[8], int Rule);
-        unsigned long getMaskedData(unsigned char Data[8], int Rule);
+        bool checkOnOff(unsigned char Data[8], int Rule);
+        unsigned long long getConstrainMaskMaskedData(unsigned char Data[8], int Rule);
 
     private:
         int         ID;
         int         Rules;
         QList <RuleInformation*> *Set;
+        QString *f;
 };
 #endif // CALRULE_H

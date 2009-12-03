@@ -125,17 +125,12 @@ void CANDataItemSelector::on_AddItem_clicked()
 
 void CANDataItemSelector::on_DeleteItem_clicked()
 {
-    int index = m_ui->ComboItemColorSelector->currentIndex();
-    QString ColorName = m_ui->ComboItemColorSelector->itemText(index);
-    QColor Color(ColorName);
 
-
-    index = m_ui->ComboItemSelector->currentIndex();
-    QString RuleName = m_ui->ComboItemSelector->itemText(index);
+    int row = m_ui->ItemsToDraw->selectionModel()->selectedRows(0).at(0).row();
+    QString RuleName = m_ui->ItemsToDraw->item(row)->text();
 
     QString IDStr = RuleName.right(-RuleName.indexOf(QString("<"))+RuleName.length()-1);
     IDStr = IDStr.left(IDStr.indexOf(QString(">")));
-
 
     QString RuleStr = RuleName.right(-RuleName.indexOf(QString('('))+RuleName.length()-1);
     RuleStr = RuleStr.left(RuleStr.indexOf(QString(')')));

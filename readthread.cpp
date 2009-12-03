@@ -93,7 +93,7 @@ void ReadThread::run()
         {
             return;
         }
-        while(Dev->CANDeviceRead(&Msg))
+        if(Dev->CANDeviceRead(&Msg))
         {
             gettimeofday( &tv, NULL);
             dt.tv_sec = tv.tv_sec - starttime.tv_sec;
@@ -108,4 +108,9 @@ void ReadThread::run()
 void ReadThread::QuitThread()
 {
     QuitNow = 1;
+}
+
+void ReadThread::sendCANMsg(TPCANMsg *Msg)
+{
+    Dev->CANDeviceWrite(*Msg);
 }

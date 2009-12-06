@@ -4,7 +4,7 @@
 #include <QtGui/QDialog>
 #include "msgdefdialog.h"
 #include "stringlistmodel.h"
-#include "candevice.h"
+#include "DeviceLib/candevice.h"
 #include <QItemSelection>
 
 namespace Ui {

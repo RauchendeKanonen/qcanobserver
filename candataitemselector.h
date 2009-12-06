@@ -20,6 +20,8 @@
 #include "processdatabase.h"
 #include <QtGui/QDialog>
 
+#include "cansignalcollection.h"
+
 namespace Ui {
     class CANDataItemSelector;
 }
@@ -28,7 +30,7 @@ class CANDataItemSelector : public QDialog {
     Q_OBJECT
     Q_DISABLE_COPY(CANDataItemSelector)
 public:
-    explicit CANDataItemSelector(QWidget *parent = 0, QList<CanFrameRuleSet*> *RuleList=0);
+    explicit CANDataItemSelector(QWidget *parent = 0, CANSignalCollection *Collection = 0);
     virtual ~CANDataItemSelector();
 
 protected:
@@ -36,10 +38,10 @@ protected:
 
 private:
     Ui::CANDataItemSelector *m_ui;
-    QList<CanFrameRuleSet*> *pRuleList;
+    CANSignalCollection *pCollection;
 signals:
-    void addItemToDraw(CanFrameRuleSet*, int, QColor);
-    void deleteItemToDraw(CanFrameRuleSet*, int);
+    void addItemToDraw(CANSignal*, QColor);
+    void deleteItemToDraw(CANSignal*);
 private slots:
     void on_DeleteItem_clicked();
     void on_AddItem_clicked();

@@ -19,11 +19,11 @@
 #include "ui_graphicwindow.h"
 
 
-GraphicWindow::GraphicWindow(QWidget *parent, QList<CanFrameRuleSet*> *RuleList) :
+GraphicWindow::GraphicWindow(QWidget *parent, CANSignalCollection *Collection) :
     QWidget(parent),
     m_ui(new Ui::GraphicWindow)
 {
-    pRuleList = RuleList;
+    pCollection = Collection;
 
     m_ui->setupUi(this);
     Plot = new QCanPlot(QString(""), this);
@@ -34,9 +34,9 @@ GraphicWindow::GraphicWindow(QWidget *parent, QList<CanFrameRuleSet*> *RuleList)
     Plot->setAxisTitle(QwtPlot::xBottom,"Time s");
     Plot->setAxisAutoScale(QwtPlot::xBottom);
 
-    Sel = new CANDataItemSelector(NULL, pRuleList);
-    connect(Sel, SIGNAL(addItemToDraw(CanFrameRuleSet*, int, QColor)), this, SLOT(addItemToDraw(CanFrameRuleSet*, int, QColor)));
-    connect(Sel, SIGNAL(deleteItemToDraw(CanFrameRuleSet*, int)), this, SLOT(deleteItemToDraw(CanFrameRuleSet*, int)));
+    Sel = new CANDataItemSelector(NULL, pCollection);
+    connect(Sel, SIGNAL(addItemToDraw(CANSignal*, QColor)), this, SLOT(addItemToDraw(CANSignal*, QColor)));
+    connect(Sel, SIGNAL(deleteItemToDraw(CANSignal*)), this, SLOT(deleteItemToDraw(CANSignal*)));
 }
 
 GraphicWindow::~GraphicWindow()
@@ -62,14 +62,17 @@ void GraphicWindow::newMessage(CANMsgandTimeStruct *Msg, int Cnt)
     int i;
     for(i = 0 ; Curves.count() >  i ; i++)
     {
-        if(Msg->CANMsg.ID == Curves.at(i)->Ruleset->getId())
+	if(Msg->CANMsg.ID == Curves.at(i)->pSignal->Id)
         {
-            QList <IDCollection*> Col;
-            Curves.at(i)->Ruleset->getIDCollection((unsigned char*)Msg->CANMsg.DATA,&Col);
-            Curves.at(i)->y.append(Col.at(Curves.at(i)->Rule)->Value);
-            Curves.at(i)->x.append((double)Msg->timev.tv_sec + (double)Msg->timev.tv_usec/1000000.0);
-            Plot->setAxisScale(QwtPlot::xBottom, Curves.at(i)->x.last()-10,Curves.at(i)->x.last(), 10);
-        }
+	    SignalDataCollection *DataCol = Curves.at(i)->pSignal->getSignalDataCollection(Msg->CANMsg.DATA);
+
+	    if(DataCol)
+	    {
+		Curves.at(i)->y.append(DataCol->Value);
+		Curves.at(i)->x.append((double)Msg->timev.tv_sec + (double)Msg->timev.tv_usec/1000000.0);
+                //Plot->setAxisScale(QwtPlot::xBottom, Curves.at(i)->x.last()-10,Curves.at(i)->x.last(), 10);
+	    }
+	}
     }
 
 }
@@ -86,6 +89,7 @@ void GraphicWindow::MainTimerSlot()
            }
        }
        Plot->replot();
+
 }
 
 void GraphicWindow::ClearAll()
@@ -117,20 +121,21 @@ void GraphicWindow::on_GraphFromDB_clicked()
 
 //!SLOT that addes an Item to draw
 //!Takes a CalRule (specific for an ID) and the invoked Rule
-void GraphicWindow::addItemToDraw(CanFrameRuleSet* RuleSet, int Rule, QColor Color)
+void GraphicWindow::addItemToDraw(CANSignal* Signal, QColor Color)
 {
     QBrush br(Qt::NoBrush);
     br.setColor(Color);
     QPen Pen(Color);
-    Curves.append(new ItemCurveInfo(RuleSet, Rule));
+    Curves.append(new ItemCurveInfo(Signal));
     Curves.last()->PlotCurve->setBrush(br);
     Curves.last()->PlotCurve->setPen(Pen);
 }
-void GraphicWindow::deleteItemToDraw(CanFrameRuleSet* RuleSet, int Rule)
+
+void GraphicWindow::deleteItemToDraw(CANSignal* Signal)
 {
     for(int i = 0 ; i < Curves.count() ; i++ )
     {
-        if(Curves.at(i)->Ruleset->getId() == RuleSet->getId())
+	if(Curves.at(i)->pSignal == Signal)
         {
             Curves.at(i)->PlotCurve->detach();
             Curves.removeAt(i);
@@ -138,4 +143,8 @@ void GraphicWindow::deleteItemToDraw(CanFrameRuleSet* RuleSet, int Rule)
     }
 
     Plot->replot();
+}
+void GraphicWindow::StopCapture()
+{
+    Plot->setAutoScaleCanvas();
 }

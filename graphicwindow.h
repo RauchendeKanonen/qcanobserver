@@ -22,6 +22,10 @@
 #include "messagebufferinterface.h"
 #include <qwt_plot.h>
 #include <qwt_plot_curve.h>
+#include <qwt_plot_canvas.h>
+#include <qwt_plot_zoomer.h>
+#include <qwt.h>
+#include <qwt_plot_panner.h>
 #include "processdatabase.h"
 #include "candataitemselector.h"
 #include <Qt>
@@ -29,6 +33,8 @@
 #include <qwt_legend_item.h>
 #include <qwt_symbol.h>
 #include <qwt_text.h>
+#include "cansignalcollection.h"
+
 
 #define MAX_GRAPH_WINDOWS 16
 
@@ -40,17 +46,41 @@ class QCanPlot : public QwtPlot
         QwtLegend *legend = new QwtLegend();
         legend->setItemMode(QwtLegend::ClickableItem);
         this->insertLegend(legend, QwtPlot::BottomLegend);
+        ActCanvas = canvas();
+        CanvasZoomer = new QwtPlotZoomer( QwtPlot::xBottom, QwtPlot::yLeft,  ActCanvas);
+        CanvasZoomer->setSelectionFlags( QwtPicker::DragSelection );
+        CanvasZoomer->setTrackerMode(QwtPicker::ActiveOnly);
+
+
+
+        Panner = new QwtPlotPanner(canvas());
+        Panner->setAxisEnabled(QwtPlot::yRight, false);
+        Panner->setMouseButton(Qt::MidButton);
     }
+    //Left Mouse Button scales to the max autoscale
+    void setAutoScaleCanvas()
+    {
+        this->setAxisAutoScale(QwtPlot::xBottom);
+        this->setAxisAutoScale(QwtPlot::yLeft);
+        ActCanvas = canvas();
+
+        delete CanvasZoomer;
+        CanvasZoomer = new QwtPlotZoomer( QwtPlot::xBottom, QwtPlot::yLeft,  ActCanvas);
+        CanvasZoomer->setSelectionFlags( QwtPicker::DragSelection );
+        CanvasZoomer->setTrackerMode(QwtPicker::ActiveOnly);
+    }
+    QwtPlotCanvas *ActCanvas;
+    QwtPlotZoomer *CanvasZoomer;
+    QwtPlotPanner *Panner;
 };
 
 class ItemCurveInfo
 {
     public:
-    ItemCurveInfo(CanFrameRuleSet *Set, int ARule)
+    ItemCurveInfo(CANSignal *Signal)
     {
-        Rule = ARule;
-        Ruleset = Set;
-        PlotCurve = new QwtPlotCurve(Ruleset->getName(Rule)+QString(" ")+Ruleset->getUnit(Rule));
+	pSignal = Signal;
+	PlotCurve = new QwtPlotCurve(pSignal->Name+QString(" ")+pSignal->Unit);
         PlotCurve->setItemAttribute(QwtPlotItem::Legend, true);
     }
     ~ItemCurveInfo()
@@ -59,8 +89,8 @@ class ItemCurveInfo
     }
 
     QwtPlotCurve *PlotCurve;
-    int Rule;
-    CanFrameRuleSet *Ruleset;
+
+    CANSignal *pSignal;
     QwtArray<double> x;
     QwtArray<double> y;
 };
@@ -73,20 +103,21 @@ class GraphicWindow : public QWidget {
     Q_OBJECT
     Q_DISABLE_COPY(GraphicWindow)
 public:
-    explicit GraphicWindow(QWidget *parent = 0, QList<CanFrameRuleSet*> *RuleList = 0);
+    explicit GraphicWindow(QWidget *parent = 0, CANSignalCollection *Collection = 0);
     virtual ~GraphicWindow();
 protected:
     virtual void changeEvent(QEvent *e);
 public slots:
     void MainTimerSlot(void);
-    void addItemToDraw(CanFrameRuleSet*, int, QColor);
-    void deleteItemToDraw(CanFrameRuleSet*, int);
+    void addItemToDraw(CANSignal* Signal, QColor Color);
+    void deleteItemToDraw(CANSignal* Signal);
     void newMessage(CANMsgandTimeStruct *, int);
     void ClearAll();
+    void StopCapture();
 private:
     Ui::GraphicWindow *m_ui;
     QList<ItemCurveInfo*> Curves;
-    QList<CanFrameRuleSet*> *pRuleList;
+    CANSignalCollection *pCollection;
     CANDataItemSelector *Sel;
     QCanPlot *Plot;
 private slots:

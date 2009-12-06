@@ -21,10 +21,13 @@
 #define READTHREAD_H
 
 #include <qthread.h>
-#include "candevice.h"
+#include "DeviceLib/candevice.h"
 #include "messagebufferinterface.h"
 #include "FilterDialog.h"
 //#include <libpcan.h>
+#include <dlfcn.h>
+#include <iostream>
+
 
 
 class ReadThread : public QThread
@@ -39,7 +42,7 @@ signals:
     void ClearAll();
 
 public slots:
-    void setDev(QString PathArg, int BaudRate, int MsgType);
+    void setDev(QString PathArg, int BaudRate, int MsgType, QString InterfaceLib);
     void QuitThread();
     void setFilter(int Place, int from, int to);
     void sendCANMsg(TPCANMsg *);

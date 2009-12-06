@@ -20,7 +20,7 @@
 #include <QString>
 #include <qdom.h>
 #include <QList>
-#include "canframeruleset.h"
+#include "cansignalcollection.h"
 
 
 
@@ -28,14 +28,11 @@ class ProcessDataBase
 {
 public:
     ProcessDataBase(QString FileName);
-    void getRuleList(QList<CanFrameRuleSet*> **lst);
+    CANSignalCollection * getCANSignalList(void);
 private:
-    int getValueNamePairs(unsigned char Data[8], int id, float *Value, QString *Name);
-    int getNumOfValueNamePairs(int id);
     QDomDocument domTree;
-    QList<CanFrameRuleSet*> list;
-    CanFrameRuleSet* findId(int id);
 
+    CANSignalCollection *Collection;
 };
 
 #endif // PROCESSDATABASE_H

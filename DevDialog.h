@@ -35,12 +35,15 @@ protected:
     virtual void changeEvent(QEvent *e);
 
 private:
+    QString CANLibFilePath;
     Ui::DevDialog *m_ui;
 
 signals:
-    void setDev(QString PathArg, int BaudRate, int MsgType);
+    void setDev(QString PathArg, int BaudRate, int MsgType, QString InterfaceLib);
 
 private slots:
+    void on_comboBox_currentIndexChanged(QString );
+    void on_comboBox_currentIndexChanged(int );
     void on_buttonBox1_accepted();
 };
 

@@ -21,11 +21,11 @@
 
 
 
-ObserverDialog::ObserverDialog(QWidget *parent, QList<CanFrameRuleSet*> *RuleList) :
+ObserverDialog::ObserverDialog(QWidget *parent, CANSignalCollection *Collection) :
     QDialog(parent),
     m_ui(new Ui::ObserverDialog)
 {
-    pRuleList = RuleList;
+    pCollection = Collection;
 
     m_ui->setupUi(this);
 
@@ -45,9 +45,9 @@ ObserverDialog::ObserverDialog(QWidget *parent, QList<CanFrameRuleSet*> *RuleLis
     m_ui->tableView->verticalHeader()->setDefaultSectionSize(15);
 
 
-    Sel = new CANDataItemSelector(NULL, pRuleList);
-    connect(Sel, SIGNAL(addItemToDraw(CanFrameRuleSet*, int, QColor)), this, SLOT(addItemToObserve(CanFrameRuleSet*, int, QColor)));
-    connect(Sel, SIGNAL(deleteItemToDraw(CanFrameRuleSet*, int)), this, SLOT(deleteItemToObserve(CanFrameRuleSet*, int)));
+    Sel = new CANDataItemSelector(NULL, pCollection);
+    connect(Sel, SIGNAL(addItemToDraw(CANSignal*, QColor)), this, SLOT(addItemToObserve(CANSignal*, QColor)));
+    connect(Sel, SIGNAL(deleteItemToDraw(CANSignal*)), this, SLOT(deleteItemToObserve(CANSignal*)));
 
 }
 
@@ -63,39 +63,33 @@ void ObserverDialog::newMessage(CANMsgandTimeStruct *Msg, int Cnt)
     int i;
     for(i = 0 ; CANItems.count() >  i ; i++)
     {
-        if(Msg->CANMsg.ID == CANItems.at(i)->ID)
+        if(Msg->CANMsg.ID == CANItems.at(i)->Signal->Id)
         {
-            QList <IDCollection*> Col;
-            CANItems.at(i)->RuleSet->getIDCollection((unsigned char*)Msg->CANMsg.DATA, &Col);
-            CANItems.at(i)->Rule;
+            SignalDataCollection *DataCol = CANItems.at(i)->Signal->getSignalDataCollection(Msg->CANMsg.DATA);
 
-            //is the Item available?
-            for(int c = 0; c < Col.count() ; c++)
+            if(DataCol)
             {
-                if(CANItems.at(i)->Rule == Col.at(c)->Rule)
-                {
-                    QString Name = Col.at(c)->Name;
-                    QString Unit = Col.at(c)->Unit;
-                    float Value = Col.at(c)->Value;
+                QString Name = DataCol->Name;
+                QString Unit = DataCol->Unit;
+                float Value = DataCol->Value;
 
-                    QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
+                QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
 
-                    TraceModel->insertRows(0, 1, (const QModelIndex &)index1);
-                    //get the valid index
-                    index1 = TraceModel->index(0, 0, QModelIndex());
-                    QVariant Col0(Name);
-                    TraceModel->setData(index1,Col0,Qt::EditRole, CANItems.at(i)->Color);
+                TraceModel->insertRows(0, 1, (const QModelIndex &)index1);
+                //get the valid index
+                index1 = TraceModel->index(0, 0, QModelIndex());
+                QVariant Col0(Name);
+                TraceModel->setData(index1,Col0,Qt::EditRole, CANItems.at(i)->Color);
 
 
-                    index1 = TraceModel->index(0, 1, QModelIndex());
+                index1 = TraceModel->index(0, 1, QModelIndex());
 
-                    QVariant Col1(Value);
-                    TraceModel->setData(index1,Col1,Qt::EditRole,  CANItems.at(i)->Color);
+                QVariant Col1(Value);
+                TraceModel->setData(index1,Col1,Qt::EditRole,  CANItems.at(i)->Color);
 
-                    index1 = TraceModel->index(0, 2, QModelIndex());
-                    QVariant Col2(Unit);
-                    TraceModel->setData(index1,Col2,Qt::EditRole, CANItems.at(i)->Color);
-                }
+                index1 = TraceModel->index(0, 2, QModelIndex());
+                QVariant Col2(Unit);
+                TraceModel->setData(index1,Col2,Qt::EditRole, CANItems.at(i)->Color);
             }
         }
     }
@@ -120,16 +114,15 @@ void ObserverDialog::ClearAll()
 
 //!SLOT that addes an Item to observe
 //!Takes a CalRule (specific for an ID) and the invoked Rule
-void ObserverDialog::addItemToObserve(CanFrameRuleSet* RuleSet, int Rule, QColor Color)
+void ObserverDialog::addItemToObserve(CANSignal* Signal, QColor Color)
 {
-    CANItems.append(new ObserveItems(RuleSet->getId(),RuleSet, Rule, Color));
+    CANItems.append(new ObserveItems(Signal, new QColor(Color)));
 }
-void ObserverDialog::deleteItemToObserve(CanFrameRuleSet* RuleSet, int Rule)
+void ObserverDialog::deleteItemToObserve(CANSignal* Signal)
 {
     for( int i = 0 ; i < CANItems.count() ; i ++ )
     {
-        if(CANItems.at(i)->ID == RuleSet->getId() &&
-           CANItems.at(i)->Rule == Rule)
+        if(CANItems.at(i)->Signal == Signal)
             CANItems.removeAt(i);
     }
 }

@@ -32,9 +32,20 @@ ReadThread::ReadThread()
 //!PathArg is the path to the Device eg. /dev/pcanusb
 //!For Baudrate see the Datasheet of the PCAN devices
 //!MsgType has to be
-void ReadThread::setDev(QString PathArg, int BaudRate, int MsgType)
+void ReadThread::setDev(QString PathArg, int BaudRate, int MsgType, QString InterfaceLib)
 {
-    Dev = new CANDevice;
+
+    //Load the interface to the hardware
+    void* handle = dlopen(InterfaceLib.toStdString().c_str(), RTLD_LAZY);
+    CANDevice* (*create)();
+    void (*destroy)(CANDevice*);
+
+    char *i = dlerror();
+    create = (CANDevice* (*)())dlsym(handle, "create_object");
+    destroy = (void (*)(CANDevice*))dlsym(handle, "destroy_object");
+
+    Dev = (CANDevice*)create();
+
     Path = PathArg;
 
     if(!Dev->CANDeviceOpen(PathArg) || Dev->CANDeviceInit(BaudRate, MsgType))

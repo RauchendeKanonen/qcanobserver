@@ -36,6 +36,7 @@
 #include "processdatabase.h"
 #include "observerdialog.h"
 #include "sendmsgdialog.h"
+#include "cansignalcollection.h"
 
 
 using namespace std;
@@ -59,7 +60,7 @@ public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void closeEvent( QCloseEvent *e );
-    QList<CanFrameRuleSet*> *RuleList;
+
 private:
     StringListModel *TraceModel;
     Ui::MainWindow *ui;
@@ -72,10 +73,11 @@ private:
     ObserverDialog *ObserverWnd [MAX_GRAPH_WINDOWS];
     int MsgCounter;
     SendMsgDialog *SendMsgDlg;
+    CANSignalCollection *CANSignals;
 
 signals:
-    void setDev(QString PathArg, int BaudRate, int MsgType);
-    void QuitThread();
+    void setDev(QString PathArg, int BaudRate, int MsgType, QString InterfaceLib);
+    void StopCapture();
     void ClearAll();
 
 public slots:

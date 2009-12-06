@@ -6,6 +6,7 @@
 #include "candataitemselector.h"
 #include "messagebufferinterface.h"
 #include "stringlistmodel.h"
+#include "cansignalcollection.h"
 
 namespace Ui {
     class ObserverDialog;
@@ -14,17 +15,13 @@ namespace Ui {
 class ObserveItems
 {
     public:
-    ObserveItems(int AID, CanFrameRuleSet* ARuleSet, int ARule, QColor AColor)
+    ObserveItems(CANSignal* ASignal, QColor *AColor)
     {
-        ID = AID;
-        Rule= ARule;
-        Color = new QColor(AColor);
-        RuleSet = ARuleSet;
+        Color = AColor;
+        Signal = ASignal;
     }
-    CanFrameRuleSet* RuleSet;
+    CANSignal* Signal;
     QColor *Color;
-    int ID;
-    int Rule;
 };
 
 
@@ -33,13 +30,13 @@ class ObserverDialog : public QDialog {
     Q_OBJECT
     Q_DISABLE_COPY(ObserverDialog)
 public:
-    explicit ObserverDialog(QWidget *parent = 0, QList<CanFrameRuleSet*> *RuleList = 0);
+    explicit ObserverDialog(QWidget *parent = 0, CANSignalCollection *Collection = 0);
     virtual ~ObserverDialog();
 
 public slots:
     void MainTimerSlot(void);
-    void addItemToObserve(CanFrameRuleSet*, int, QColor);
-    void deleteItemToObserve(CanFrameRuleSet*, int);
+    void addItemToObserve(CANSignal* Signal, QColor Color);
+    void deleteItemToObserve(CANSignal* Signal);
     void newMessage(CANMsgandTimeStruct *, int);
     void ClearAll();
 
@@ -47,8 +44,8 @@ protected:
     virtual void changeEvent(QEvent *e);
 
 private:
+    CANSignalCollection *pCollection;
     Ui::ObserverDialog *m_ui;
-    QList<CanFrameRuleSet*> *pRuleList;
     QList<ObserveItems*> CANItems;
     CANDataItemSelector *Sel;
     StringListModel *TraceModel;

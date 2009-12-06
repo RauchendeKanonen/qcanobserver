@@ -107,10 +107,10 @@ void MainWindow::on_actionDevice_triggered()
     DevDialog *qd = new DevDialog(this);
 
 
-    QObject::connect(qd, SIGNAL(setDev(QString, int, int)),
-                     this, SIGNAL(setDev(QString, int, int)));
+    QObject::connect(qd, SIGNAL(setDev(QString , int , int , QString )),
+                     this, SIGNAL(setDev(QString , int , int , QString )));
 
-    QObject::connect(this, SIGNAL(QuitThread()),
+    QObject::connect(this, SIGNAL(StopCapture()),
                      rt, SLOT(QuitThread()));
 
     QObject::connect(SendMsgDlg, SIGNAL(sendCANMsg(TPCANMsg *)),
@@ -154,7 +154,7 @@ void MainWindow::on_actionStop_triggered()
 {
     //Switch to the full list
     periodicTimer->stop();
-    emit QuitThread();
+    emit StopCapture();
 }
 
 void MainWindow::newMessage(CANMsgandTimeStruct *CANMsgandTime, int MsgCnt)
@@ -300,15 +300,15 @@ void MainWindow::on_actionGraphicWindow_triggered()
         {
             if(GraphWnd[i] == NULL)
             {
-                GraphWnd[i] = new GraphicWindow(NULL, RuleList);
+		GraphWnd[i] = new GraphicWindow(NULL, CANSignals);
                 GraphWnd[i]->setWindowTitle("GraphicWindow");
                 GraphWnd[i]->move(this->pos().x()+this->geometry().width(), this->pos().y());
                 GraphWnd[i]->show();
-
+                connect(this, SIGNAL(StopCapture()), GraphWnd[i], SLOT(StopCapture()));
                 connect(rt->MsgBuf, SIGNAL(newMessage(CANMsgandTimeStruct *,int)), GraphWnd[i], SLOT(newMessage(CANMsgandTimeStruct *,int)));
                 connect(periodicTimer, SIGNAL(timeout()), GraphWnd[i], SLOT(MainTimerSlot()));
                 connect(this, SIGNAL(ClearAll()), GraphWnd[i], SLOT(ClearAll()));
-                return;
+		return;
             }
         }
     }
@@ -324,8 +324,10 @@ void MainWindow::on_actionDatabase_triggered()
         QStringList Files = dlg.selectedFiles();
         QString File = Files.at(0);
         DB = new ProcessDataBase(File);
-        DB->getRuleList(&RuleList);
-        RuleList->count();
+	//make the Data public
+	CANSignals = DB->getCANSignalList();
+	//delete DB;
+
     }
     else
         return;
@@ -350,25 +352,6 @@ void MainWindow::on_tableView_clicked(QModelIndex index)
     for(int i = 0 ; i < 8 ; i ++ )
         hexdat[i] = strtol(data+i*5, NULL, 16);
 
-    if(DB)
-    {
-//        int NumOfVals = DB->getNumOfValueNamePairs(id);
-//
-//        float Values[32];
-//        QString Names[32];
-//        QString InformationText;
-//
-//        if(DB->getValueNamePairs((char*)hexdat, id, Values, Names))
-//        {
-//            for(int f = 0 ; f < NumOfVals ; f++ )
-//            {
-//                QString Value;
-//                Value.sprintf("%f",(Values[f]));
-//                InformationText = InformationText+QString(" ")+Names[f]+QString(" = ")+Value+QString(" ");
-//            }
-//            ui->FrameInformationLable->setText(InformationText);
-//        }
-    }
 }
 
 void MainWindow::on_actionObserverWindow_triggered()
@@ -379,7 +362,7 @@ void MainWindow::on_actionObserverWindow_triggered()
         {
             if(ObserverWnd[i] == NULL)
             {
-                ObserverWnd[i] = new ObserverDialog(NULL, RuleList);
+                ObserverWnd[i] = new ObserverDialog(NULL, CANSignals);
                 ObserverWnd[i]->setWindowTitle("ObserverWindow");
                 ObserverWnd[i]->move(this->pos().x()+this->geometry().width(), this->pos().y());
                 ObserverWnd[i]->show();

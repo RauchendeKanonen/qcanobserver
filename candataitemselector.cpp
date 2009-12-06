@@ -17,14 +17,14 @@
 */
 #include "candataitemselector.h"
 #include "ui_candataitemselector.h"
-#include "canframeruleset.h"
 
-CANDataItemSelector::CANDataItemSelector(QWidget *parent, QList<CanFrameRuleSet*> *RuleList) :
+
+CANDataItemSelector::CANDataItemSelector(QWidget *parent, CANSignalCollection *Collection) :
     QDialog(parent),
     m_ui(new Ui::CANDataItemSelector)
 {
 
-    pRuleList = RuleList;
+    pCollection = Collection;
     m_ui->setupUi(this);
 
 
@@ -37,17 +37,11 @@ CANDataItemSelector::CANDataItemSelector(QWidget *parent, QList<CanFrameRuleSet*
     m_ui->ComboItemColorSelector->addItem(QString("black"),NULL);
     m_ui->ComboItemColorSelector->addItem(QString("grey"),NULL);
 
-    for(int i = 0 ; i < pRuleList->count() ; i++ )
+    for(int i = 0 ; i < pCollection->count() ; i++ )
     {
-        for(int c = 0 ; c < pRuleList->at(i)->getNumOfRules() ; c ++ )
-        {
-            QString ID;
-            ID.sprintf("<0x%x> (%d) ",(pRuleList->at(i)->getId()), c);
-
-            m_ui->ComboItemSelector->addItem(ID+pRuleList->at(i)->getName(c),NULL);
-        }
-
-
+	QString ID;
+	ID.sprintf("<0x%x>",Collection->getSignal(i)->Id);
+	m_ui->ComboItemSelector->addItem(ID+Collection->getSignal(i)->Name,NULL);
     }
 
 }
@@ -89,66 +83,57 @@ void CANDataItemSelector::on_AddItem_clicked()
     int index = m_ui->ComboItemColorSelector->currentIndex();
     QString ColorName = m_ui->ComboItemColorSelector->itemText(index);
     QColor Color(ColorName);
-
+    const char *debug;
 
     index = m_ui->ComboItemSelector->currentIndex();
-    QString RuleName = m_ui->ComboItemSelector->itemText(index); 
+    QString ItemStr = m_ui->ComboItemSelector->itemText(index);
 
-    QString IDStr = RuleName.right(-RuleName.indexOf(QString("<"))+RuleName.length()-1);
+    QString IDStr = ItemStr.right(-ItemStr.indexOf(QString("<"))+ItemStr.length()-1);
     IDStr = IDStr.left(IDStr.indexOf(QString(">")));
 
-
-    QString RuleStr = RuleName.right(-RuleName.indexOf(QString('('))+RuleName.length()-1);
-    RuleStr = RuleStr.left(RuleStr.indexOf(QString(')')));
-
+    int test1 = ItemStr.indexOf(QString("("));
+    int test2 = ItemStr.indexOf(QString(")"));
+    debug = ItemStr.toStdString().c_str();
+    QString SignalName = ItemStr.right(-ItemStr.indexOf(QString("("))+ItemStr.length());
+    debug = SignalName.toStdString().c_str();
+    SignalName = SignalName.left(SignalName.indexOf(QString(")"))+1);
+    debug = SignalName.toStdString().c_str();
     int id = IDStr.toInt(NULL, 16);
-    int Rule = RuleStr.toInt(NULL, 10);
+
 
     //is the item already in the list
     for(int i = 0 ; i < m_ui->ItemsToDraw->count() ; i ++ )
     {
-        if(m_ui->ItemsToDraw->item(i)->text() ==  RuleName)
+	if(m_ui->ItemsToDraw->item(i)->text() ==  SignalName)
             return;
     }
 
-    m_ui->ItemsToDraw->addItem(RuleName);
+    m_ui->ItemsToDraw->addItem(SignalName);
 
-    for(int i = 0; pRuleList->count() > i ; i ++ )
-    {
-        if(pRuleList->at(i)->getId() == id)
-        {
-            emit addItemToDraw(pRuleList->at(i), Rule, Color);
-            return;
-        }
-    }
+    //inform the parent about
+
+    emit addItemToDraw(pCollection->getSignal(id, SignalName), Color);
+    return;
+
 }
 
 void CANDataItemSelector::on_DeleteItem_clicked()
 {
 
     int row = m_ui->ItemsToDraw->selectionModel()->selectedRows(0).at(0).row();
-    QString RuleName = m_ui->ItemsToDraw->item(row)->text();
+    QString SignalName = m_ui->ItemsToDraw->item(row)->text();
 
-    QString IDStr = RuleName.right(-RuleName.indexOf(QString("<"))+RuleName.length()-1);
+    QString IDStr = SignalName.right(-SignalName.indexOf(QString("<"))+SignalName.length()-1);
     IDStr = IDStr.left(IDStr.indexOf(QString(">")));
 
-    QString RuleStr = RuleName.right(-RuleName.indexOf(QString('('))+RuleName.length()-1);
-    RuleStr = RuleStr.left(RuleStr.indexOf(QString(')')));
-
     int id = IDStr.toInt(NULL, 16);
-    int Rule = RuleStr.toInt(NULL, 10);
+
 
 
     if(m_ui->ItemsToDraw->selectionModel()->selectedRows(0).count())
         m_ui->ItemsToDraw->takeItem(m_ui->ItemsToDraw->selectionModel()->selectedRows(0).at(0).row());
 
-    for(int i = 0; pRuleList->count() > i ; i ++ )
-    {
-        if(pRuleList->at(i)->getId() == id)
-        {
-            emit deleteItemToDraw(pRuleList->at(i), Rule);
-            return;
-        }
-    }
 
+    emit deleteItemToDraw(pCollection->getSignal(id, SignalName));
+    return;
 }

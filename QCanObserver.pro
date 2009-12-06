@@ -7,7 +7,6 @@ SOURCES += main.cpp \
     mainwindow.cpp \
     readthread.cpp \
     DevDialog.cpp \
-    candevice.cpp \
     errordialog.cpp \
     messagebufferinterface.cpp \
     stringlistmodel.cpp \
@@ -17,14 +16,14 @@ SOURCES += main.cpp \
     processdatabase.cpp \
     candataitemselector.cpp \
     observerdialog.cpp \
-    canframeruleset.cpp \
     aboutbox.cpp \
     sendmsgdialog.cpp \
-    msgdefdialog.cpp
+    msgdefdialog.cpp \
+    cansignal.cpp \
+    cansignalcollection.cpp
 HEADERS += mainwindow.h \
     readthread.h \
     DevDialog.h \
-    candevice.h \
     errordialog.h \
     messagebufferinterface.h \
     stringlistmodel.h \
@@ -34,10 +33,11 @@ HEADERS += mainwindow.h \
     processdatabase.h \
     candataitemselector.h \
     observerdialog.h \
-    canframeruleset.h \
     aboutbox.h \
     sendmsgdialog.h \
-    msgdefdialog.h
+    msgdefdialog.h \
+    cansignal.h \
+    cansignalcollection.h
 FORMS += mainwindow.ui \
     DevDialog.ui \
     errordialog.ui \

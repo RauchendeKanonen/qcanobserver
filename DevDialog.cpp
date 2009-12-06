@@ -17,14 +17,31 @@
 */
 #include "DevDialog.h"
 #include "ui_DevDialog.h"
-#include "candevice.h"
-
+#include "DeviceLib/candevice.h"
+ #include <QDir>
 
 DevDialog::DevDialog(QWidget *parent) :
     QDialog(parent),
     m_ui(new Ui::DevDialog)
 {
     m_ui->setupUi(this);
+    m_ui->TextLabelBaud->setText(QwtText(QString("Baudrate")));
+    m_ui->TextLabelInterface->setText(QwtText(QString("Interface Type")));
+    m_ui->TextLabelPath->setText(QwtText(QString("Device Path")));
+
+    QDir moduldir = QDir(QString("lib"));
+    QStringList filter;
+    QString filterstr("*.so");
+    filter.append(filterstr);
+    moduldir.setNameFilters(filter);
+    QFileInfoList list = moduldir.entryInfoList();
+
+    for (int i = 0; i < list.size(); ++i)
+    {
+         QFileInfo fileInfo = list.at(i);
+         QVariant path(fileInfo.absoluteFilePath());
+         m_ui->comboBox->addItem(fileInfo.fileName(), path);
+     }
 }
 
 DevDialog::~DevDialog()
@@ -46,5 +63,16 @@ void DevDialog::changeEvent(QEvent *e)
 
 void DevDialog::on_buttonBox1_accepted()
 {
-    emit setDev(m_ui->lineEdit->text(), m_ui->lEBaudRate->text().toInt(NULL,16), MSGTYPE_STANDARD);
+    emit setDev(m_ui->lineEdit->text(), m_ui->lEBaudRate->text().toInt(NULL,16), MSGTYPE_STANDARD, CANLibFilePath);
+}
+
+void DevDialog::on_comboBox_currentIndexChanged(QString )
+{
+
+}
+
+void DevDialog::on_comboBox_currentIndexChanged(int index)
+{
+    QVariant path = m_ui->comboBox->itemData(index, Qt::UserRole);
+    CANLibFilePath = path.toString();
 }

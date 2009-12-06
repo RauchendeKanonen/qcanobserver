@@ -41,6 +41,9 @@ ProcessDataBase::ProcessDataBase(QString FileName)
     }
     opmlFile.close();
 
+    Collection = new CANSignalCollection();
+
+
     // get the header information from the DOM
     QDomElement root = domTree.documentElement();
     QDomNode node;
@@ -89,12 +92,22 @@ ProcessDataBase::ProcessDataBase(QString FileName)
                         ConstrainMask[c] = atoi((char*)&ConstrainMaskStr.at(c));
                 }
 
+		Name = QString("(")+Name+QString(")");
 
-                CanFrameRuleSet *rule = findId(id.toInt(NULL,16));
-                if(rule != NULL)
-                    rule->addRule(Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, ConstrainMask, UnitStr, isEventItem, ConstrainVal);
-                else
-                    list.append(new CanFrameRuleSet(id.toInt(NULL,16), Offset.toFloat(NULL), Mul.toFloat(NULL), Name, Mask, ConstrainMask, UnitStr, isEventItem, ConstrainVal));
+		Collection->addSignal(id.toInt(NULL,16),
+				      Offset.toFloat(NULL),
+				      Mul.toFloat(NULL),
+				      Name,
+				      Mask,
+				      ConstrainMask,
+				      UnitStr,
+				      isEventItem,
+				      ConstrainVal,
+				      true,
+				      true,
+				      1);
+
+
 
                 Item_ = ItemList.at(f);
             }
@@ -102,57 +115,8 @@ ProcessDataBase::ProcessDataBase(QString FileName)
         node = node.nextSibling();
     }
 }
-void ProcessDataBase::getRuleList(QList<CanFrameRuleSet*> **lst)
+
+CANSignalCollection * ProcessDataBase::getCANSignalList()
 {
-    list.count();
-    *lst = &list;
-}
-
-CanFrameRuleSet* ProcessDataBase::findId(int id)
-{
-    int count = list.count();
-
-    for(int i = 0 ; i < count ; i ++ )
-    {
-        if(list.at(i)->getId() == id)
-            return list.at(i);
-    }
-    return NULL;
-}
-int ProcessDataBase::getNumOfValueNamePairs(int id)
-{
-    int count = list.count();
-
-    for(int i = 0 ; i < count ; i ++ )
-    {
-        if(list.at(i)->getId() == id)
-            return list.at(i)->getNumOfRules();
-    }
-    return -1;
-}
-int ProcessDataBase::getValueNamePairs(unsigned char Data[8], int id, float *Value, QString *Name)
-{
-    int count = list.count();
-    CanFrameRuleSet *Cal;
-
-    for(int i = 0 ; 1 ; i ++ )
-    {
-        if(i == count)
-            return -1;
-
-        if(list.at(i)->getId() == id)
-        {
-            Cal = list.at(i);
-            break;
-        }
-    }
-
-    for(int i = 0; i < Cal->getNumOfRules() ; i++)
-    {
-        *Name = Cal->getName(i);
-        *Value = Cal->getValue(Data, i);
-        Name++;
-        Value++;
-    }
-    return count;
+    return Collection;
 }

@@ -37,6 +37,9 @@ GraphicWindow::GraphicWindow(QWidget *parent, CANSignalCollection *Collection) :
     Sel = new CANDataItemSelector(NULL, pCollection);
     connect(Sel, SIGNAL(addItemToDraw(CANSignal*, QColor)), this, SLOT(addItemToDraw(CANSignal*, QColor)));
     connect(Sel, SIGNAL(deleteItemToDraw(CANSignal*)), this, SLOT(deleteItemToDraw(CANSignal*)));
+
+    Follow = false;
+    FollowTime = 10; //s
 }
 
 GraphicWindow::~GraphicWindow()
@@ -70,7 +73,9 @@ void GraphicWindow::newMessage(CANMsgandTimeStruct *Msg, int Cnt)
 	    {
 		Curves.at(i)->y.append(DataCol->Value);
 		Curves.at(i)->x.append((double)Msg->timev.tv_sec + (double)Msg->timev.tv_usec/1000000.0);
-                //Plot->setAxisScale(QwtPlot::xBottom, Curves.at(i)->x.last()-10,Curves.at(i)->x.last(), 10);
+
+                if(Follow)
+                    Plot->setAxisScale(QwtPlot::xBottom, Curves.at(i)->x.last()-FollowTime,Curves.at(i)->x.last()+FollowTime/10, 10);
 	    }
 	}
     }
@@ -147,4 +152,72 @@ void GraphicWindow::deleteItemToDraw(CANSignal* Signal)
 void GraphicWindow::StopCapture()
 {
     Plot->setAutoScaleCanvas();
+}
+
+
+//follow
+void GraphicWindow::on_FollowCheckBox_toggled(bool checked)
+{
+    if(checked)
+    {
+        //disable the autoscale checkbox
+        m_ui->checkBox->setEnabled(false);
+        Follow = true;
+        FollowTime = Plot->axisScaleDiv(QwtPlot::xBottom)->hBound() - Plot->axisScaleDiv(QwtPlot::xBottom)->lBound();
+    }
+
+    else
+    {
+        //enable the autoscale checkbox
+        m_ui->checkBox->setEnabled(true);
+
+        Follow = false;
+
+        int lowerBound = Plot->axisScaleDiv(QwtPlot::xBottom)->lBound();
+        int higherBound = Plot->axisScaleDiv(QwtPlot::xBottom)->hBound();
+        //store the autoscaled canvas for max outter zoom
+        Plot->setAutoScaleCanvas();
+        Plot->setAxisScale(QwtPlot::xBottom, lowerBound, higherBound, 10);
+    }
+
+
+}
+
+//y autoscale
+void GraphicWindow::on_checkBox_2_toggled(bool checked)
+{
+    if(checked)
+    {
+        Plot->setAxisAutoScale(QwtPlot::yLeft);
+    }
+    else
+    {
+        int lowerBound = Plot->axisScaleDiv(QwtPlot::yLeft)->lBound();
+        int higherBound = Plot->axisScaleDiv(QwtPlot::yLeft)->hBound();
+        Plot->setAxisScale(QwtPlot::yLeft, lowerBound, higherBound, 10);
+    }
+}
+
+//autoscale
+void GraphicWindow::on_checkBox_toggled(bool checked)
+{
+    if(checked)
+    {
+        m_ui->FollowCheckBox->setEnabled(false);
+        Plot->setAxisAutoScale(QwtPlot::xBottom);
+        Plot->setAxisAutoScale(QwtPlot::yLeft);
+    }
+    else
+    {
+        m_ui->FollowCheckBox->setEnabled(true);
+
+        int lowerBound = Plot->axisScaleDiv(QwtPlot::yLeft)->lBound();
+        int higherBound = Plot->axisScaleDiv(QwtPlot::yLeft)->hBound();
+        Plot->setAxisScale(QwtPlot::yRight, lowerBound, higherBound, 10);
+
+
+        lowerBound = Plot->axisScaleDiv(QwtPlot::xBottom)->lBound();
+        higherBound = Plot->axisScaleDiv(QwtPlot::xBottom)->hBound();
+        Plot->setAxisScale(QwtPlot::xBottom, lowerBound, higherBound, 10);
+    }
 }

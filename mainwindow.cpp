@@ -81,6 +81,8 @@ MainWindow::MainWindow(QWidget *parent)
     list->append(QString("Data"));
     list->append(QString("Time"));
     TraceModel = new StringListModel(list);
+
+    //Model Checker
     //new ModelTest(TraceModel, this);
 
     ui->tableView->setModel(TraceModel);
@@ -93,8 +95,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
-    QObject::connect(this, SIGNAL(setDev(QString, int, int)),
-                     rt, SLOT(setDev(QString, int, int)));
+    QObject::connect(this, SIGNAL(setDev(QString, int, int, QString)),
+                     rt, SLOT(setDev(QString, int, int, QString)));
 }
 
 MainWindow::~MainWindow()
@@ -102,61 +104,9 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_actionDevice_triggered()
-{
-    DevDialog *qd = new DevDialog(this);
 
-
-    QObject::connect(qd, SIGNAL(setDev(QString , int , int , QString )),
-                     this, SIGNAL(setDev(QString , int , int , QString )));
-
-    QObject::connect(this, SIGNAL(StopCapture()),
-                     rt, SLOT(QuitThread()));
-
-    QObject::connect(SendMsgDlg, SIGNAL(sendCANMsg(TPCANMsg *)),
-                     rt, SLOT(sendCANMsg(TPCANMsg *)));
-
-    QObject::connect(FilterDlg, SIGNAL(setFilter(int, int, int)),
-                     rt, SLOT(setFilter(int, int, int)));
-
-
-    qd->setWindowTitle("Select a device");
-    qd->setModal(true);
-    qd->exec();
-
-    //Filter
-    ui->checkBox->setEnabled(true);
-    //SendMsgs
-    ui->checkBox_2->setEnabled(true);
-    delete qd;
-}
-
-void MainWindow::on_actionStart_triggered()
-{
-    if(rt->isConfigured())
-    {
-        rt->start();
-        periodicTimer->start(100);
-    }
-    else
-    {
-        ErrorDialog *ed = new ErrorDialog;
-        ed->SetErrorMessage("No Device is Configured!");
-        ed->setModal(true);
-        ed->show();
-
-        //delete ed;
-        return;
-    }
-}
-
-void MainWindow::on_actionStop_triggered()
-{
-    //Switch to the full list
-    periodicTimer->stop();
-    emit StopCapture();
-}
-
+//add the message to the Model
+//SLOT
 void MainWindow::newMessage(CANMsgandTimeStruct *CANMsgandTime, int MsgCnt)
 {
     QString MsgString;
@@ -194,54 +144,8 @@ void MainWindow::newMessage(CANMsgandTimeStruct *CANMsgandTime, int MsgCnt)
 }
 
 
-void MainWindow::on_actionClear_triggered()
-{
-    emit ClearAll();
-    delete TraceModel;
-    QStringList *list = new QStringList();
-    list->append(QString("ID"));
-    list->append(QString("Data"));
-    list->append(QString("Time"));
-    TraceModel = new StringListModel(list);
-    MsgCounter = 0;
-    ui->tableView->setModel(TraceModel);
-}
 
-void MainWindow::on_actionSave_triggered()
-{
-    QFileDialog dlg(this, QString("Select a Capture File *.dat"),QString("Save/"),NULL);
-    dlg.setModal(true);
-    if(dlg.exec())
-    {
-        QStringList Files = dlg.selectedFiles();
-        QString File = Files.at(0);
-        rt->MsgBuf->Save((char*)File.toStdString().c_str());
-
-    }
-    else
-        return;
-}
-
-void MainWindow::on_actionLoad_triggered()
-{
-    QFileDialog dlg(this, QString("Select a Capture File *.dat"),QString("Save/"),NULL);
-    dlg.setModal(true);
-    if(dlg.exec())
-    {
-        QStringList Files = dlg.selectedFiles();
-        QString File = Files.at(0);
-        rt->MsgBuf->Load((char*)File.toStdString().c_str());
-
-        TraceModel->Update();
-
-        //Inform All the other Windows
-        QTimer::singleShot(3, (QObject*)periodicTimer, SIGNAL(timeout()));
-
-    }
-    else
-        return;
-}
-
+//update the view with all arrived msgs
 void MainWindow::periodicUpdate(void)
 {
     TraceModel->Update();
@@ -252,27 +156,7 @@ void MainWindow::periodicUpdate(void)
     ui->MsgCounter->display(NumOfMsgs);
 }
 
-void MainWindow::on_checkBox_clicked(bool checked)
-{
-    if(checked)
-    {
-        int x = this->geometry().x();
-        FilterDlg->move(x+600,0);
-        FilterDlg->show();
-    }
-    else
-        FilterDlg->hide();
-}
 
-void MainWindow::on_actionClose_triggered()
-{
-
-}
-
-void MainWindow::on_MainWindow_destroyed()
-{
-
-}
 
 void MainWindow::closeEvent( QCloseEvent *e )
 {
@@ -333,6 +217,27 @@ void MainWindow::on_actionDatabase_triggered()
         return;
 }
 
+
+
+//add message
+void MainWindow::on_checkBox_2_toggled(bool checked)
+{
+    SendMsgDlg->move(this->pos().x(), this->pos().y()+this->geometry().height()+30);
+    if(checked)
+        SendMsgDlg->show();
+    else
+        SendMsgDlg->hide();
+}
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////Private Action Handlers from the controls///////////////////////////
+
+
+//Unused
 void MainWindow::on_tableView_clicked(QModelIndex index)
 {
     unsigned char hexdat[8];
@@ -353,6 +258,7 @@ void MainWindow::on_tableView_clicked(QModelIndex index)
         hexdat[i] = strtol(data+i*5, NULL, 16);
 
 }
+
 
 void MainWindow::on_actionObserverWindow_triggered()
 {
@@ -377,6 +283,36 @@ void MainWindow::on_actionObserverWindow_triggered()
     return;
 }
 
+void MainWindow::on_actionDevice_triggered()
+{
+    DevDialog *qd = new DevDialog(this);
+
+
+    QObject::connect(qd, SIGNAL(setDev(QString , int , int , QString )),
+                     this, SIGNAL(setDev(QString , int , int , QString )));
+
+    QObject::connect(this, SIGNAL(StopCapture()),
+                     rt, SLOT(QuitThread()));
+
+    QObject::connect(SendMsgDlg, SIGNAL(sendCANMsg(TPCANMsg *)),
+                     rt, SLOT(sendCANMsg(TPCANMsg *)));
+
+    QObject::connect(FilterDlg, SIGNAL(setFilter(int, int, int)),
+                     rt, SLOT(setFilter(int, int, int)));
+
+
+    qd->setWindowTitle("Select a device");
+    qd->setModal(true);
+    qd->exec();
+
+    //Filter
+    ui->checkBox->setEnabled(true);
+    //SendMsgs
+    ui->checkBox_2->setEnabled(true);
+    delete qd;
+}
+
+
 void MainWindow::on_actionAbout_triggered()
 {
     AboutBox *about = new AboutBox();
@@ -384,18 +320,105 @@ void MainWindow::on_actionAbout_triggered()
     about->exec();
     delete about;
 }
-
+//Unused
 void MainWindow::on_actionSendDialog_triggered()
 {
 
 
 }
-//add message
-void MainWindow::on_checkBox_2_toggled(bool checked)
+
+void MainWindow::on_actionStart_triggered()
 {
-    SendMsgDlg->move(this->pos().x(), this->pos().y()+this->geometry().height()+30);
-    if(checked)
-        SendMsgDlg->show();
+    if(rt->isConfigured())
+    {
+        rt->start();
+        periodicTimer->start(100);
+    }
     else
-        SendMsgDlg->hide();
+    {
+        ErrorDialog *ed = new ErrorDialog;
+        ed->SetErrorMessage("No Device is Configured!");
+        ed->setModal(true);
+        ed->show();
+
+        //delete ed;
+        return;
+    }
+}
+
+void MainWindow::on_actionStop_triggered()
+{
+    //Switch to the full list
+    periodicTimer->stop();
+    emit StopCapture();
+}
+
+void MainWindow::on_checkBox_clicked(bool checked)
+{
+    if(checked)
+    {
+        int x = this->geometry().x();
+        FilterDlg->move(x+600,0);
+        FilterDlg->show();
+    }
+    else
+        FilterDlg->hide();
+}
+//Unused
+void MainWindow::on_actionClose_triggered()
+{
+
+}
+//Unused
+void MainWindow::on_MainWindow_destroyed()
+{
+
+}
+
+void MainWindow::on_actionClear_triggered()
+{
+    emit ClearAll();
+    delete TraceModel;
+    QStringList *list = new QStringList();
+    list->append(QString("ID"));
+    list->append(QString("Data"));
+    list->append(QString("Time"));
+    TraceModel = new StringListModel(list);
+    MsgCounter = 0;
+    ui->tableView->setModel(TraceModel);
+}
+
+void MainWindow::on_actionSave_triggered()
+{
+    QFileDialog dlg(this, QString("Select a Capture File *.dat"),QString("Save/"),NULL);
+    dlg.setModal(true);
+    if(dlg.exec())
+    {
+        QStringList Files = dlg.selectedFiles();
+        QString File = Files.at(0);
+        rt->MsgBuf->Save((char*)File.toStdString().c_str());
+
+    }
+    else
+        return;
+}
+
+void MainWindow::on_actionLoad_triggered()
+{
+    QFileDialog dlg(this, QString("Select a Capture File *.dat"),QString("Save/"),NULL);
+    dlg.setModal(true);
+    if(dlg.exec())
+    {
+        QStringList Files = dlg.selectedFiles();
+        QString File = Files.at(0);
+        rt->MsgBuf->Load((char*)File.toStdString().c_str());
+
+        TraceModel->Update();
+
+        //Inform All the other Windows
+        QTimer::singleShot(3, (QObject*)periodicTimer, SIGNAL(timeout()));
+
+    }
+    else
+        return;
 }

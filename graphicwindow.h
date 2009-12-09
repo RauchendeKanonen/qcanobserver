@@ -26,6 +26,7 @@
 #include <qwt_plot_zoomer.h>
 #include <qwt.h>
 #include <qwt_plot_panner.h>
+#include <qwt_scale_div.h>
 #include "processdatabase.h"
 #include "candataitemselector.h"
 #include <Qt>
@@ -120,7 +121,13 @@ private:
     CANSignalCollection *pCollection;
     CANDataItemSelector *Sel;
     QCanPlot *Plot;
+    bool Follow;
+    float FollowTime;
+
 private slots:
+    void on_checkBox_toggled(bool checked);
+    void on_checkBox_2_toggled(bool checked);
+    void on_FollowCheckBox_toggled(bool checked);
     void on_GraphFromDB_clicked();
     void on_GraphFromScratch_clicked();
 };

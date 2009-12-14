@@ -6,6 +6,7 @@
 #include "stringlistmodel.h"
 #include "DeviceLib/candevice.h"
 #include <QItemSelection>
+#include "can.h"
 
 namespace Ui {
     class SendMsgDialog;
@@ -29,7 +30,7 @@ private:
     QModelIndexList SelectedMsgs;
 
 signals:
-    void sendCANMsg(TPCANMsg *);
+    void sendCANMsg(_CANMsg *);
 
 public slots:
         void newMsgAccepted(QString , QString , QString , QString , QString

@@ -16,11 +16,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "messagebufferinterface.h"
+#include "errordialog.h"
 #include <stdio.h>
 #include <fcntl.h>
+#include<sys/types.h>
+#include<sys/stat.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/time.h>
+
 MessageBufferInterface::MessageBufferInterface(int size)
 {
     tv_1.tv_sec = 0;
@@ -33,7 +37,7 @@ MessageBufferInterface::MessageBufferInterface(int size)
 
 //!Adds a Message to the internal increasing Buffer.
 //!Emits newMessage(CANMsgandTimeStruct* CANMsgandTime, int NumOfMsgs);
-int MessageBufferInterface::AddMessage(TPCANMsg *Msg, struct timeval *tv)
+int MessageBufferInterface::AddMessage(_CANMsg *Msg, struct timeval *tv)
 {
     if(MsgIndex >= MsgBufsize)
     {
@@ -75,7 +79,7 @@ int MessageBufferInterface::AddMessage(CANMsgandTimeStruct *MsgandTime)
 }
 
 
-int MessageBufferInterface::GetMessage(TPCANMsg *Msg, int idx)
+int MessageBufferInterface::GetMessage(_CANMsg *Msg, int idx)
 {
     if(MsgIndex > 0 && MsgIndex <= idx)
     {
@@ -91,13 +95,29 @@ int MessageBufferInterface::Save(char *Filename)
     int LengthOfBuf = MsgIndex * sizeof(CANMsgandTimeStruct);
     int OUTFILE;
 
-
-
+#ifdef LINUX
     if((OUTFILE = open(Filename,O_CREAT|O_WRONLY|O_TRUNC,S_IRWXU|S_IRWXG|S_IRWXO))<=0)
       return -1;
+#endif
 
-    write(OUTFILE, CANMsgandTime, LengthOfBuf);
+#ifdef WINDOWS
+    if((OUTFILE = open(Filename,O_CREAT | O_WRONLY |O_TRUNC | _O_BINARY, _S_IREAD | _S_IWRITE))<=0)
+      return -1;
+#endif
 
+    int flength = write(OUTFILE, CANMsgandTime, LengthOfBuf);
+    close(OUTFILE);
+    if(LengthOfBuf != flength)
+    {
+        QString *Err = new QString();
+        Err->sprintf("Could not Save the Capture File propperly!");
+        ErrorDialog *ed = new ErrorDialog;
+        ed->SetErrorMessage(*Err);
+        delete Err;
+        ed->setModal(true);
+        ed->show();
+        //delete ed;
+    }
     return 0;
 }
 //!Loads Messages from Filename, adds them to the Buffer via AddMessage (TPCANMsg *Msg, timeval *tv)
@@ -106,19 +126,59 @@ int MessageBufferInterface::Load(char *Filename)
     int INFILE;
     int length, t;
     CANMsgandTimeStruct Msg;
+    int i;
 
-
+#ifdef LINUX
     if(-1==(INFILE = open(Filename,O_RDONLY)))
       return -1;
 
-    for(length=0,t=1;t!=0;)
+    for(length=0,t=1;t>0;)
     {
-
         t = read(INFILE,((char*)&Msg),sizeof(Msg));
-        AddMessage(&Msg);
+
+        if( t == sizeof(Msg) && (t > 0))
+            AddMessage(&Msg);
+
+        else if( t != sizeof(Msg) && (t != 0))
+        {
+            QString *Err = new QString();
+            Err->sprintf("Could not Load the File properly! The file seems to be malformed!");
+            ErrorDialog *ed = new ErrorDialog;
+            ed->SetErrorMessage(*Err);
+            delete Err;
+            ed->setModal(true);
+            ed->show();
+            return 0;
+        }
     }
+#endif
 
+#ifdef WINDOWS
+    if(-1==(INFILE = _open(Filename,O_RDONLY|_O_BINARY)))
+      return -1;
 
+    for(length=0,t=1;t>0;)
+    {
+        t = _read(INFILE,((char*)&Msg),sizeof(Msg));
+        length += t;
+
+        if( t == sizeof(Msg) && (t > 0))
+            AddMessage(&Msg);
+
+        else if( t != sizeof(Msg) && (t != 0))
+        {
+            QString *Err = new QString();
+            Err->sprintf("Could not Load the File properly! The file seems to be malformed!");
+            ErrorDialog *ed = new ErrorDialog;
+            ed->SetErrorMessage(*Err);
+            delete Err;
+            ed->setModal(true);
+            ed->show();
+            return 0;
+        }
+
+    }
+#endif
     return 0;
 }
 

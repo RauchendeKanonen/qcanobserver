@@ -15,6 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "config.h"
 #include "DevDialog.h"
 #include "ui_DevDialog.h"
 #include "DeviceLib/candevice.h"
@@ -31,7 +32,14 @@ DevDialog::DevDialog(QWidget *parent) :
 
     QDir moduldir = QDir(QString("lib"));
     QStringList filter;
+#ifdef LINUX
     QString filterstr("*.so");
+#endif
+
+#ifdef WINDOWS
+    QString filterstr("*.dll");
+#endif
+
     filter.append(filterstr);
     moduldir.setNameFilters(filter);
     QFileInfoList list = moduldir.entryInfoList();

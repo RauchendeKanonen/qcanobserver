@@ -138,7 +138,7 @@ int f = SelectedMsgs.count();
     for(int s = 0 ; s < SelectedMsgs.count() ; s++)
     {
 
-        TPCANMsg Msg;
+        _CANMsg Msg;
 	QModelIndex idx = MsgModel->index(SelectedMsgs.at(s).row(), 0, QModelIndex());
         Msg.ID = MsgModel->data(idx, Qt::DisplayRole).toString().toInt(NULL, 16);
 

@@ -105,7 +105,7 @@ bool StringListModel::setData(const QModelIndex &index,
 
  bool StringListModel::insertRows(int position, int rows, const QModelIndex &parent)
  {
-     //beginInsertRows(QModelIndex(), position, position+rows-1);
+     beginInsertRows(QModelIndex(), position, position+rows-1);
      for (int row = 0; row < rows; ++row)
      {
          ColorList.insert(position, new QColor());
@@ -115,24 +115,33 @@ bool StringListModel::setData(const QModelIndex &index,
          }
      }
     akt_position += rows;
-     //endInsertRows();
+     endInsertRows();
      return true;
  }
  
  bool StringListModel::Update()
  {
+     //This is no legal operation for the model
+     //it is made in this way for performance hints
+     //It is restricted to linux because windows exits sometimes with a
+     //runtime-error
+#ifdef LINUX
     beginInsertRows(QModelIndex(), updated_position+1, akt_position);
     updated_position = akt_position;
     endInsertRows();
 
     emit dataChanged(updated_index, akt_index);
     updated_index = akt_index;
+#endif
     return true;
  }
 
  bool StringListModel::removeRows(int position, int rows, const QModelIndex &parent)
  {
+     //no runtime error
+#ifdef WINDOWS
      beginRemoveRows(QModelIndex(), position, position+rows-1);
+#endif
 
      for (int row = 0; row < rows; ++row)
      {
@@ -141,7 +150,8 @@ bool StringListModel::setData(const QModelIndex &index,
             stringList->removeAt(i);
          }
      }
-
+#ifdef WINDOWS
      endRemoveRows();
+#endif
      return true;
  }

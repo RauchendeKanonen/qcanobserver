@@ -15,6 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "config.h"
 #include "graphicwindow.h"
 #include "ui_graphicwindow.h"
 
@@ -158,6 +159,7 @@ void GraphicWindow::StopCapture()
 //follow
 void GraphicWindow::on_FollowCheckBox_toggled(bool checked)
 {
+#if QWT_VERSION < 0x050200
     if(checked)
     {
         //disable the autoscale checkbox
@@ -179,13 +181,35 @@ void GraphicWindow::on_FollowCheckBox_toggled(bool checked)
         Plot->setAutoScaleCanvas();
         Plot->setAxisScale(QwtPlot::xBottom, lowerBound, higherBound, 10);
     }
+#else
+    if(checked)
+    {
+        //disable the autoscale checkbox
+        m_ui->checkBox->setEnabled(false);
+        Follow = true;
+        FollowTime = Plot->axisScaleDiv(QwtPlot::xBottom)->upperBound() - Plot->axisScaleDiv(QwtPlot::xBottom)->lowerBound();
+    }
 
+    else
+    {
+        //enable the autoscale checkbox
+        m_ui->checkBox->setEnabled(true);
 
+        Follow = false;
+
+        int lowerBound = Plot->axisScaleDiv(QwtPlot::xBottom)->lowerBound();
+        int higherBound = Plot->axisScaleDiv(QwtPlot::xBottom)->upperBound();
+        //store the autoscaled canvas for max outter zoom
+        Plot->setAutoScaleCanvas();
+        Plot->setAxisScale(QwtPlot::xBottom, lowerBound, higherBound, 10);
+    }
+#endif
 }
 
 //y autoscale
 void GraphicWindow::on_checkBox_2_toggled(bool checked)
 {
+#if QWT_VERSION < 0x050200
     if(checked)
     {
         Plot->setAxisAutoScale(QwtPlot::yLeft);
@@ -196,11 +220,24 @@ void GraphicWindow::on_checkBox_2_toggled(bool checked)
         int higherBound = Plot->axisScaleDiv(QwtPlot::yLeft)->hBound();
         Plot->setAxisScale(QwtPlot::yLeft, lowerBound, higherBound, 10);
     }
+#else
+    if(checked)
+    {
+        Plot->setAxisAutoScale(QwtPlot::yLeft);
+    }
+    else
+    {
+        int lowerBound = Plot->axisScaleDiv(QwtPlot::yLeft)->lowerBound();
+        int higherBound = Plot->axisScaleDiv(QwtPlot::yLeft)->upperBound();
+        Plot->setAxisScale(QwtPlot::yLeft, lowerBound, higherBound, 10);
+    }
+#endif
 }
 
 //autoscale
 void GraphicWindow::on_checkBox_toggled(bool checked)
 {
+#if QWT_VERSION < 0x050200
     if(checked)
     {
         m_ui->FollowCheckBox->setEnabled(false);
@@ -220,4 +257,25 @@ void GraphicWindow::on_checkBox_toggled(bool checked)
         higherBound = Plot->axisScaleDiv(QwtPlot::xBottom)->hBound();
         Plot->setAxisScale(QwtPlot::xBottom, lowerBound, higherBound, 10);
     }
+#else
+    if(checked)
+    {
+        m_ui->FollowCheckBox->setEnabled(false);
+        Plot->setAxisAutoScale(QwtPlot::xBottom);
+        Plot->setAxisAutoScale(QwtPlot::yLeft);
+    }
+    else
+    {
+        m_ui->FollowCheckBox->setEnabled(true);
+
+        int lowerBound = Plot->axisScaleDiv(QwtPlot::yLeft)->lowerBound();
+        int higherBound = Plot->axisScaleDiv(QwtPlot::yLeft)->upperBound();
+        Plot->setAxisScale(QwtPlot::yRight, lowerBound, higherBound, 10);
+
+
+        lowerBound = Plot->axisScaleDiv(QwtPlot::xBottom)->lowerBound();
+        higherBound = Plot->axisScaleDiv(QwtPlot::xBottom)->upperBound();
+        Plot->setAxisScale(QwtPlot::xBottom, lowerBound, higherBound, 10);
+    }
+#endif
 }

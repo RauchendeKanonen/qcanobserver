@@ -20,12 +20,19 @@
 #ifndef READTHREAD_H
 #define READTHREAD_H
 
+#include "config.h"
+
+
 #include <qthread.h>
 #include "DeviceLib/candevice.h"
 #include "messagebufferinterface.h"
 #include "FilterDialog.h"
-//#include <libpcan.h>
+#include "can.h"
+
+#ifdef LINUX
 #include <dlfcn.h>
+#endif
+
 #include <iostream>
 
 
@@ -45,7 +52,7 @@ public slots:
     void setDev(QString PathArg, int BaudRate, int MsgType, QString InterfaceLib);
     void QuitThread();
     void setFilter(int Place, int from, int to);
-    void sendCANMsg(TPCANMsg *);
+    void sendCANMsg(_CANMsg *);
 private:
      QString Path;
      CANDevice *Dev;

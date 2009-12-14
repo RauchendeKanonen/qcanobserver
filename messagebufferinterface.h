@@ -19,11 +19,17 @@
 #ifndef MESSAGEBUFFERINTERFACE_H
 #define MESSAGEBUFFERINTERFACE_H
 
-#include <pcan.h>
+#include "can.h"
+
+
+#ifdef WINDOWS
+#include <winsock2.h>
+#endif
+
 
 struct CANMsgandTimeStruct
     {
-        TPCANMsg CANMsg;
+        _CANMsg CANMsg;
         struct timeval timev;
     };
 
@@ -35,16 +41,16 @@ class MessageBufferInterface : public QObject
 {
   Q_OBJECT
 public:
-    int GetMessage(TPCANMsg *Msg, int idx);
+    int GetMessage(_CANMsg *Msg, int idx);
     MessageBufferInterface(int size);
-    int AddMessage(TPCANMsg *Msg, timeval *tv);
+    int AddMessage(_CANMsg *Msg, timeval *tv);
 
     int Save(char *Filename);
     int Load(char *Filename);
     int AddMessage(CANMsgandTimeStruct *MsgandTime);
 
 private:
-    TPCANMsg *pTPCANMsg;
+    _CANMsg *pTPCANMsg;
     int MsgIndex;
     int MsgBufsize;
     CANMsgandTimeStruct *CANMsgandTime;

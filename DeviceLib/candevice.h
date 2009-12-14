@@ -19,7 +19,12 @@
 #ifndef CANDEVICE_H
 #define CANDEVICE_H
 
-#include<pcan.h>
+#include"../can.h"
+
+#define ELIBNOTFOUND    -1
+#define OPENSUCCESSFUL   1
+#define OPENFAILED       0
+
 
 
 //redefined HANDLE because of Problems with Qt
@@ -39,8 +44,8 @@ public:
     virtual int CANDeviceOpen(QString Path);
     virtual int CANDeviceInit(int BaudRate, int MsgType);
     //virtual int CANDeviceClose(void);
-    virtual int CANDeviceRead(TPCANMsg *Msg);
-    virtual int CANDeviceWrite(TPCANMsg Msg);
+    virtual int CANDeviceRead(_CANMsg *Msg);
+    virtual int CANDeviceWrite(_CANMsg Msg);
     virtual int CANSetFilter(int FromID, int ToID, int nCANMsgType);
     virtual int CANClearFilters(void);
 private:

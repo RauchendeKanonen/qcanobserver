@@ -89,7 +89,7 @@ int CANDevice::CANDeviceRead(_CANMsg *Msg)
     {
         return 0;
     }
-    Msg->TimeStamp = -1;
+    //Msg->TimeStamp = -1;
     Msg->ID = HWMsg.ID;
     memcpy(Msg->DATA, HWMsg.DATA, 8);
     Msg->LEN = HWMsg.LEN;

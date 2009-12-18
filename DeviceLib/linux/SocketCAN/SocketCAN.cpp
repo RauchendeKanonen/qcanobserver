@@ -118,21 +118,21 @@ int CANDevice::CANDeviceOpen(QString Path)
 
     ret = setsockopt(sockfd, SOL_CAN_RAW, CAN_RAW_ERR_FILTER,
                &err_mask, sizeof(err_mask));
+    /*Listing 2. Manually setting the send and receive socket buffer sizes
 
-    /*
-    addr.can_family = family;
-    strcpy(ifr.ifr_name, Path.toStdString().c_str());
-    if ((sockfd = socket(family, type, proto)) < 0)
-        return OPENFAILED;
+    int ret, sock, sock_buf_size;
 
-    ioctl(sockfd, SIOCGIFINDEX, &ifr);
-    addr.can_ifindex = ifr.ifr_ifindex;
+    sock = socket( AF_INET, SOCK_STREAM, 0 );
+    sock_buf_size = BDP;
 
-    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-    {
-        close(sockfd);
-        return OPENFAILED;
-    }*/
+    ret = setsockopt( sock, SOL_SOCKET, SO_SNDBUF,
+                   (char *)&sock_buf_size, sizeof(sock_buf_size) );
+
+    ret = setsockopt( sock, SOL_SOCKET, SO_RCVBUF,
+                   (char *)&sock_buf_size, sizeof(sock_buf_size) );
+
+    */
+
     return OPENSUCCESSFUL;
 }
 

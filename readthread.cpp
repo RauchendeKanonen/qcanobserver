@@ -135,6 +135,18 @@ void ReadThread::setDev(QString PathArg, int BaudRate, int MsgType, QString Inte
         return;
     }
 
+    if(OPENSUCCESSFUL != ret)
+    {
+        ErrorDialog *ed = new ErrorDialog;
+        ed->SetErrorMessage("Device could not be opened!");
+        ed->setModal(true);
+        ed->show();
+        destroy(Dev);
+        Dev = NULL;
+        //delete ed;
+        return;
+    }
+
 
     if(Dev->CANDeviceInit(BaudRate, MsgType))
     {
@@ -156,7 +168,7 @@ void ReadThread::setDev(QString PathArg, int BaudRate, int MsgType, QString Inte
  {
     if(Place == HWFILTER)
     {
-        if(Dev)
+        if(Dev && from != -1 && to != -1)
             Dev->CANSetFilter(from, to, MSGTYPE_STANDARD);
     }
 
@@ -179,12 +191,23 @@ void ReadThread::run()
     _CANMsg Msg;
     struct timeval tv, starttime,dt;
     QuitNow = 0;
-    gettimeofday( &starttime, NULL);
+
 
     if(Dev == NULL)
     {
         return;
     }
+
+    gettimeofday( &starttime, NULL);
+    //Read all out that came before and remained in the buffer
+    while(Dev->CANDeviceRead(&Msg))
+    {
+        gettimeofday( &tv, NULL);
+        if((tv.tv_sec - starttime.tv_sec) > 0.01)
+            break;
+    }
+
+    gettimeofday( &starttime, NULL);
 
     while(1)
     {
@@ -194,11 +217,8 @@ void ReadThread::run()
         }
         if(Dev->CANDeviceRead(&Msg))
         {
-            gettimeofday( &tv, NULL);
-            dt.tv_sec = tv.tv_sec - starttime.tv_sec;
-            dt.tv_usec = tv.tv_usec;
-            MsgBuf->AddMessage(&Msg, &dt);
-
+            Msg.tv.tv_sec -= starttime.tv_sec;
+            MsgBuf->AddMessage(&Msg);
         }
 
     }

@@ -32,67 +32,66 @@ MessageBufferInterface::MessageBufferInterface(int size)
     MsgIndex = 0;
 
     MsgBufsize = size;
-    CANMsgandTime = (CANMsgandTimeStruct*)malloc(sizeof(CANMsgandTimeStruct)*size);
+    pCANMsg = (_CANMsg*)malloc(sizeof(_CANMsg)*size);
 }
 
 //!Adds a Message to the internal increasing Buffer.
 //!Emits newMessage(CANMsgandTimeStruct* CANMsgandTime, int NumOfMsgs);
-int MessageBufferInterface::AddMessage(_CANMsg *Msg, struct timeval *tv)
+int MessageBufferInterface::AddMessage(_CANMsg *Msg)
 {
     if(MsgIndex >= MsgBufsize)
     {
-        CANMsgandTime = (CANMsgandTimeStruct*)realloc((CANMsgandTimeStruct*)CANMsgandTime, (MsgBufsize + 1000000) * sizeof(CANMsgandTimeStruct));
-        MsgBufsize = (MsgBufsize + 1000000);
+        pCANMsg = (_CANMsg*)realloc((_CANMsg*)pCANMsg, (MsgBufsize + REALLOCSIZE) * sizeof(_CANMsg));
+        MsgBufsize = (MsgBufsize + REALLOCSIZE);
     }
 
 
-    (CANMsgandTime+MsgIndex)->CANMsg = *Msg;
-    (CANMsgandTime+MsgIndex)->timev = *tv;
+    *(pCANMsg+MsgIndex) = *Msg;
+
 
     MsgIndex++;
 
-    emit newMessage(CANMsgandTime+MsgIndex-1, MsgIndex);
+    emit newMessage(pCANMsg+MsgIndex-1, MsgIndex);
     return 1;
 
 
     return 0;
 }
-
-int MessageBufferInterface::AddMessage(CANMsgandTimeStruct *MsgandTime)
+/*
+int MessageBufferInterface::AddMessage(_CANMsg *Msg)
 {
     if(MsgIndex >= MsgBufsize)
     {
-        CANMsgandTime = (CANMsgandTimeStruct*)realloc((CANMsgandTimeStruct*)CANMsgandTime, (MsgBufsize + 1000000) * sizeof(CANMsgandTimeStruct));
-        MsgBufsize = (MsgBufsize + 1000000);
+        pCANMsg = (_CANMsg*)realloc((_CANMsg*)pCANMsg, (MsgBufsize + REALLOCSIZE) * sizeof(_CANMsg));
+        MsgBufsize = (MsgBufsize + REALLOCSIZE);
     }
 
 
-    (CANMsgandTime+MsgIndex)->CANMsg = MsgandTime->CANMsg;
-    (CANMsgandTime+MsgIndex)->timev = MsgandTime->timev;
+    (pCANMsg+MsgIndex)= Msg;
 
     MsgIndex++;
 
 
 
-    emit newMessage(CANMsgandTime+MsgIndex-1, MsgIndex);
+    emit newMessage(pCANMsg+MsgIndex-1, MsgIndex);
     return 1;
-}
+}*/
 
 
 int MessageBufferInterface::GetMessage(_CANMsg *Msg, int idx)
 {
-    if(MsgIndex > 0 && MsgIndex <= idx)
+   /* if(MsgIndex > 0 && MsgIndex <= idx)
     {
         Msg = pTPCANMsg+idx;
         return 1;
-    }
+    }*/
 
     return 0;
 }
 //!Saves the internal Buffer to a File
 int MessageBufferInterface::Save(char *Filename)
 {
-    int LengthOfBuf = MsgIndex * sizeof(CANMsgandTimeStruct);
+    int LengthOfBuf = MsgIndex * sizeof(_CANMsg);
     int OUTFILE;
 
 #ifdef LINUX
@@ -105,7 +104,7 @@ int MessageBufferInterface::Save(char *Filename)
       return -1;
 #endif
 
-    int flength = write(OUTFILE, CANMsgandTime, LengthOfBuf);
+    int flength = write(OUTFILE, pCANMsg, LengthOfBuf);
     close(OUTFILE);
     if(LengthOfBuf != flength)
     {
@@ -125,7 +124,7 @@ int MessageBufferInterface::Load(char *Filename)
 {
     int INFILE;
     int length, t;
-    CANMsgandTimeStruct Msg;
+    _CANMsg Msg;
     int i;
 
 #ifdef LINUX
@@ -185,6 +184,9 @@ int MessageBufferInterface::Load(char *Filename)
 //!Resets the internal Messagecounter to zero. But does not free the mem
 int MessageBufferInterface::ClearAll()
 {
+    free(pCANMsg);
+    pCANMsg = (_CANMsg*)malloc(sizeof(_CANMsg)*REALLOCSIZE);
+    MsgBufsize = REALLOCSIZE;
     MsgIndex = 0;
     return 1;
 }

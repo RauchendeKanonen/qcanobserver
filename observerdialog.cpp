@@ -58,14 +58,14 @@ ObserverDialog::~ObserverDialog()
 }
 
 
-void ObserverDialog::newMessage(CANMsgandTimeStruct *Msg, int Cnt)
+void ObserverDialog::newMessage(_CANMsg *CANMsg, int Cnt)
 {
     int i;
     for(i = 0 ; CANItems.count() >  i ; i++)
     {
-        if(Msg->CANMsg.ID == CANItems.at(i)->Signal->Id)
+        if(CANMsg->ID == CANItems.at(i)->Signal->Id)
         {
-            SignalDataCollection *DataCol = CANItems.at(i)->Signal->getSignalDataCollection(Msg->CANMsg.DATA);
+            SignalDataCollection *DataCol = CANItems.at(i)->Signal->getSignalDataCollection(CANMsg->DATA);
 
             if(DataCol)
             {

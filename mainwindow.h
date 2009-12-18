@@ -81,7 +81,7 @@ signals:
     void ClearAll();
 
 public slots:
-    void newMessage(CANMsgandTimeStruct *, int);
+    void newMessage(_CANMsg *, int);
     void periodicUpdate(void);
 
 

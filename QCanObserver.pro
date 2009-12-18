@@ -3,9 +3,11 @@
 # -------------------------------------------------
 TARGET = QCanObserver
 TEMPLATE = app
-#CONFIG(release, debug|release)
-#CONFIG -= debug
-#CONFIG += release
+
+# CONFIG(release, debug|release)
+CONFIG += debug
+
+# CONFIG += release
 SOURCES += main.cpp \
     mainwindow.cpp \
     readthread.cpp \
@@ -41,8 +43,8 @@ HEADERS += mainwindow.h \
     msgdefdialog.h \
     cansignal.h \
     cansignalcollection.h \
-    can.h \
-    config.h
+    config.h \
+    obscan.h
 FORMS += mainwindow.ui \
     DevDialog.ui \
     errordialog.ui \
@@ -56,27 +58,16 @@ FORMS += mainwindow.ui \
     aboutbox.ui \
     sendmsgdialog.ui \
     msgdefdialog.ui
-
-unix{
+unix { 
     INCLUDEPATH += /usr/include/qwt5/
     LIBS += -L/usr/lib/ \
-    -lqwt \
-    -lpcan
+        -lqwt \
+        -lpcan
 }
-
-win32{
+win32 { 
     INCLUDEPATH += c:\Qwt-5.2.1-svn\include
-
-    CONFIG(release, debug|release){
-        LIBS += C:\Qwt-5.2.1-svn\lib\libqwt5.a
-    }
-
-    CONFIG(debug, debug|release){
-        LIBS += C:\Qwt-5.2.1-svn\lib\libqwtd5.a
-    }
+    CONFIG(release, debug|release):LIBS += C:\Qwt-5.2.1-svn\lib\libqwt5.a
+    CONFIG(debug, debug|release):LIBS += C:\Qwt-5.2.1-svn\lib\libqwtd5.a
 }
-
-
-
 QT += xml
 include(modeltest/modeltest.pri)

@@ -19,7 +19,7 @@
 #ifndef CANDEVICE_H
 #define CANDEVICE_H
 
-#include"../can.h"
+#include"../obscan.h"
 
 #define ELIBNOTFOUND    -1
 #define OPENSUCCESSFUL   1
@@ -41,6 +41,7 @@ class CANDevice// : public QObject
 public:
 
     CANDevice();
+    ~CANDevice();
     virtual int CANDeviceOpen(QString Path);
     virtual int CANDeviceInit(int BaudRate, int MsgType);
     //virtual int CANDeviceClose(void);

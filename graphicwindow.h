@@ -112,7 +112,7 @@ public slots:
     void MainTimerSlot(void);
     void addItemToDraw(CANSignal* Signal, QColor Color);
     void deleteItemToDraw(CANSignal* Signal);
-    void newMessage(CANMsgandTimeStruct *, int);
+    void newMessage(_CANMsg *, int);
     void ClearAll();
     void StopCapture();
 private:

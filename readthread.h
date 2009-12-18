@@ -27,7 +27,7 @@
 #include "DeviceLib/candevice.h"
 #include "messagebufferinterface.h"
 #include "FilterDialog.h"
-#include "can.h"
+#include "obscan.h"
 
 #ifdef LINUX
 #include <dlfcn.h>

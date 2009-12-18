@@ -6,7 +6,7 @@
 #include "stringlistmodel.h"
 #include "DeviceLib/candevice.h"
 #include <QItemSelection>
-#include "can.h"
+#include "obscan.h"
 
 namespace Ui {
     class SendMsgDialog;

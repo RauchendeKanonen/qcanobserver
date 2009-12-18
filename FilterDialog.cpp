@@ -109,6 +109,12 @@ void FilterDialog::on_pushButton_clicked()
     //delete all filters
     emit setFilter(HWFILTER, -1 , -1);
 
+    if(cnt == 0)
+    {
+        emit setFilter(HWFILTER, 0 , 2048);
+    }
+
+
     //re-add the remaining filters
     for( int i = 0 ; cnt > i ; i++ )
     {
@@ -120,7 +126,7 @@ void FilterDialog::on_pushButton_clicked()
         QString FromStr = Str.left(pos-1);
         int from = FromStr.toInt(NULL, 16);
 
-        QString ToStr = Str.right(pos-1);
+        QString ToStr = Str.right(Str.length() - pos -1);
         int to = ToStr.toInt(NULL, 16);
 
         emit setFilter(HWFILTER, from , to);

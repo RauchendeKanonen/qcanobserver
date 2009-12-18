@@ -166,6 +166,9 @@ int f = SelectedMsgs.count();
 	idx = MsgModel->index(SelectedMsgs.at(s).row(), 8, QModelIndex());
         Msg.DATA[7] = MsgModel->data(idx, Qt::DisplayRole).toString().toInt(NULL, 16);
 
+        Msg.LEN = 8;
+        Msg.MSGTYPE = MSGTYPE_STANDARD;
+
         emit sendCANMsg(&Msg);
     }
 }

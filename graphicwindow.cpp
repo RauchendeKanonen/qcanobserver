@@ -61,19 +61,19 @@ void GraphicWindow::changeEvent(QEvent *e)
     }
 }
 
-void GraphicWindow::newMessage(CANMsgandTimeStruct *Msg, int Cnt)
+void GraphicWindow::newMessage(_CANMsg *CANMsg, int Cnt)
 {
     int i;
     for(i = 0 ; Curves.count() >  i ; i++)
     {
-	if(Msg->CANMsg.ID == Curves.at(i)->pSignal->Id)
+        if(CANMsg->ID == Curves.at(i)->pSignal->Id)
         {
-	    SignalDataCollection *DataCol = Curves.at(i)->pSignal->getSignalDataCollection(Msg->CANMsg.DATA);
+            SignalDataCollection *DataCol = Curves.at(i)->pSignal->getSignalDataCollection(CANMsg->DATA);
 
 	    if(DataCol)
 	    {
 		Curves.at(i)->y.append(DataCol->Value);
-		Curves.at(i)->x.append((double)Msg->timev.tv_sec + (double)Msg->timev.tv_usec/1000000.0);
+                Curves.at(i)->x.append((double)CANMsg->tv.tv_sec + (double)CANMsg->tv.tv_usec/1000000.0);
 
                 if(Follow)
                     Plot->setAxisScale(QwtPlot::xBottom, Curves.at(i)->x.last()-FollowTime,Curves.at(i)->x.last()+FollowTime/10, 10);

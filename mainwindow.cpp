@@ -30,8 +30,8 @@ MainWindow::MainWindow(QWidget *parent)
     MsgCounter = 0;
 
     rt = new ReadThread;
-    QObject::connect(rt->MsgBuf, SIGNAL(newMessage(CANMsgandTimeStruct *, int)),
-                     this, SLOT(newMessage(CANMsgandTimeStruct *, int)));
+    QObject::connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg *, int)),
+                     this, SLOT(newMessage(_CANMsg *, int)));
 
 
     for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
@@ -107,7 +107,7 @@ MainWindow::~MainWindow()
 
 //add the message to the Model
 //SLOT
-void MainWindow::newMessage(CANMsgandTimeStruct *CANMsgandTime, int MsgCnt)
+void MainWindow::newMessage(_CANMsg *CANMsg, int MsgCnt)
 {
     QString MsgString;
     QString IDString;
@@ -122,10 +122,10 @@ void MainWindow::newMessage(CANMsgandTimeStruct *CANMsgandTime, int MsgCnt)
 
 
 
-    MsgString.sprintf("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x", CANMsgandTime->CANMsg.DATA[0], CANMsgandTime->CANMsg.DATA[1], CANMsgandTime->CANMsg.DATA[2], CANMsgandTime->CANMsg.DATA[3], CANMsgandTime->CANMsg.DATA[4]
-                                                            , CANMsgandTime->CANMsg.DATA[5], CANMsgandTime->CANMsg.DATA[6], CANMsgandTime->CANMsg.DATA[7]);
-    IDString.sprintf("0x%04x", CANMsgandTime->CANMsg.ID);
-    TimeString.sprintf("%f", (float)CANMsgandTime->timev.tv_sec + (float)CANMsgandTime->timev.tv_usec/1000000.0);
+    MsgString.sprintf("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x", CANMsg->DATA[0], CANMsg->DATA[1], CANMsg->DATA[2], CANMsg->DATA[3], CANMsg->DATA[4]
+                                                            , CANMsg->DATA[5], CANMsg->DATA[6], CANMsg->DATA[7]);
+    IDString.sprintf("0x%04x", CANMsg->ID);
+    TimeString.sprintf("%f", (float)CANMsg->tv.tv_sec + (float)CANMsg->tv.tv_usec/1000000.0);
 
     QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
     TraceModel->insertRows(0, 1, (const QModelIndex &)index1);
@@ -189,7 +189,7 @@ void MainWindow::on_actionGraphicWindow_triggered()
                 GraphWnd[i]->move(this->pos().x()+this->geometry().width(), this->pos().y());
                 GraphWnd[i]->show();
                 connect(this, SIGNAL(StopCapture()), GraphWnd[i], SLOT(StopCapture()));
-                connect(rt->MsgBuf, SIGNAL(newMessage(CANMsgandTimeStruct *,int)), GraphWnd[i], SLOT(newMessage(CANMsgandTimeStruct *,int)));
+                connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg *,int)), GraphWnd[i], SLOT(newMessage(_CANMsg *,int)));
                 connect(periodicTimer, SIGNAL(timeout()), GraphWnd[i], SLOT(MainTimerSlot()));
                 connect(this, SIGNAL(ClearAll()), GraphWnd[i], SLOT(ClearAll()));
 		return;
@@ -273,7 +273,7 @@ void MainWindow::on_actionObserverWindow_triggered()
                 ObserverWnd[i]->move(this->pos().x()+this->geometry().width(), this->pos().y());
                 ObserverWnd[i]->show();
 
-                connect(rt->MsgBuf, SIGNAL(newMessage(CANMsgandTimeStruct *,int)), ObserverWnd[i], SLOT(newMessage(CANMsgandTimeStruct *,int)));
+                connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg *,int)), ObserverWnd[i], SLOT(newMessage(_CANMsg *,int)));
                 connect(periodicTimer, SIGNAL(timeout()), ObserverWnd[i], SLOT(MainTimerSlot()));
                 connect(this, SIGNAL(ClearAll()), ObserverWnd[i], SLOT(ClearAll()));
                 return;
@@ -294,8 +294,8 @@ void MainWindow::on_actionDevice_triggered()
     QObject::connect(this, SIGNAL(StopCapture()),
                      rt, SLOT(QuitThread()));
 
-    QObject::connect(SendMsgDlg, SIGNAL(sendCANMsg(TPCANMsg *)),
-                     rt, SLOT(sendCANMsg(TPCANMsg *)));
+    QObject::connect(SendMsgDlg, SIGNAL(sendCANMsg(_CANMsg *)),
+                     rt, SLOT(sendCANMsg(_CANMsg *)));
 
     QObject::connect(FilterDlg, SIGNAL(setFilter(int, int, int)),
                      rt, SLOT(setFilter(int, int, int)));
@@ -385,6 +385,8 @@ void MainWindow::on_actionClear_triggered()
     list->append(QString("Time"));
     TraceModel = new StringListModel(list);
     MsgCounter = 0;
+    ui->MsgLossWarning->display(0);
+    ui->MsgCounter->display(0);
     ui->tableView->setModel(TraceModel);
 }
 

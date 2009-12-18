@@ -37,7 +37,7 @@ public slots:
     void MainTimerSlot(void);
     void addItemToObserve(CANSignal* Signal, QColor Color);
     void deleteItemToObserve(CANSignal* Signal);
-    void newMessage(CANMsgandTimeStruct *, int);
+    void newMessage(_CANMsg *, int);
     void ClearAll();
 
 protected:

@@ -22,7 +22,7 @@
 #include "Pcan_usb.h"
 
 #include "../../candevice.h"
-#include "../../../can.h"
+#include "../../../obcan.h"
 #include <fcntl.h>    // O_RDWR
 #include <QDir>
 
@@ -142,7 +142,7 @@ int CANDevice::CANDeviceRead(_CANMsg *Msg)
     {
         return 0;
     }
-
+    Msg->TimeStamp = -1;
     Msg->ID = HWMsg.ID;
     memcpy(Msg->DATA, HWMsg.DATA, 8);
     Msg->LEN = HWMsg.LEN;

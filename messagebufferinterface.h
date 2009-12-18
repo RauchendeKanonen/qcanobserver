@@ -19,19 +19,21 @@
 #ifndef MESSAGEBUFFERINTERFACE_H
 #define MESSAGEBUFFERINTERFACE_H
 
-#include "can.h"
+#include "obscan.h"
 
 
 #ifdef WINDOWS
 #include <winsock2.h>
 #endif
 
+#define REALLOCSIZE 1000000
 
-struct CANMsgandTimeStruct
+/*struct CANMsgandTimeStruct
     {
         _CANMsg CANMsg;
+        long TimeStamp;
         struct timeval timev;
-    };
+    };*/
 
 
 //!Storrage Class for all the CAN Messages.
@@ -43,22 +45,21 @@ class MessageBufferInterface : public QObject
 public:
     int GetMessage(_CANMsg *Msg, int idx);
     MessageBufferInterface(int size);
-    int AddMessage(_CANMsg *Msg, timeval *tv);
+    int AddMessage(_CANMsg *Msg);
 
     int Save(char *Filename);
     int Load(char *Filename);
-    int AddMessage(CANMsgandTimeStruct *MsgandTime);
+    //int AddMessage(_CANMsg *Msg);
 
 private:
-    _CANMsg *pTPCANMsg;
+    _CANMsg *pCANMsg;
     int MsgIndex;
     int MsgBufsize;
-    CANMsgandTimeStruct *CANMsgandTime;
     struct timeval tv_1;
 
 
 signals:
-    void newMessage(CANMsgandTimeStruct *, int);
+    void newMessage(_CANMsg *, int);
 
 public slots:
     int ClearAll();

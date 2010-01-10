@@ -19,10 +19,21 @@
 #define DEVDIALOG_H
 
 #include <QtGui/QDialog>
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+
+#define RTR_FR 1
+#define ERROR_FR 2
+#define TIMESTAMP 4
+
+
 
 namespace Ui {
     class DevDialog;
 }
+
 
 class DevDialog : public QDialog {
     Q_OBJECT
@@ -30,20 +41,23 @@ class DevDialog : public QDialog {
 public:
     explicit DevDialog(QWidget *parent = 0);
     virtual ~DevDialog();
+    ofstream& operator>>(ofstream& os);
+    ifstream& operator<<(ifstream& is);
 
 protected:
     virtual void changeEvent(QEvent *e);
+    QString CANLibFilePath;
+    void *confBuffer;
 
 private:
-    QString CANLibFilePath;
     Ui::DevDialog *m_ui;
 
+
 signals:
-    void setDev(QString PathArg, int BaudRate, int MsgType, QString InterfaceLib);
+    void setDev(void *ConfData, QString InterfaceLib, bool ShareDevInterfaceLib);
 
 private slots:
-    void on_comboBox_currentIndexChanged(QString );
-    void on_comboBox_currentIndexChanged(int );
+    void on_comboBoxLibSelector_currentIndexChanged(int index);
     void on_buttonBox1_accepted();
 };
 

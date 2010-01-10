@@ -29,8 +29,15 @@ class ProcessDataBase
 public:
     ProcessDataBase(QString FileName);
     CANSignalCollection * getCANSignalList(void);
+
+    QString getFileName()
+    {
+        return DBFileName;
+    }
 private:
     QDomDocument domTree;
+    QString DBFileName;
+
 
     CANSignalCollection *Collection;
 };

@@ -5,6 +5,15 @@ CANSignalCollection::CANSignalCollection()
     CANSignalList = new QList<CANSignal*>;
 }
 
+CANSignalCollection::~CANSignalCollection()
+{
+    for(int i = 0; i < CANSignalList->count() ; i++)
+        delete CANSignalList->at(i);
+
+
+    delete CANSignalList;
+}
+
 
 void CANSignalCollection::addSignal(int AId, float AOffset, float AMultiplier, QString AName, int *AMask, int *AConstrainMask,
 		     QString AUnit, bool AisEventItem, long AOnOffConstrain, bool AisSigned, bool AisMaskConstrain, int ASigType)
@@ -14,9 +23,9 @@ void CANSignalCollection::addSignal(int AId, float AOffset, float AMultiplier, Q
 }
 
 
+
 CANSignal* CANSignalCollection::getSignal(int id, QString Name)
 {
-    const char* p = Name.toStdString().c_str();
     for(int i = 0; i < CANSignalList->count() ; i++)
 	if(CANSignalList->at(i)->Name == Name && CANSignalList->at(i)->Id == id)
 	    return CANSignalList->at(i);

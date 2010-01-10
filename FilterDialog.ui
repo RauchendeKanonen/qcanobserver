@@ -6,172 +6,57 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>391</width>
-    <height>491</height>
+    <width>373</width>
+    <height>387</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QListWidget" name="lstInputFilter">
+  <widget class="QWidget" name="horizontalLayoutWidget">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>50</y>
-     <width>111</width>
-     <height>281</height>
+     <x>30</x>
+     <y>20</y>
+     <width>261</width>
+     <height>321</height>
     </rect>
    </property>
-  </widget>
-  <widget class="QListWidget" name="lstDatabaseOutputFilter">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>50</y>
-     <width>111</width>
-     <height>281</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QListWidget" name="lstGraphicInputFilter">
-   <property name="geometry">
-    <rect>
-     <x>260</x>
-     <y>50</y>
-     <width>111</width>
-     <height>281</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="AddInputFilter">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>340</y>
-     <width>75</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Add</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="DelInputFilter">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>380</y>
-     <width>75</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Del</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="DelDataVaseOutputFilter">
-   <property name="geometry">
-    <rect>
-     <x>160</x>
-     <y>380</y>
-     <width>75</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Del</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="AddDataBaseOutputFilter">
-   <property name="geometry">
-    <rect>
-     <x>160</x>
-     <y>340</y>
-     <width>75</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Add</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="DelGraphicInputFilter">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>380</y>
-     <width>75</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Del</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="AddGraphicInputFilter">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>340</y>
-     <width>75</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Add</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton">
-   <property name="geometry">
-    <rect>
-     <x>160</x>
-     <y>430</y>
-     <width>75</width>
-     <height>24</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Apply</string>
-   </property>
-  </widget>
-  <widget class="QwtTextLabel" name="HWFilterText">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>10</y>
-     <width>111</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QwtTextLabel" name="DBFilterText">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>10</y>
-     <width>111</width>
-     <height>31</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QwtTextLabel" name="GraphicFilterText">
-   <property name="geometry">
-    <rect>
-     <x>260</x>
-     <y>10</y>
-     <width>111</width>
-     <height>31</height>
-    </rect>
-   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="rightMargin">
+       <number>20</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="DelInputFilter">
+        <property name="text">
+         <string>Del</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="AddInputFilter">
+        <property name="text">
+         <string>Add</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string>Apply</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QListWidget" name="lstInputFilter"/>
+    </item>
+   </layout>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QwtTextLabel</class>
-   <extends>QFrame</extends>
-   <header>qwt_text_label.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

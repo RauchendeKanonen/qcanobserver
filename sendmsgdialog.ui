@@ -38,19 +38,26 @@
      <item>
       <widget class="QPushButton" name="SendButton">
        <property name="text">
-        <string>Send selection</string>
+        <string>Send</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="delete_2">
+      <widget class="QPushButton" name="SendStopButton">
+       <property name="text">
+        <string>Stop</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="DeleteIdButton">
        <property name="text">
         <string>Delete</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3">
+      <widget class="QPushButton" name="NewIdButton">
        <property name="text">
         <string>New ID</string>
        </property>

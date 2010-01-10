@@ -22,7 +22,8 @@
 #include <QAbstractListModel>
 #include <qstringlist.h>
 #include <QColor>
-
+#include <QFlags>
+#include <QFlag>
 class ColoredVariant : public QVariant
 {
     public:
@@ -53,15 +54,21 @@ class StringListModel : public QAbstractListModel
     QStringList *ColumnNames;
     QList <QStringList*> *stringList;
     QList <QColor*> ColorList;
+    QList <QModelIndex> FlagIdxLst;
+    QList <int> FlagLst;
     QModelIndex akt_index;
     QModelIndex updated_index;
     int akt_position;
     int updated_position;
+    QColor black;
+
+
 
  public:
      StringListModel(QStringList *columnnames)
          : QAbstractListModel(0)
      {
+         black = QColor(Qt::black);
          stringList = new QList<QStringList*>();
          for(int i = 0; i < columnnames->count() ; i++ )
          {
@@ -77,10 +84,11 @@ class StringListModel : public QAbstractListModel
      }
      ~StringListModel()
      {
-         for(int i = 0; i < ColumnNames->count() ; i++ )
+         for(int i = 0; i < stringList->count() ; i++ )
          {
              delete stringList->at(i);
          }
+
          delete stringList;
          delete ColumnNames;
      }
@@ -97,7 +105,8 @@ class StringListModel : public QAbstractListModel
      bool Update(void);
      bool insertRows(int position, int rows, const QModelIndex &index = QModelIndex());
      bool removeRows(int position, int rows, const QModelIndex &index = QModelIndex());
-
+     void setflags(QModelIndex index, int Flags);
+     bool setColor(const QModelIndex &index, QColor *color);
 };
 
 #endif // STRINGLISTMODEL_H

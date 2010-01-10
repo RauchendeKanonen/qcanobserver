@@ -18,26 +18,36 @@
 #ifndef CANDATAITEMSELECTOR_H
 #define CANDATAITEMSELECTOR_H
 #include "processdatabase.h"
+#include "errordialog.h"
+
 #include <QtGui/QDialog>
+#include <iostream>
+#include <fstream>
+
 
 #include "cansignalcollection.h"
 
+using namespace std;
+
+
 namespace Ui {
-    class CANDataItemSelector;
+    class SignalSelectorDialog;
 }
 
-class CANDataItemSelector : public QDialog {
+class SignalSelectorDialog : public QDialog {
     Q_OBJECT
-    Q_DISABLE_COPY(CANDataItemSelector)
-public:
-    explicit CANDataItemSelector(QWidget *parent = 0, CANSignalCollection *Collection = 0);
-    virtual ~CANDataItemSelector();
+    Q_DISABLE_COPY(SignalSelectorDialog)
+        public:
+            explicit SignalSelectorDialog(QWidget *parent = 0, CANSignalCollection *Collection = 0);
+    virtual ~SignalSelectorDialog();
+    ofstream& operator>>(ofstream& os);
+    ifstream&  operator<<(ifstream& is);
 
 protected:
     virtual void changeEvent(QEvent *e);
 
 private:
-    Ui::CANDataItemSelector *m_ui;
+    Ui::SignalSelectorDialog *m_ui;
     CANSignalCollection *pCollection;
 signals:
     void addItemToDraw(CANSignal*, QColor);

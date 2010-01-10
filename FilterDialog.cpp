@@ -23,9 +23,6 @@ FilterDialog::FilterDialog(QWidget *parent) :
     m_ui(new Ui::FilterDialog)
 {
     m_ui->setupUi(this);
-    m_ui->HWFilterText->setText(QwtText("Hardware\n Filter"));
-    m_ui->DBFilterText->setText(QwtText("Database Output\n Filter"));
-    m_ui->GraphicFilterText->setText(QwtText("Graphic Input\n Filter"));
     FilterDef = new Filterdef();
 
     QObject::connect(FilterDef, SIGNAL(acceptedFilter(int, int)),
@@ -72,34 +69,13 @@ void FilterDialog::on_AddInputFilter_clicked()
 }
 
 
-void FilterDialog::on_AddDataBaseOutputFilter_clicked()
-{
-    aktEditLst = m_ui->lstDatabaseOutputFilter;
-    FilterDef->setModal(true);
-    FilterDef->exec();
-}
 
-void FilterDialog::on_AddGraphicInputFilter_clicked()
-{
-    aktEditLst = m_ui->lstGraphicInputFilter;
-    FilterDef->setModal(true);
-    FilterDef->exec();
-}
 
 void FilterDialog::on_DelInputFilter_clicked()
 {
     qDeleteAll(m_ui->lstInputFilter->selectedItems());
 }
 
-void FilterDialog::on_DelDataVaseOutputFilter_clicked()
-{
-    qDeleteAll(m_ui->lstDatabaseOutputFilter->selectedItems());
-}
-
-void FilterDialog::on_DelGraphicInputFilter_clicked()
-{
-    qDeleteAll(m_ui->lstGraphicInputFilter->selectedItems());
-}
 
 //apply
 void FilterDialog::on_pushButton_clicked()

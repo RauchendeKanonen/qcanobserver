@@ -28,23 +28,26 @@
 #include <qwt_plot_panner.h>
 #include <qwt_scale_div.h>
 #include "processdatabase.h"
-#include "candataitemselector.h"
+#include "signalselectordialog.h"
 #include <Qt>
 #include <qwt_legend.h>
 #include <qwt_legend_item.h>
 #include <qwt_symbol.h>
 #include <qwt_text.h>
 #include "cansignalcollection.h"
+#include <iostream>
+#include <fstream>
 
+using namespace std;
 
 #define MAX_GRAPH_WINDOWS 16
 
 class QCanPlot : public QwtPlot
 {
     public:
-    QCanPlot(QString Name, QWidget *parent) : QwtPlot(Name , parent)
+    QCanPlot(QString Name, QWidget *parent)
     {
-        QwtLegend *legend = new QwtLegend();
+        legend = new QwtLegend();
         legend->setItemMode(QwtLegend::ClickableItem);
         this->insertLegend(legend, QwtPlot::BottomLegend);
         ActCanvas = canvas();
@@ -57,6 +60,13 @@ class QCanPlot : public QwtPlot
         Panner = new QwtPlotPanner(canvas());
         Panner->setAxisEnabled(QwtPlot::yRight, false);
         Panner->setMouseButton(Qt::MidButton);
+
+    }
+    ~QCanPlot()
+    {
+        delete legend;
+        delete CanvasZoomer;
+        delete Panner;
     }
     //Left Mouse Button scales to the max autoscale
     void setAutoScaleCanvas()
@@ -73,6 +83,7 @@ class QCanPlot : public QwtPlot
     QwtPlotCanvas *ActCanvas;
     QwtPlotZoomer *CanvasZoomer;
     QwtPlotPanner *Panner;
+    QwtLegend *legend;
 };
 
 class ItemCurveInfo
@@ -106,6 +117,9 @@ class GraphicWindow : public QWidget {
 public:
     explicit GraphicWindow(QWidget *parent = 0, CANSignalCollection *Collection = 0);
     virtual ~GraphicWindow();
+    ofstream& operator>>(ofstream& os);
+    ifstream& operator<<(ifstream& is);
+
 protected:
     virtual void changeEvent(QEvent *e);
 public slots:
@@ -118,15 +132,18 @@ public slots:
 private:
     Ui::GraphicWindow *m_ui;
     QList<ItemCurveInfo*> Curves;
+    void closeEvent( QCloseEvent *e );
     CANSignalCollection *pCollection;
-    CANDataItemSelector *Sel;
+    SignalSelectorDialog *Sel;
     QCanPlot *Plot;
     bool Follow;
     float FollowTime;
+    QWidget *pparent;
 
 private slots:
-    void on_checkBox_toggled(bool checked);
-    void on_checkBox_2_toggled(bool checked);
+    void on_YAutoScalecheckBox_toggled(bool checked);
+    void on_AutoScalecheckBox_toggled(bool checked);
+    void on_ConnectedCheckBox_toggled(bool checked);
     void on_FollowCheckBox_toggled(bool checked);
     void on_GraphFromDB_clicked();
     void on_GraphFromScratch_clicked();

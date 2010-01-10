@@ -18,15 +18,61 @@
 */
 
 #include <windows.h>
-
+#include "confdialog.h"
 #include "Pcan_usb.h"
 
+#include "../../../wingettimeofday.h"
 #include "../../candevice.h"
-#include "../../../obcan.h"
+#include "../../../obscan.h"
 #include <fcntl.h>    // O_RDWR
 #include <QDir>
 
 #include <errno.h>
+
+
+typedef struct config
+{
+    int BoudRReg;
+    int MsgType;
+};
+
+extern "C" int getDeviceFlags(void)
+{
+    int Flags = 0;
+
+    /*Flags |= RTR_FR;
+    Flags |= ERROR_FR;
+    Flags |= TIMESTAMP;
+*/
+    return Flags;
+}
+
+extern "C" void* createConfig(void *oldconf)
+{
+    struct config cfg;
+    ConfDialog dlg;
+
+    void *cmpbuf = malloc(CONFDATA_SIZEMAX);
+    memset(cmpbuf, 0, CONFDATA_SIZEMAX);
+
+    if(memcmp(oldconf, cmpbuf, CONFDATA_SIZEMAX))
+    {
+        memcpy((void*)&cfg, oldconf, sizeof(cfg));
+        dlg.setValues(cfg.BoudRReg, cfg.MsgType);
+    }
+    free(cmpbuf);
+
+
+    dlg.setModal(true);
+    dlg.exec();
+
+    dlg.getValues(&cfg.BoudRReg, &cfg.MsgType);
+
+    memset(oldconf, 0, CONFDATA_SIZEMAX);
+    memcpy(oldconf, (void*)(&cfg), sizeof(cfg));
+    return oldconf;
+}
+
 
 extern "C" CANDevice* create_object();
 
@@ -62,6 +108,12 @@ CANDevice::CANDevice()
     DevHandle = NULL;
 }
 
+CANDevice::~CANDevice()
+{
+
+}
+
+
 //!
 int CANDevice::CANSetFilter(int FromID, int ToID, int nCANMsgType)
 {
@@ -77,10 +129,11 @@ int CANDevice::CANClearFilters(void)
     return 0;
 }
 
-int CANDevice::CANDeviceOpen(QString Path)
+int CANDevice::CANDeviceOpen(void *ConfigBuf)
 {
+    struct config cfg;
+    memcpy(&cfg, (void*)ConfigBuf, sizeof(cfg));
     //for a local searchpath
-
     QDir vendordir = QDir();
     vendordir.cd(QString("VendorLibs"));
 
@@ -120,7 +173,10 @@ int CANDevice::CANDeviceOpen(QString Path)
     _CAN_Write = (__CAN_Write)GetProcAddress(PCANDll,"CAN_Write");
     _CAN_Write = (__CAN_Write)GetProcAddress(PCANDll,"CAN_Write");
 
-     return OPENSUCCESSFUL;
+    if(CANDeviceInit(cfg.BoudRReg, cfg.MsgType))
+        return OPENSUCCESSFUL;
+    else
+        return OPENFAILONINIT;
 }
 
 int CANDevice::CANDeviceInit(int BaudRate, int MsgType)
@@ -142,7 +198,8 @@ int CANDevice::CANDeviceRead(_CANMsg *Msg)
     {
         return 0;
     }
-    Msg->TimeStamp = -1;
+    gettimeofday(&Msg->tv, NULL);
+
     Msg->ID = HWMsg.ID;
     memcpy(Msg->DATA, HWMsg.DATA, 8);
     Msg->LEN = HWMsg.LEN;

@@ -25,6 +25,12 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#ifdef LINUX
+#include <linux/can.h>
+#include <linux/can/raw.h>
+#endif
+
+
 MessageBufferInterface::MessageBufferInterface(int size)
 {
     tv_1.tv_sec = 0;
@@ -33,6 +39,11 @@ MessageBufferInterface::MessageBufferInterface(int size)
 
     MsgBufsize = size;
     pCANMsg = (_CANMsg*)malloc(sizeof(_CANMsg)*size);
+}
+
+MessageBufferInterface::~MessageBufferInterface()
+{
+    free(pCANMsg);
 }
 
 //!Adds a Message to the internal increasing Buffer.
@@ -52,30 +63,15 @@ int MessageBufferInterface::AddMessage(_CANMsg *Msg)
     MsgIndex++;
 
     emit newMessage(pCANMsg+MsgIndex-1, MsgIndex);
+
+#ifdef LINUX
+    if(Msg->ID & (CAN_ERR_FLAG | CAN_RTR_FLAG))
+        emit newSpecialMessage(pCANMsg+MsgIndex-1);
+#endif
     return 1;
 
-
-    return 0;
 }
-/*
-int MessageBufferInterface::AddMessage(_CANMsg *Msg)
-{
-    if(MsgIndex >= MsgBufsize)
-    {
-        pCANMsg = (_CANMsg*)realloc((_CANMsg*)pCANMsg, (MsgBufsize + REALLOCSIZE) * sizeof(_CANMsg));
-        MsgBufsize = (MsgBufsize + REALLOCSIZE);
-    }
 
-
-    (pCANMsg+MsgIndex)= Msg;
-
-    MsgIndex++;
-
-
-
-    emit newMessage(pCANMsg+MsgIndex-1, MsgIndex);
-    return 1;
-}*/
 
 
 int MessageBufferInterface::GetMessage(_CANMsg *Msg, int idx)
@@ -125,7 +121,6 @@ int MessageBufferInterface::Load(char *Filename)
     int INFILE;
     int length, t;
     _CANMsg Msg;
-    int i;
 
 #ifdef LINUX
     if(-1==(INFILE = open(Filename,O_RDONLY)))
@@ -135,7 +130,7 @@ int MessageBufferInterface::Load(char *Filename)
     {
         t = read(INFILE,((char*)&Msg),sizeof(Msg));
 
-        if( t == sizeof(Msg) && (t > 0))
+        if( t == sizeof(Msg))
             AddMessage(&Msg);
 
         else if( t != sizeof(Msg) && (t != 0))

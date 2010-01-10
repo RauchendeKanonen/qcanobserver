@@ -8,6 +8,11 @@
 #include <QItemSelection>
 #include "obscan.h"
 
+#define SEND_PERIODIC 1
+#define SEND_SINGLE   2
+#define SEND_TRIG     3
+
+
 namespace Ui {
     class SendMsgDialog;
 }
@@ -17,33 +22,45 @@ class SendMsgDialog : public QDialog {
     Q_DISABLE_COPY(SendMsgDialog)
 public:
     explicit SendMsgDialog(QWidget *parent = 0);
-    virtual ~SendMsgDialog();
+    ~SendMsgDialog();
 
 protected:
     virtual void changeEvent(QEvent *e);
+    void closeEvent(QCloseEvent *e);
 
 private:
     Ui::SendMsgDialog *m_ui;
     MsgDefDialog *SMsg;
     StringListModel *MsgModel;
     QModelIndex SelectedModelIndex;
-    QModelIndexList SelectedMsgs;
+    QModelIndex SelectedMsg;
+    QColor black;
+    QColor red;
+    QColor green;
 
 signals:
-    void sendCANMsg(_CANMsg *);
-
+    void sendCANMsg(_CANMsg Msg, int aPeriod, _CANMsg TrigMsg, int SendType);
+    void deleteCANMsg(_CANMsg Msg, int Period, _CANMsg TrigMsg, int SendType);
 public slots:
-        void newMsgAccepted(QString , QString , QString , QString , QString
-                   , QString , QString , QString , QString );
-        void selectionChanged(const QItemSelection &,const QItemSelection &);
+    void newMsgAccepted(QString,
+                        QString, QString , QString , QString,
+                        QString, QString , QString , QString,
+                        QString,
+                        QString,
+                        QString,
+                        QString, QString , QString , QString ,
+                        QString, QString , QString , QString);
+   void selectionChanged(const QItemSelection &,const QItemSelection &);
 
 private slots:
-    void on_delete_2_clicked();
+    void on_MsgtableView_pressed(QModelIndex index);
+    void on_MsgtableView_activated(QModelIndex index);
+    void on_DeleteIdButton_clicked();
+    void on_NewIdButton_clicked();
+    void on_SendStopButton_clicked();
     void on_SendButton_clicked();
-    void on_MsgtableView_entered(QModelIndex index);
     void on_MsgtableView_doubleClicked(QModelIndex index);
     void on_MsgtableView_clicked(QModelIndex index);
-    void on_pushButton_3_clicked();
 };
 
 #endif // SENDMSGDIALOG_H

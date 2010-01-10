@@ -20,15 +20,20 @@
 #include "ui_DevDialog.h"
 #include "DeviceLib/candevice.h"
  #include <QDir>
+#include "errordialog.h"
+
+#ifdef LINUX
+#include <dlfcn.h>
+#endif
+
+
 
 DevDialog::DevDialog(QWidget *parent) :
     QDialog(parent),
     m_ui(new Ui::DevDialog)
 {
     m_ui->setupUi(this);
-    m_ui->TextLabelBaud->setText(QwtText(QString("Baudrate")));
-    m_ui->TextLabelInterface->setText(QwtText(QString("Interface Type")));
-    m_ui->TextLabelPath->setText(QwtText(QString("Device Path")));
+    confBuffer = malloc(CONFDATA_SIZEMAX);
 
     QDir moduldir = QDir(QString("lib"));
     QStringList filter;
@@ -44,16 +49,23 @@ DevDialog::DevDialog(QWidget *parent) :
     moduldir.setNameFilters(filter);
     QFileInfoList list = moduldir.entryInfoList();
 
+    //keine gefunden
+    if(!list.count())
+    {
+        m_ui->comboBoxLibSelector->addItem(QString("none"), QVariant("none"));
+    }
+
     for (int i = 0; i < list.size(); ++i)
     {
-         QFileInfo fileInfo = list.at(i);
-         QVariant path(fileInfo.absoluteFilePath());
-         m_ui->comboBox->addItem(fileInfo.fileName(), path);
-     }
+        QFileInfo fileInfo = list.at(i);
+        QVariant path(fileInfo.absoluteFilePath());
+        m_ui->comboBoxLibSelector->addItem(fileInfo.fileName(), path);
+    }
 }
 
 DevDialog::~DevDialog()
 {
+    free(confBuffer);
     delete m_ui;
 }
 
@@ -71,16 +83,136 @@ void DevDialog::changeEvent(QEvent *e)
 
 void DevDialog::on_buttonBox1_accepted()
 {
-    emit setDev(m_ui->lineEdit->text(), m_ui->lEBaudRate->text().toInt(NULL,16), MSGTYPE_STANDARD, CANLibFilePath);
+
+    bool shareDevInstLib = false;
+
+    if(CANLibFilePath == QString("none"))
+    {
+        QString *ErrStr = new QString("Please place the interface .so/.dll first inside of lib subdirectory!");
+        ErrorDialog *ed = new ErrorDialog;
+        ed->SetErrorMessage(*ErrStr);
+        delete ErrStr;
+        ed->setModal(true);
+        ed->exec();
+        delete ed;
+        return;
+    }
+
+#ifdef WINDOWS
+    wchar_t Filename[256];
+    memset(Filename, 0, 256*sizeof(wchar_t));
+    CANLibFilePath.toWCharArray(Filename);
+
+
+    HINSTANCE__ *PCANDll;
+
+    PCANDll = LoadLibrary(Filename);
+    int ErrCode = GetLastError();
+    if(!PCANDll)
+    {
+        QString *Err = new QString();
+        Err->sprintf("%s %s,GetLastError() = (%d)","Could not load Device Mapper: ", CANLibFilePath.toStdString().c_str(),ErrCode);
+        ErrorDialog *ed = new ErrorDialog;
+        ed->SetErrorMessage(*Err);
+        delete Err;
+        ed->setModal(true);
+        ed->show();
+        delete ed;
+        return;
+    }
+
+    typedef void* (CALLBACK* createCon)(void*);
+    createCon createCfg;
+    createCfg = (createCon)GetProcAddress(PCANDll,"createConfig");
+
+
+
+#endif
+    //Load the interface to the hardware
+    void* handle = dlopen(CANLibFilePath.toStdString().c_str(), RTLD_LAZY);
+
+
+    if(!handle)
+    {
+        QString *ErrStr = new QString(" ");
+        ErrStr->sprintf("%s %s","Could not load Device Mapper: ", CANLibFilePath);
+        ErrorDialog *ed = new ErrorDialog;
+        ed->SetErrorMessage(*ErrStr);
+        delete ErrStr;
+        ed->setModal(true);
+        ed->exec();
+        delete ed;
+        return;
+    }
+    void* (*createCfg)(void*);
+    createCfg = (void* (*)(void*))dlsym(handle, "createConfig");
+
+#ifdef LINUX
+
+
+
+
+#endif
+    confBuffer = createCfg(confBuffer);
+
+    shareDevInstLib = m_ui->checkBoxShareLibInst->isChecked();
+
+    emit setDev(confBuffer, CANLibFilePath, shareDevInstLib);
 }
 
-void DevDialog::on_comboBox_currentIndexChanged(QString )
+ofstream& DevDialog::operator>>(ofstream& os)
 {
+    char temp[512];
+    memset(temp, 0, 512);
+    memcpy(temp,CANLibFilePath.toStdString().c_str(), CANLibFilePath.count());
+    for(int f = 0; f < 512 ; f++)
+        os << temp[f];
+    memset(temp, 0, 512);
 
+    //Save Configuration Data of the device (used by the interface dll)
+    for(int f = 0; f < 512 ; f++)
+        os << ((char*)confBuffer)[f];
+
+    return os;
+}
+ifstream& DevDialog::operator<<(ifstream& is)
+{
+    char temp[512];
+    memset(temp, 0, 512);
+    for(int f = 0; f < 512 ; f++)
+        is >> temp[f];
+    CANLibFilePath = QString(temp);
+
+    int idx = m_ui->comboBoxLibSelector->findData(QVariant(CANLibFilePath),Qt::UserRole ,Qt::MatchCaseSensitive);
+
+    if(idx == -1)
+    {
+        QString *ErrStr = new QString("Could not find the right interface .so/.dll in the lib subdirectory!");
+        ErrorDialog *ed = new ErrorDialog;
+        ed->SetErrorMessage(*ErrStr);
+        delete ErrStr;
+        ed->setModal(true);
+        ed->exec();
+        delete ed;
+
+        m_ui->comboBoxLibSelector->setCurrentIndex(0);
+
+        return is;
+    }
+
+
+    m_ui->comboBoxLibSelector->setCurrentIndex(idx);
+
+    //Load Configuration Data of the device (used by the interface dll)
+    for(int f = 0; f < 512 ; f++)
+        is >> ((char*)confBuffer)[f];
+
+    return is;
 }
 
-void DevDialog::on_comboBox_currentIndexChanged(int index)
+
+void DevDialog::on_comboBoxLibSelector_currentIndexChanged(int index)
 {
-    QVariant path = m_ui->comboBox->itemData(index, Qt::UserRole);
+    QVariant path = m_ui->comboBoxLibSelector->itemData(index, Qt::UserRole);
     CANLibFilePath = path.toString();
 }

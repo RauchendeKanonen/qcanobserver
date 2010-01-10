@@ -21,6 +21,7 @@
 
 #include <QtGui/QMainWindow>
 #include "readthread.h"
+#include "writethread.h"
 #include "DevDialog.h"
 #include <QStandardItemModel>
 #include "messagebufferinterface.h"
@@ -37,6 +38,9 @@
 #include "observerdialog.h"
 #include "sendmsgdialog.h"
 #include "cansignalcollection.h"
+#include "extrect.h"
+#include "specialeventdialog.h"
+#include "obscan.h"
 
 
 using namespace std;
@@ -61,41 +65,68 @@ public:
     ~MainWindow();
     void closeEvent( QCloseEvent *e );
 
+
+
 private:
     StringListModel *TraceModel;
     Ui::MainWindow *ui;
+
     ReadThread *rt;
-    FilterDialog *FilterDlg;
-    struct timeval tv_1;
+    WriteThread *wt;
+
+
+    CANSignalCollection *CANSignals;
+    QColor black;
     QTimer *periodicTimer;
     ProcessDataBase *DB;
+
+    int MsgCounter;
+    struct timeval tv_1;
+
+
+
+
+    SendMsgDialog *SendMsgDlg;
+    DevDialog *DevDlg;
+    SpecialEventDialog *SpecEvtDlg;
     GraphicWindow *GraphWnd[MAX_GRAPH_WINDOWS];
     ObserverDialog *ObserverWnd [MAX_GRAPH_WINDOWS];
-    int MsgCounter;
-    SendMsgDialog *SendMsgDlg;
-    CANSignalCollection *CANSignals;
+    FilterDialog *FilterDlg;
+
+    void initSatelites();
+    int loadDatabase(QString File);
+    int loadDefaultConfig();
+    int SaveConfig(QString Filename);
+    int loadConfig(QString FileName);
 
 signals:
-    void setDev(QString PathArg, int BaudRate, int MsgType, QString InterfaceLib);
+    void newMessage(_CANMsg *, int);
+    void setDev(void *ConfData, QString InterfaceLib, bool);
     void StopCapture();
     void ClearAll();
 
+
 public slots:
-    void newMessage(_CANMsg *, int);
+    void addnewMessage(_CANMsg *, int);
     void periodicUpdate(void);
+    void SateliteDestroyed(QObject *);
+    void DevIsConfigured(bool);
+
 
 
 private slots:
-    void on_checkBox_2_toggled(bool checked);
-    void on_actionSendDialog_triggered();
+    void on_checkBoxSendMsg_toggled(bool checked);
+    void on_checkBoxFilters_toggled(bool checked);
+    void on_checkBoxSpecEvtDlg_toggled(bool checked);
+    void on_actionSave_Config_triggered();
+    void on_actionConfiguration_triggered();
+    void on_actionLoad_Config_triggered();
+    void on_actionSave_Config_as_Default_triggered();
     void on_actionAbout_triggered();
     void on_actionObserverWindow_triggered();
-    void on_tableView_clicked(QModelIndex index);
     void on_actionDatabase_triggered();
     void on_actionGraphicWindow_triggered();
-    void on_MainWindow_destroyed();
     void on_actionClose_triggered();
-    void on_checkBox_clicked(bool checked);
     void on_actionLoad_triggered();
     void on_actionSave_triggered();
     void on_actionClear_triggered();

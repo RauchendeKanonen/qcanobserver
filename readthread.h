@@ -22,12 +22,14 @@
 
 #include "config.h"
 
-
+#include "errordialog.h"
 #include <qthread.h>
 #include "DeviceLib/candevice.h"
 #include "messagebufferinterface.h"
 #include "FilterDialog.h"
 #include "obscan.h"
+
+#include <QEventLoop>
 
 #ifdef LINUX
 #include <dlfcn.h>
@@ -35,28 +37,43 @@
 
 #include <iostream>
 
-
+#ifdef WINDOWS
+typedef CANDevice* (CALLBACK* _create)(void);
+typedef void (CALLBACK* _destroy)(CANDevice*);
+#endif
 
 class ReadThread : public QThread
 {
- Q_OBJECT
+    Q_OBJECT
 public:
     ReadThread();
+    ~ReadThread();
     virtual void run();
     MessageBufferInterface *MsgBuf;
     bool isConfigured();
 signals:
     void ClearAll();
+    void setDevLibInstance(CANDevice *);
+    void DevIsConfigured(bool isIt);
 
 public slots:
-    void setDev(QString PathArg, int BaudRate, int MsgType, QString InterfaceLib);
+    void setDev(void *ConfData, QString InterfaceLib, bool shareDevLib);
     void QuitThread();
     void setFilter(int Place, int from, int to);
-    void sendCANMsg(_CANMsg *);
+
 private:
-     QString Path;
-     CANDevice *Dev;
-     int QuitNow;
+    QString Path;
+    CANDevice *Dev;
+    int QuitNow;
+
+#ifdef WINDOWS
+    _create create;
+    _destroy destroy;
+#endif
+#ifdef LINUX
+     CANDevice* (*create)();
+     void (*destroy)(CANDevice*);
+#endif
 };
 
 #endif // READTHREAD_H

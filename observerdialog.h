@@ -3,7 +3,7 @@
 
 #include <QtGui/QDialog>
 #include "processdatabase.h"
-#include "candataitemselector.h"
+#include "signalselectordialog.h"
 #include "messagebufferinterface.h"
 #include "stringlistmodel.h"
 #include "cansignalcollection.h"
@@ -20,6 +20,10 @@ class ObserveItems
         Color = AColor;
         Signal = ASignal;
     }
+    ~ObserveItems()
+    {
+        delete Color;
+    }
     CANSignal* Signal;
     QColor *Color;
 };
@@ -32,7 +36,8 @@ class ObserverDialog : public QDialog {
 public:
     explicit ObserverDialog(QWidget *parent = 0, CANSignalCollection *Collection = 0);
     virtual ~ObserverDialog();
-
+    ofstream& operator>>(ofstream& os);
+    ifstream& operator<<(ifstream& is);
 public slots:
     void MainTimerSlot(void);
     void addItemToObserve(CANSignal* Signal, QColor Color);
@@ -47,10 +52,13 @@ private:
     CANSignalCollection *pCollection;
     Ui::ObserverDialog *m_ui;
     QList<ObserveItems*> CANItems;
-    CANDataItemSelector *Sel;
+    SignalSelectorDialog *Sel;
     StringListModel *TraceModel;
+    void closeEvent( QCloseEvent *e );
+    QWidget *pparent;
 
 private slots:
+    void on_ConnectedcheckBox_toggled(bool checked);
     void on_pushButton_clicked();
 };
 

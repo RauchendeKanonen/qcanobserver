@@ -18,6 +18,7 @@
 
 #include "observerdialog.h"
 #include "ui_observerdialog.h"
+#include "extrect.h"
 
 
 
@@ -25,6 +26,7 @@ ObserverDialog::ObserverDialog(QWidget *parent, CANSignalCollection *Collection)
     QDialog(parent),
     m_ui(new Ui::ObserverDialog)
 {
+    pparent = parent;
     pCollection = Collection;
 
     m_ui->setupUi(this);
@@ -34,6 +36,7 @@ ObserverDialog::ObserverDialog(QWidget *parent, CANSignalCollection *Collection)
     list->append(QString("Value"));
     list->append(QString("Unit"));
     TraceModel = new StringListModel(list);
+    delete list;
 
 
 
@@ -45,7 +48,7 @@ ObserverDialog::ObserverDialog(QWidget *parent, CANSignalCollection *Collection)
     m_ui->tableView->verticalHeader()->setDefaultSectionSize(15);
 
 
-    Sel = new CANDataItemSelector(NULL, pCollection);
+    Sel = new SignalSelectorDialog(NULL, pCollection);
     connect(Sel, SIGNAL(addItemToDraw(CANSignal*, QColor)), this, SLOT(addItemToObserve(CANSignal*, QColor)));
     connect(Sel, SIGNAL(deleteItemToDraw(CANSignal*)), this, SLOT(deleteItemToObserve(CANSignal*)));
 
@@ -55,6 +58,9 @@ ObserverDialog::~ObserverDialog()
 {
     delete m_ui;
     delete Sel;
+    delete TraceModel;
+    for(int i = 0; i < CANItems.count() ; i++)
+        delete CANItems.at(i);
 }
 
 
@@ -63,15 +69,15 @@ void ObserverDialog::newMessage(_CANMsg *CANMsg, int Cnt)
     int i;
     for(i = 0 ; CANItems.count() >  i ; i++)
     {
-        if(CANMsg->ID == CANItems.at(i)->Signal->Id)
+        if(CANMsg->ID == (DWORD)CANItems.at(i)->Signal->Id)
         {
-            SignalDataCollection *DataCol = CANItems.at(i)->Signal->getSignalDataCollection(CANMsg->DATA);
+            SignalDataCollection DataCol;
 
-            if(DataCol)
+            if(CANItems.at(i)->Signal->getSignalDataCollection(CANMsg->DATA, &DataCol))
             {
-                QString Name = DataCol->Name;
-                QString Unit = DataCol->Unit;
-                float Value = DataCol->Value;
+                QString Name = DataCol.Name;
+                QString Unit = DataCol.Unit;
+                float Value = DataCol.Value;
 
                 QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
 
@@ -90,6 +96,8 @@ void ObserverDialog::newMessage(_CANMsg *CANMsg, int Cnt)
                 index1 = TraceModel->index(0, 2, QModelIndex());
                 QVariant Col2(Unit);
                 TraceModel->setData(index1,Col2,Qt::EditRole, CANItems.at(i)->Color);
+
+
             }
         }
     }
@@ -107,7 +115,9 @@ void ObserverDialog::ClearAll()
     list->append(QString("Name"));
     list->append(QString("Value"));
     list->append(QString("Unit"));
+
     TraceModel = new StringListModel(list);
+    delete list;
     m_ui->tableView->setModel(TraceModel);
 }
 
@@ -123,8 +133,17 @@ void ObserverDialog::deleteItemToObserve(CANSignal* Signal)
     for( int i = 0 ; i < CANItems.count() ; i ++ )
     {
         if(CANItems.at(i)->Signal == Signal)
+        {
+            delete CANItems.at(i);
             CANItems.removeAt(i);
+        }
     }
+}
+
+void ObserverDialog::closeEvent( QCloseEvent *e )
+{
+    delete this;
+    QWidget::closeEvent( e );
 }
 
 void ObserverDialog::changeEvent(QEvent *e)
@@ -142,4 +161,44 @@ void ObserverDialog::changeEvent(QEvent *e)
 void ObserverDialog::on_pushButton_clicked()
 {
     Sel->show();
+}
+
+ofstream& ObserverDialog::operator>>(ofstream& os)
+{
+    //Geometry
+    ExtRect e;
+    QRect   q = this->geometry();
+    e = &q;
+    e >> os;
+
+    //connection
+    char connectedstate = (char)m_ui->ConnectedcheckBox->isChecked();
+    os << connectedstate;
+
+    (*Sel) >> os;
+    return os;
+}
+ifstream& ObserverDialog::operator<<(ifstream& is)
+{
+    //Geometry
+    ExtRect e;
+    e << is;
+    this->setGeometry(e);
+
+    //connection
+    char connectedstate;
+    is >> connectedstate;
+    m_ui->ConnectedcheckBox->setChecked((bool)connectedstate);
+
+    (*Sel) << is;
+    return is;
+}
+
+void ObserverDialog::on_ConnectedcheckBox_toggled(bool checked)
+{
+    if(checked)
+        connect(pparent, SIGNAL(newMessage(_CANMsg *,int)), this, SLOT(newMessage(_CANMsg *,int)));
+    else
+        disconnect(pparent, SIGNAL(newMessage(_CANMsg *,int)), this, SLOT(newMessage(_CANMsg *,int)));
+
 }

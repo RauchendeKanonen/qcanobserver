@@ -21,7 +21,7 @@ public:
     float getValue(unsigned char Data[8]);
     unsigned long long getConstrainMaskMaskedData(unsigned char Data[8]);
     bool checkOnOff(unsigned char AData[8]);
-    SignalDataCollection * getSignalDataCollection(unsigned char Data[8]);
+    bool getSignalDataCollection(unsigned char Data[8],  SignalDataCollection *SigCol);
     ~CANSignal()
     {
     }

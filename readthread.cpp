@@ -25,52 +25,58 @@
 #ifdef WINDOWS
 #include <windows.h>
 #endif
+
+
+
+
 ReadThread::ReadThread()
 {
-        MsgBuf = new MessageBufferInterface(15000);
-        QObject::connect(this, SIGNAL(ClearAll()),
+    setTerminationEnabled(true);
+    MsgBuf = new MessageBufferInterface(15000);
+    QObject::connect(this, SIGNAL(ClearAll()),
                      MsgBuf,SLOT(ClearAll()));
-        Dev = NULL;
+    Dev = NULL;
 }
 
-
+ReadThread::~ReadThread()
+{
+    delete MsgBuf;
+    if(Dev)
+        destroy(Dev);
+}
 
 //!SLOT for setting the device
 //!PathArg is the path to the Device eg. /dev/pcanusb
 //!For Baudrate see the Datasheet of the PCAN devices
 //!MsgType has to be
-void ReadThread::setDev(QString PathArg, int BaudRate, int MsgType, QString InterfaceLib)
+void ReadThread::setDev(void *ConfData, QString InterfaceLib, bool shareDevLib)
 {
 
 #ifdef LINUX
     //Load the interface to the hardware
     void* handle = dlopen(InterfaceLib.toStdString().c_str(), RTLD_LAZY);
 
+
     if(!handle)
     {
-        QString *Err = new QString();
-        Err->sprintf("%s %s","Could not load Device Mapper: ", InterfaceLib);
+        QString *ErrStr = new QString(" ");
+        ErrStr->sprintf("%s %s","Could not load Device Mapper: ", InterfaceLib);
         ErrorDialog *ed = new ErrorDialog;
-        ed->SetErrorMessage(*Err);
-        delete Err;
+        ed->SetErrorMessage(*ErrStr);
+        delete ErrStr;
         ed->setModal(true);
-        ed->show();
+        ed->exec();
         Dev = NULL;
-        //delete ed;
+        delete ed;
         return;
     }
 
 
-    CANDevice* (*create)();
-    void (*destroy)(CANDevice*);
+
 
 
     create = (CANDevice* (*)())dlsym(handle, "create_object");
     destroy = (void (*)(CANDevice*))dlsym(handle, "destroy_object");
-
-
-
-    Path = PathArg;
 #endif
 
 #ifdef WINDOWS
@@ -92,17 +98,11 @@ void ReadThread::setDev(QString PathArg, int BaudRate, int MsgType, QString Inte
         ed->SetErrorMessage(*Err);
         delete Err;
         ed->setModal(true);
-        ed->show();
+        ed->exec();
         Dev = NULL;
-        //delete ed;
+        delete ed;
         return;
     }
-
-    typedef CANDevice* (CALLBACK* _create)(void);
-    _create create;
-
-    typedef void (CALLBACK* _destroy)(CANDevice*);
-    _destroy destroy;
 
     create = (_create)GetProcAddress(PCANDll,"create_object");
     destroy = (_destroy)GetProcAddress(PCANDll,"destroy_object");
@@ -113,53 +113,90 @@ void ReadThread::setDev(QString PathArg, int BaudRate, int MsgType, QString Inte
         ErrorDialog *ed = new ErrorDialog;
         ed->SetErrorMessage("Could not find the expected symbols in the device mapper lib!");
         ed->setModal(true);
-        ed->show();
+        ed->exec();
         Dev = NULL;
-        //delete ed;
+        delete ed;
         return;
     }
 
+    //Create the CANDevice
     Dev = (CANDevice*)create();
-
-    int ret = Dev->CANDeviceOpen(PathArg);
+    //Open The device
+    int ret = Dev->CANDeviceOpen(ConfData);
 
     if(ELIBNOTFOUND == ret)
     {
         ErrorDialog *ed = new ErrorDialog;
         ed->SetErrorMessage("Could not find the vendor supplied library");
         ed->setModal(true);
-        ed->show();
+        ed->exec();
         destroy(Dev);
         Dev = NULL;
-        //delete ed;
+        delete ed;
+        return;
+    }
+
+    if(OPENFAILEDONSOCK == ret)
+    {
+        QString *Err;
+        Err = new QString("Device could not be opened! Failure while creating the socket!");
+        ErrorDialog *ed = new ErrorDialog;
+        ed->SetErrorMessage(*Err);
+        ed->setModal(true);
+        ed->exec();
+        destroy(Dev);
+        Dev = NULL;
+        delete ed;
+        return;
+    }
+
+    if(OPENFAILEDONBIND == ret)
+    {
+        QString *Err;
+        Err = new QString("Device could not be opened! Failure submitted by bind();!");
+        ErrorDialog *ed = new ErrorDialog;
+        ed->SetErrorMessage(*Err);
+        ed->setModal(true);
+        ed->exec();
+        destroy(Dev);
+        Dev = NULL;
+        delete ed;
         return;
     }
 
     if(OPENSUCCESSFUL != ret)
     {
+        QString *Err;
+        Err = new QString("Device could not be opened!");
         ErrorDialog *ed = new ErrorDialog;
-        ed->SetErrorMessage("Device could not be opened!");
+        ed->SetErrorMessage(*Err);
         ed->setModal(true);
-        ed->show();
+        ed->exec();
         destroy(Dev);
         Dev = NULL;
-        //delete ed;
+        delete ed;
         return;
     }
 
 
-    if(Dev->CANDeviceInit(BaudRate, MsgType))
+    if(OPENFAILONINIT == ret)
     {
         ErrorDialog *ed = new ErrorDialog;
         ed->SetErrorMessage("Device could not be initialized");
         ed->setModal(true);
-        ed->show();
+        ed->exec();
         destroy(Dev);
         Dev = NULL;
-        //delete ed;
+        delete ed;
         return;
     }
-    
+
+    //send the instance to the write thread
+    if(shareDevLib)
+        emit setDevLibInstance(Dev);
+
+
+    emit DevIsConfigured(true);
 }
 //!SLOT for setting the Hardware Filter Place == HWFILTER makes this function acting
 //!sets the Messages from int from to int to free
@@ -189,18 +226,22 @@ bool ReadThread::isConfigured()
 void ReadThread::run()
 {
     _CANMsg Msg;
-    struct timeval tv, starttime,dt;
+    struct timeval tv, starttime;
     QuitNow = 0;
+
+
+    QEventLoop *loop = new QEventLoop();
 
 
     if(Dev == NULL)
     {
+        delete loop;
         return;
     }
 
     gettimeofday( &starttime, NULL);
     //Read all out that came before and remained in the buffer
-    while(Dev->CANDeviceRead(&Msg))
+    while(Dev->CANDeviceRead(&Msg) == OPSUCCESS)
     {
         gettimeofday( &tv, NULL);
         if((tv.tv_sec - starttime.tv_sec) > 0.01)
@@ -213,23 +254,19 @@ void ReadThread::run()
     {
         if(QuitNow)
         {
+            delete loop;
             return;
         }
-        if(Dev->CANDeviceRead(&Msg))
+        if(Dev->CANDeviceRead(&Msg) == OPSUCCESS)
         {
             Msg.tv.tv_sec -= starttime.tv_sec;
             MsgBuf->AddMessage(&Msg);
         }
-
+        loop->processEvents(QEventLoop::AllEvents);
     }
 }
 
 void ReadThread::QuitThread()
 {
     QuitNow = 1;
-}
-
-void ReadThread::sendCANMsg(_CANMsg *Msg)
-{
-    Dev->CANDeviceWrite(*Msg);
 }

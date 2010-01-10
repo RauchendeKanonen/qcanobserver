@@ -5,9 +5,8 @@ TARGET = QCanObserver
 TEMPLATE = app
 
 # CONFIG(release, debug|release)
+#CONFIG += release
 CONFIG += debug
-
-# CONFIG += release
 SOURCES += main.cpp \
     mainwindow.cpp \
     readthread.cpp \
@@ -19,13 +18,17 @@ SOURCES += main.cpp \
     filterdef.cpp \
     graphicwindow.cpp \
     processdatabase.cpp \
-    candataitemselector.cpp \
     observerdialog.cpp \
     aboutbox.cpp \
     sendmsgdialog.cpp \
     msgdefdialog.cpp \
     cansignal.cpp \
-    cansignalcollection.cpp
+    cansignalcollection.cpp \
+    extrect.cpp \
+    configdialog.cpp \
+    signalselectordialog.cpp \
+    specialeventdialog.cpp \
+    writethread.cpp
 HEADERS += mainwindow.h \
     readthread.h \
     DevDialog.h \
@@ -36,7 +39,6 @@ HEADERS += mainwindow.h \
     filterdef.h \
     graphicwindow.h \
     processdatabase.h \
-    candataitemselector.h \
     observerdialog.h \
     aboutbox.h \
     sendmsgdialog.h \
@@ -44,7 +46,13 @@ HEADERS += mainwindow.h \
     cansignal.h \
     cansignalcollection.h \
     config.h \
-    obscan.h
+    obscan.h \
+    extrect.h \
+    configdialog.h \
+    signalselectordialog.h \
+    specialeventdialog.h \
+    writethread.h \
+    DeviceLib/candevice.h
 FORMS += mainwindow.ui \
     DevDialog.ui \
     errordialog.ui \
@@ -53,11 +61,13 @@ FORMS += mainwindow.ui \
     filterdef.ui \
     filterdef.ui \
     graphicwindow.ui \
-    candataitemselector.ui \
     observerdialog.ui \
     aboutbox.ui \
     sendmsgdialog.ui \
-    msgdefdialog.ui
+    msgdefdialog.ui \
+    configdialog.ui \
+    signalselectordialog.ui \
+    specialeventdialog.ui
 unix { 
     INCLUDEPATH += /usr/include/qwt5/
     LIBS += -L/usr/lib/ \
@@ -65,9 +75,11 @@ unix {
         -lpcan
 }
 win32 { 
-    INCLUDEPATH += c:\Qwt-5.2.1-svn\include
-    CONFIG(release, debug|release):LIBS += C:\Qwt-5.2.1-svn\lib\libqwt5.a
-    CONFIG(debug, debug|release):LIBS += C:\Qwt-5.2.1-svn\lib\libqwtd5.a
+    SOURCES += wingettimeofday.cpp
+    HEADERS += wingettimeofday.h
+    INCLUDEPATH += c:\Qwt-5.2.0\include
+    CONFIG(release, debug|release):LIBS += C:\Qwt-5.2.0\lib\libqwt5.a
+    CONFIG(debug, debug|release):LIBS += C:\Qwt-5.2.0\lib\libqwtd5.a
 }
 QT += xml
 include(modeltest/modeltest.pri)

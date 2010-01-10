@@ -123,7 +123,7 @@ bool CANSignal::checkOnOff(unsigned char AData[8])
 //!Takes the CAN Frame Data, returns the Number of associated Rules and writes
 //!a QList <IDCollection*> to Col
 //!The Caller is liable for freeing the memory
-SignalDataCollection * CANSignal::getSignalDataCollection(unsigned char Data[8])
+bool CANSignal::getSignalDataCollection(unsigned char Data[8], SignalDataCollection *SigCol)
 {
 
     if(isEventItem == true)
@@ -131,19 +131,17 @@ SignalDataCollection * CANSignal::getSignalDataCollection(unsigned char Data[8])
 	// has the event happened
 	if(checkOnOff(Data))
 	{
-	    SignalDataCollection *SigCol = new SignalDataCollection();
 	    SigCol->Name = QString("Evt: ")+Name;
 	    SigCol->Value = getValue(Data);
 	    SigCol->Unit = Unit;
 	    SigCol->isEventItem = true;
-	    return SigCol;
+            return true;
 	}
-	return NULL;
+        return false;
     }
-    SignalDataCollection *SigCol = new SignalDataCollection();
     SigCol->Value = getValue(Data);
     SigCol->Name = Name;
     SigCol->Unit = Unit;
     SigCol->isEventItem = false;
-    return SigCol;
+    return true;
 }

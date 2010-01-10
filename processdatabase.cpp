@@ -24,11 +24,13 @@
 //!Reads all the Items out of the XML File and Creates a QList <CalRule*>
 ProcessDataBase::ProcessDataBase(QString FileName)
 {
+    DBFileName.clear();
+    Collection = NULL;
      QFile opmlFile( FileName );
     if ( !opmlFile.open( QIODevice::ReadOnly ) ) {
         QMessageBox::critical( 0,
                 QString( "Critical Error" ),
-                QString( "Cannot open file" ));
+                QString( "Cannot open database file" ));
         return;
     }
 
@@ -43,6 +45,7 @@ ProcessDataBase::ProcessDataBase(QString FileName)
 
     Collection = new CANSignalCollection();
 
+    DBFileName = FileName;
 
     // get the header information from the DOM
     QDomElement root = domTree.documentElement();

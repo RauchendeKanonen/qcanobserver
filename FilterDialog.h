@@ -53,10 +53,6 @@ private:
     Filterdef *FilterDef;
 private slots:
     void on_pushButton_clicked();
-    void on_DelGraphicInputFilter_clicked();
-    void on_DelDataVaseOutputFilter_clicked();
-    void on_AddGraphicInputFilter_clicked();
-    void on_AddDataBaseOutputFilter_clicked();
     void on_DelInputFilter_clicked();
     void on_AddInputFilter_clicked();
 };

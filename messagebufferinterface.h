@@ -28,12 +28,6 @@
 
 #define REALLOCSIZE 1000000
 
-/*struct CANMsgandTimeStruct
-    {
-        _CANMsg CANMsg;
-        long TimeStamp;
-        struct timeval timev;
-    };*/
 
 
 //!Storrage Class for all the CAN Messages.
@@ -46,7 +40,7 @@ public:
     int GetMessage(_CANMsg *Msg, int idx);
     MessageBufferInterface(int size);
     int AddMessage(_CANMsg *Msg);
-
+    ~MessageBufferInterface();
     int Save(char *Filename);
     int Load(char *Filename);
     //int AddMessage(_CANMsg *Msg);
@@ -60,6 +54,7 @@ private:
 
 signals:
     void newMessage(_CANMsg *, int);
+    void newSpecialMessage(_CANMsg *CANMsg);
 
 public slots:
     int ClearAll();

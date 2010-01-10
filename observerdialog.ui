@@ -18,17 +18,34 @@
     <widget class="QTableView" name="tableView"/>
    </item>
    <item>
-    <widget class="QPushButton" name="pushButton">
-     <property name="minimumSize">
-      <size>
-       <width>151</width>
-       <height>0</height>
-      </size>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="bottomMargin">
+      <number>3</number>
      </property>
-     <property name="text">
-      <string>Add Item from DB</string>
-     </property>
-    </widget>
+     <item>
+      <widget class="QCheckBox" name="ConnectedcheckBox">
+       <property name="text">
+        <string>Connected</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton">
+       <property name="minimumSize">
+        <size>
+         <width>151</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Add Item from DB</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

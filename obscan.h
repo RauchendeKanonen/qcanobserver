@@ -2,13 +2,15 @@
 #define OBSCAN_H
 
 #include "config.h"
-
+#include <QMetaType>
 
 #ifdef WINDOWS
 #include <windef.h>
+#include <winsock2.h>
 #endif
 
 #ifdef LINUX
+#include <sys/time.h>
 #define DWORD unsigned int
 #define BYTE  unsigned char
 #endif
@@ -22,15 +24,15 @@
 
 
 
-typedef struct
+struct _CANMsg
 {
   DWORD ID;              // 11/29 bit code
   BYTE  MSGTYPE;         // bits of MSGTYPE_*
   BYTE  LEN;             // count of data bytes (0..8)
   BYTE  DATA[8];         // data bytes, up to 8
   timeval tv;
-} _CANMsg;              // for PCAN_WRITE_MSG
+};
 
-
+Q_DECLARE_METATYPE(_CANMsg)
 
 #endif // CAN_H

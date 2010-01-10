@@ -24,15 +24,45 @@
 #include <modeltest.h>
 
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow)
+
+
+void MainWindow::initSatelites()
 {
-    MsgCounter = 0;
-
     rt = new ReadThread;
-    QObject::connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg *, int)),
-                     this, SLOT(newMessage(_CANMsg *, int)));
 
+
+    QObject::connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg *, int)),
+                     this, SLOT(addnewMessage(_CANMsg *, int)));
+    QObject::connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg *, int)),
+                     this, SIGNAL(newMessage(_CANMsg *, int)));
+    QObject::connect(this, SIGNAL(ClearAll()),
+                     rt, SIGNAL(ClearAll()));
+    QObject::connect(this, SIGNAL(setDev(void *, QString, bool)),
+                     rt, SLOT(setDev(void *, QString, bool)));
+    QObject::connect(this, SIGNAL(StopCapture()),
+                     rt, SLOT(QuitThread()));
+    QObject::connect(rt, SIGNAL(DevIsConfigured(bool)),
+                     this, SLOT(DevIsConfigured(bool)));
+
+    wt = new WriteThread;
+
+    QObject::connect(this, SIGNAL(setDev(void *, QString, bool)),
+                     wt, SLOT(setDev(void *, QString, bool)));
+    QObject::connect(this, SIGNAL(ClearAll()),
+                     rt, SIGNAL(ClearAll()));
+
+ //   QObject::connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg *, int)),
+ //                    wt, SLOT(addnewMessage(_CANMsg *, int)));
+
+    QObject::connect(rt, SIGNAL(setDevLibInstance(CANDevice *)),
+                     wt, SLOT(setDevLibInstance(CANDevice *)));
+
+    QObject::connect(this, SIGNAL(StopCapture()),
+                     wt, SLOT(QuitThread()));
+
+
+
+    CANSignals = NULL;
 
     for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
     {
@@ -43,15 +73,55 @@ MainWindow::MainWindow(QWidget *parent)
     {
         ObserverWnd[i] = NULL;
     }
-    periodicTimer = new QTimer( );
-    connect(periodicTimer, SIGNAL(timeout()), this, SLOT(periodicUpdate()));
 
     FilterDlg = new FilterDialog();
 
     SendMsgDlg = new SendMsgDialog();
 
-    QObject::connect(this, SIGNAL(ClearAll()),
-                     rt, SIGNAL(ClearAll()));
+
+
+    //After the device is configured
+    DevDlg = new DevDialog(this);
+    QObject::connect(DevDlg, SIGNAL(setDev(void *, QString, bool)),
+                     this, SIGNAL(setDev(void *, QString, bool)));
+
+    QObject::connect(SendMsgDlg, SIGNAL(sendCANMsg(_CANMsg , int, _CANMsg, int)),
+                     wt, SLOT(sendCANMsg(_CANMsg , int , _CANMsg, int )));
+    QObject::connect(SendMsgDlg, SIGNAL(deleteCANMsg(_CANMsg , int, _CANMsg, int)),
+                     wt, SLOT(deleteCANMsg(_CANMsg , int, _CANMsg, int )));
+
+
+    QObject::connect(FilterDlg, SIGNAL(setFilter(int, int, int)),
+                     rt, SLOT(setFilter(int, int, int)));
+    DevDlg->setWindowTitle("Select a device");
+
+
+    //for RTRs and Error Frames
+    SpecEvtDlg = new SpecialEventDialog();
+    QObject::connect(rt->MsgBuf, SIGNAL(newSpecialMessage(_CANMsg *)),
+                     SpecEvtDlg, SLOT(newSpecialMessage(_CANMsg *)));
+    connect(periodicTimer, SIGNAL(timeout()), SpecEvtDlg, SLOT(MainTimerSlot()));
+}
+
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent), ui(new Ui::MainWindow)
+{
+
+    qRegisterMetaType<_CANMsg>("_CANMsg");
+
+
+
+    MsgCounter = 0;
+
+    black = QColor(Qt::black);
+
+
+    periodicTimer = new QTimer( );
+    connect(periodicTimer, SIGNAL(timeout()), this, SLOT(periodicUpdate()));
+
+
+
 
     DB = NULL;
 
@@ -59,28 +129,25 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle("QCANObserver");
 
     //Filter
-    ui->checkBox->setEnabled(false);
+    ui->checkBoxFilters->setEnabled(false);
     //SendMsgs
-    ui->checkBox_2->setEnabled(false);
+    ui->checkBoxSendMsg->setEnabled(false);
 
 
     ui->MsgCounter->setNumDigits(7);
     ui->MsgLossWarning->setNumDigits(7);
-    ui->TextLabelAddedMsgs->setText(QwtText(QString("Added Messages:")));
-    ui->TextLabelLostMsgs->setText(QwtText(QString("Lost Messages:")));
-
-
-
 
     ui->tableView->verticalHeader()->setDefaultSectionSize(15);
     ui->tableView->horizontalHeader()->setDefaultSectionSize(200);
-
+    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     QStringList *list = new QStringList();
     list->append(QString("ID"));
     list->append(QString("Data"));
     list->append(QString("Time"));
     TraceModel = new StringListModel(list);
+    
+    delete list;
 
     //Model Checker
     //new ModelTest(TraceModel, this);
@@ -93,21 +160,46 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableView->setColumnWidth(1, 300);
     ui->tableView->setColumnWidth(2, 90);
 
+    initSatelites();
 
-
-    QObject::connect(this, SIGNAL(setDev(QString, int, int, QString)),
-                     rt, SLOT(setDev(QString, int, int, QString)));
+    if(-1 == loadDefaultConfig())
+    {
+        ErrorDialog *Error = new ErrorDialog();
+        Error->SetErrorMessage("Could not load default Configuration file (.config)");
+        Error->setModal(true);
+        Error->exec();
+    }
 }
 
 MainWindow::~MainWindow()
 {
+    rt->terminate();
+    wt->terminate();
+
+    emit StopCapture();
+
+
+    delete rt;
+    delete wt;
+    delete periodicTimer;
+    delete TraceModel;
+
+    delete FilterDlg;
+
+    if(CANSignals)
+        delete CANSignals;
+
+    if(DB)
+        delete DB;
+
+
     delete ui;
 }
 
 
 //add the message to the Model
 //SLOT
-void MainWindow::newMessage(_CANMsg *CANMsg, int MsgCnt)
+void MainWindow::addnewMessage(_CANMsg *CANMsg, int MsgCnt)
 {
     QString MsgString;
     QString IDString;
@@ -124,23 +216,30 @@ void MainWindow::newMessage(_CANMsg *CANMsg, int MsgCnt)
 
     MsgString.sprintf("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x", CANMsg->DATA[0], CANMsg->DATA[1], CANMsg->DATA[2], CANMsg->DATA[3], CANMsg->DATA[4]
                                                             , CANMsg->DATA[5], CANMsg->DATA[6], CANMsg->DATA[7]);
-    IDString.sprintf("0x%04x", CANMsg->ID);
+    IDString.sprintf("0x%04x", (unsigned int)CANMsg->ID);
     TimeString.sprintf("%f", (float)CANMsg->tv.tv_sec + (float)CANMsg->tv.tv_usec/1000000.0);
 
-    QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
-    TraceModel->insertRows(0, 1, (const QModelIndex &)index1);
+    int mod = (MsgCounter % 10);
 
-    index1 = TraceModel->index(0, 0, QModelIndex());
+    if(MsgCounter == 0 || mod == 0)
+    {
+        QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
+        TraceModel->insertRows(0, 10, (const QModelIndex &)index1);
+    }
+
+
+
+    QModelIndex index1 = TraceModel->index(10 - mod, 0, QModelIndex());
     QVariant Col0(IDString);
-    TraceModel->setData(index1,Col0,Qt::EditRole, new QColor(Qt::black));
+    TraceModel->setData(index1,Col0,Qt::EditRole, &black);
 
-    index1 = TraceModel->index(0, 1, QModelIndex());
+    index1 = TraceModel->index(10 - mod, 1, QModelIndex());
     QVariant Col1(MsgString);
-    TraceModel->setData(index1,Col1,Qt::EditRole, new QColor(Qt::black));
+    TraceModel->setData(index1,Col1,Qt::EditRole, &black);
 
-    index1 = TraceModel->index(0, 2, QModelIndex());
+    index1 = TraceModel->index(10 - mod, 2, QModelIndex());
     QVariant Col2(TimeString);
-    TraceModel->setData(index1,Col2,Qt::EditRole, new QColor(Qt::black));
+    TraceModel->setData(index1,Col2,Qt::EditRole, &black);
 }
 
 
@@ -160,11 +259,7 @@ void MainWindow::periodicUpdate(void)
 
 void MainWindow::closeEvent( QCloseEvent *e )
 {
-
-    delete FilterDlg;
-    delete SendMsgDlg;
-
-    //Delete alle Graphic Windows
+        //Delete alle Graphic Windows
     for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
         if(GraphWnd[i] != NULL)
             delete GraphWnd[i];
@@ -173,6 +268,8 @@ void MainWindow::closeEvent( QCloseEvent *e )
         if(ObserverWnd[i] != NULL)
             delete ObserverWnd[i];
 
+    delete SpecEvtDlg;
+    delete SendMsgDlg;
     QMainWindow::closeEvent( e );
 }
 
@@ -184,15 +281,16 @@ void MainWindow::on_actionGraphicWindow_triggered()
         {
             if(GraphWnd[i] == NULL)
             {
-		GraphWnd[i] = new GraphicWindow(NULL, CANSignals);
+                GraphWnd[i] = new GraphicWindow(this, CANSignals);
                 GraphWnd[i]->setWindowTitle("GraphicWindow");
                 GraphWnd[i]->move(this->pos().x()+this->geometry().width(), this->pos().y());
                 GraphWnd[i]->show();
                 connect(this, SIGNAL(StopCapture()), GraphWnd[i], SLOT(StopCapture()));
-                connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg *,int)), GraphWnd[i], SLOT(newMessage(_CANMsg *,int)));
+                connect(this, SIGNAL(newMessage(_CANMsg *, int)), GraphWnd[i], SLOT(newMessage(_CANMsg *,int)));
                 connect(periodicTimer, SIGNAL(timeout()), GraphWnd[i], SLOT(MainTimerSlot()));
                 connect(this, SIGNAL(ClearAll()), GraphWnd[i], SLOT(ClearAll()));
-		return;
+                connect(GraphWnd[i], SIGNAL(destroyed(QObject*)), this, SLOT(SateliteDestroyed(QObject *)));
+                return;
             }
         }
     }
@@ -205,59 +303,72 @@ void MainWindow::on_actionDatabase_triggered()
     dlg.setModal(true);
     if(dlg.exec())
     {
-        QStringList Files = dlg.selectedFiles();
-        QString File = Files.at(0);
-        DB = new ProcessDataBase(File);
-	//make the Data public
-	CANSignals = DB->getCANSignalList();
-	//delete DB;
-
+        if(dlg.selectedFiles().count())
+        {
+            loadDatabase(dlg.selectedFiles().at(0));
+        }
     }
     else
         return;
 }
 
-
-
-//add message
-void MainWindow::on_checkBox_2_toggled(bool checked)
+int MainWindow::loadDatabase(QString File)
 {
-    SendMsgDlg->move(this->pos().x(), this->pos().y()+this->geometry().height()+30);
-    if(checked)
-        SendMsgDlg->show();
+    if(DB)
+    {
+        //Delete alle Graphic Windows
+        for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
+        {
+            if(GraphWnd[i] != NULL)
+            {
+
+
+                ErrorDialog *ed = new ErrorDialog();
+
+                ed->SetErrorMessage("Close first all Graphic/Observer Windows!");
+
+                ed->setModal(true);
+                ed->exec();
+                delete ed;
+                return -1;
+            }
+        }
+
+        for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
+        {
+            if(ObserverWnd[i] != NULL)
+            {
+                ErrorDialog *ed = new ErrorDialog();
+
+                ed->SetErrorMessage("Close first all Graphic/Observer Windows!");
+
+                ed->setModal(true);
+                ed->exec();
+                delete ed;
+                return -1;
+            }
+        }
+        delete DB;
+        delete CANSignals;
+    }
+
+    DB = new ProcessDataBase(File);
+    //make the Data public
+    CANSignals = DB->getCANSignalList();
+
+    if(CANSignals)
+        return 1;
     else
-        SendMsgDlg->hide();
+    {
+        delete DB;
+        DB = NULL;
+        return -1;
+    }
 }
-
-
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////Private Action Handlers from the controls///////////////////////////
 
-
-//Unused
-void MainWindow::on_tableView_clicked(QModelIndex index)
-{
-    unsigned char hexdat[8];
-
-    QModelIndex id_idx = TraceModel->index(index.row(), 0, QModelIndex());
-    QModelIndex data_idx = TraceModel->index(index.row(), 1, QModelIndex());
-
-    QVariant DataVar = TraceModel->data(data_idx, Qt::DisplayRole);
-    QString DataStr = DataVar.toString();
-
-    QVariant IdVar = TraceModel->data(id_idx, Qt::DisplayRole);
-    QString IdStr = IdVar.toString();
-
-    char *data;
-    data = (char*)DataStr.toStdString().c_str();
-
-    for(int i = 0 ; i < 8 ; i ++ )
-        hexdat[i] = strtol(data+i*5, NULL, 16);
-
-}
 
 
 void MainWindow::on_actionObserverWindow_triggered()
@@ -268,14 +379,15 @@ void MainWindow::on_actionObserverWindow_triggered()
         {
             if(ObserverWnd[i] == NULL)
             {
-                ObserverWnd[i] = new ObserverDialog(NULL, CANSignals);
+                ObserverWnd[i] = new ObserverDialog(this, CANSignals);
                 ObserverWnd[i]->setWindowTitle("ObserverWindow");
                 ObserverWnd[i]->move(this->pos().x()+this->geometry().width(), this->pos().y());
                 ObserverWnd[i]->show();
 
-                connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg *,int)), ObserverWnd[i], SLOT(newMessage(_CANMsg *,int)));
+                connect(this, SIGNAL(newMessage(_CANMsg *, int)), ObserverWnd[i], SLOT(newMessage(_CANMsg *,int)));
                 connect(periodicTimer, SIGNAL(timeout()), ObserverWnd[i], SLOT(MainTimerSlot()));
                 connect(this, SIGNAL(ClearAll()), ObserverWnd[i], SLOT(ClearAll()));
+                connect(ObserverWnd[i], SIGNAL(destroyed(QObject*)), this, SLOT(SateliteDestroyed(QObject *)));
                 return;
             }
         }
@@ -283,33 +395,28 @@ void MainWindow::on_actionObserverWindow_triggered()
     return;
 }
 
+void MainWindow::DevIsConfigured(bool isIt)
+{
+    if(isIt)
+    {
+        //Filter
+        ui->checkBoxFilters->setEnabled(true);
+        //SendMsgs
+        ui->checkBoxSendMsg->setEnabled(true);
+
+
+        // is the device capable of receving error frames
+        //int Flags = DevDlg->getDeviceFlags();
+
+        //if((Flags & ERROR_FR) || (Flags & RTR_FR))
+        ui->checkBoxSpecEvtDlg->setEnabled(true);
+    }
+}
+
 void MainWindow::on_actionDevice_triggered()
 {
-    DevDialog *qd = new DevDialog(this);
-
-
-    QObject::connect(qd, SIGNAL(setDev(QString , int , int , QString )),
-                     this, SIGNAL(setDev(QString , int , int , QString )));
-
-    QObject::connect(this, SIGNAL(StopCapture()),
-                     rt, SLOT(QuitThread()));
-
-    QObject::connect(SendMsgDlg, SIGNAL(sendCANMsg(_CANMsg *)),
-                     rt, SLOT(sendCANMsg(_CANMsg *)));
-
-    QObject::connect(FilterDlg, SIGNAL(setFilter(int, int, int)),
-                     rt, SLOT(setFilter(int, int, int)));
-
-
-    qd->setWindowTitle("Select a device");
-    qd->setModal(true);
-    qd->exec();
-
-    //Filter
-    ui->checkBox->setEnabled(true);
-    //SendMsgs
-    ui->checkBox_2->setEnabled(true);
-    delete qd;
+    DevDlg->setModal(true);
+    DevDlg->exec();
 }
 
 
@@ -320,28 +427,24 @@ void MainWindow::on_actionAbout_triggered()
     about->exec();
     delete about;
 }
-//Unused
-void MainWindow::on_actionSendDialog_triggered()
-{
-
-
-}
 
 void MainWindow::on_actionStart_triggered()
 {
     if(rt->isConfigured())
     {
         rt->start();
-        periodicTimer->start(100);
+        rt->moveToThread(rt);
+        periodicTimer->start(250);
     }
     else
     {
         ErrorDialog *ed = new ErrorDialog;
         ed->SetErrorMessage("No Device is Configured!");
-        ed->setModal(true);
-        ed->show();
 
-        //delete ed;
+        ed->setModal(true);
+        ed->exec();
+        delete ed;
+
         return;
     }
 }
@@ -349,31 +452,18 @@ void MainWindow::on_actionStart_triggered()
 void MainWindow::on_actionStop_triggered()
 {
     //Switch to the full list
+    rt->terminate();
+    wt->terminate();
     periodicTimer->stop();
     emit StopCapture();
 }
 
-void MainWindow::on_checkBox_clicked(bool checked)
-{
-    if(checked)
-    {
-        int x = this->geometry().x();
-        FilterDlg->move(x+600,0);
-        FilterDlg->show();
-    }
-    else
-        FilterDlg->hide();
-}
-//Unused
+
 void MainWindow::on_actionClose_triggered()
 {
-
+    delete this;
 }
-//Unused
-void MainWindow::on_MainWindow_destroyed()
-{
 
-}
 
 void MainWindow::on_actionClear_triggered()
 {
@@ -384,6 +474,7 @@ void MainWindow::on_actionClear_triggered()
     list->append(QString("Data"));
     list->append(QString("Time"));
     TraceModel = new StringListModel(list);
+    delete list;
     MsgCounter = 0;
     ui->MsgLossWarning->display(0);
     ui->MsgCounter->display(0);
@@ -423,4 +514,218 @@ void MainWindow::on_actionLoad_triggered()
     }
     else
         return;
+}
+void MainWindow::SateliteDestroyed(QObject *Obj)
+{
+    for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
+        if(GraphWnd[i] == Obj)
+            GraphWnd[i] = NULL;
+
+    for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
+        if(ObserverWnd[i] == Obj)
+            ObserverWnd[i] = NULL;
+    return;
+}
+
+int MainWindow::SaveConfig(QString Filename)
+{
+
+    ofstream ofs(Filename.toStdString().c_str(), ios::binary);
+
+    ExtRect pos;
+    QRect b = this->geometry();
+    pos = &b;
+    pos >> ofs;
+    //DeviceConfig
+    (*DevDlg) >> ofs;
+
+    if(DB)
+    {
+        ofs << (int)1;
+        //Store the dbfilename
+        char temp[512];
+        memset(temp, 0, 512);
+        QString DBFileName = DB->getFileName();
+        memcpy(temp,DBFileName.toStdString().c_str(),DBFileName.count());
+        for(int f = 0; f < 512 ; f++)
+            ofs << temp[f];
+
+        for( char i = 0 ; i < MAX_GRAPH_WINDOWS ; i++ )
+        {
+            if(GraphWnd[(int)i] == NULL)
+            {
+                ofs << i;       //store the number of grph windows
+                break;
+            }
+        }
+
+        for( int i = 0 ; i < MAX_GRAPH_WINDOWS ; i++ )
+        {
+            if(GraphWnd[i] == NULL)
+                break;
+            (*GraphWnd[i]) >> ofs;
+        }
+
+        for( char i = 0 ; i < MAX_GRAPH_WINDOWS ; i++ )
+        {
+            if(ObserverWnd[(int)i] == NULL)
+            {
+                ofs << i;       //store the number of grph windows
+                break;
+            }
+        }
+
+        for( int i = 0 ; i < MAX_GRAPH_WINDOWS ; i++ )
+        {
+            if(ObserverWnd[i] == NULL)
+                break;
+            (*ObserverWnd[i]) >> ofs;
+        }
+    }
+
+    else //No DB
+        ofs << (int)0;
+
+    ofs.close();
+    return 1;
+}
+
+void MainWindow::on_actionSave_Config_triggered()
+{
+
+    QFileDialog dlg(this, QString("Select a Configuration File *.ObsCfg"),QString("cfg/"),NULL);
+    dlg.setModal(true);
+    if(dlg.exec())
+    {
+        QStringList Files = dlg.selectedFiles();
+        QString File = Files.at(0);
+        SaveConfig(File);
+    }
+    else
+        return;
+}
+
+
+
+void MainWindow::on_actionSave_Config_as_Default_triggered()
+{
+    SaveConfig(QString("cfg/.config"));
+}
+
+int MainWindow::loadDefaultConfig()
+{
+    return loadConfig(QString("cfg/.config"));
+}
+
+int MainWindow::loadConfig(QString FileName)
+{
+    ifstream ifs(FileName.toStdString().c_str(), ios::binary);
+
+    if(!ifs.is_open())
+        return -1;
+
+    ExtRect pos;
+    pos << ifs;
+
+    this->setGeometry(pos);
+
+    //DeviceConfig
+    (*DevDlg) << ifs;
+
+    int dbConfigured;
+    ifs >> dbConfigured;
+    //Store the dbfilename
+
+    if(dbConfigured)
+    {
+        //load the dbfilename
+        char temp[512];
+
+
+        for(int f = 0; f < 512 ; f++)
+            ifs >> temp[f];
+
+        QString DBFileName(temp);
+
+        if(-1 == loadDatabase(DBFileName))
+            return -1;             //open Observer or GraphicWindows -> break up
+
+        //load the GraphicWindows
+        char numofgraphwnds;
+        ifs >> numofgraphwnds;
+
+        for(int i = 0 ; i < numofgraphwnds ; i++ )
+        {
+            on_actionGraphicWindow_triggered();
+            (*GraphWnd[i]) << ifs;
+        }
+
+        //load the ObserverWindows
+        char numofobserverwnds;
+        ifs >> numofobserverwnds;
+
+        for(int i = 0 ; i < numofobserverwnds ; i++ )
+        {
+            on_actionObserverWindow_triggered();
+            (*ObserverWnd[i]) << ifs;
+        }
+    }
+    ifs.close();
+    return 1;
+}
+
+void MainWindow::on_actionLoad_Config_triggered()
+{
+    QFileDialog dlg(this, QString("Select a Configuration File *.Obscfg"),QString("cfg/"),NULL);
+    dlg.setModal(true);
+    if(dlg.exec())
+    {
+        if(dlg.selectedFiles().count())
+            loadConfig(dlg.selectedFiles().at(0));
+    }
+
+    else
+        return;         //cancel
+}
+
+void MainWindow::on_actionConfiguration_triggered()
+{
+
+}
+
+
+void MainWindow::on_checkBoxSpecEvtDlg_toggled(bool checked)
+{
+    if(checked)
+        SpecEvtDlg->show();
+    else
+        SpecEvtDlg->hide();
+}
+
+void MainWindow::on_checkBoxFilters_toggled(bool checked)
+{
+    if(checked)
+    {
+        int x = this->geometry().x();
+        FilterDlg->move(x+600,0);
+        FilterDlg->show();
+    }
+    else
+        FilterDlg->hide();
+}
+
+void MainWindow::on_checkBoxSendMsg_toggled(bool checked)
+{
+    SendMsgDlg->move(this->pos().x(), this->pos().y()+this->geometry().height()+30);
+    if(checked)
+    {
+        wt->start(QThread::TimeCriticalPriority);
+        wt->moveToThread(wt);
+        SendMsgDlg->show();
+    }
+    else
+    {
+        SendMsgDlg->hide();
+        wt->terminate();
+    }
 }

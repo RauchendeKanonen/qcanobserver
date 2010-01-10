@@ -32,23 +32,51 @@
 #include <limits.h>
 #include <errno.h>
 
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
-
-#include <linux/can.h>
-#include <linux/can/raw.h>
-
 #include "../../candevice.h"
 
-struct ifreq ifr;
-struct sockaddr_can addr;
-int family = PF_CAN, type = SOCK_RAW, proto = CAN_RAW;
-int echo_gen = 0;
-int opt, err;
-static int sockfd;
+typedef struct config
+{
+    int BoudRReg;
+    int MsgType;
+};
+
+extern "C" int getDeviceFlags(void)
+{
+    int Flags = 0;
+
+    /*Flags |= RTR_FR;
+    Flags |= ERROR_FR;
+    Flags |= TIMESTAMP;
+*/
+    return Flags;
+}
+
+extern "C" void* createConfig(void *oldconf)
+{
+    struct config cfg;
+    ConfDialog dlg;
+
+    void *cmpbuf = malloc(CONFDATA_SIZEMAX);
+    memset(cmpbuf, 0, CONFDATA_SIZEMAX);
+
+    if(memcmp(oldconf, cmpbuf, CONFDATA_SIZEMAX))
+    {
+        memcpy((void*)&cfg, oldconf, sizeof(cfg));
+        dlg.setValues(cfg.BoudRReg, cfg.MsgType);
+    }
+    free(cmpbuf);
+
+
+    dlg.setModal(true);
+    dlg.exec();
+
+    dlg.getValues(&cfg.BoudRReg, &cfg.MsgType);
+
+    memset(oldconf, 0, CONFDATA_SIZEMAX);
+    memcpy(oldconf, (void*)(&cfg), sizeof(cfg));
+    return oldconf;
+}
+
 
 extern "C" CANDevice* create_object();
 
@@ -89,15 +117,24 @@ int CANDevice::CANClearFilters(void)
     return 0;
 }
 
-int CANDevice::CANDeviceOpen(QString Path)
+int CANDevice::CANDeviceOpen(void*ConfigBuf)
 {
     /* Create the socket */
     sockfd = socket( PF_CAN, SOCK_RAW, CAN_RAW );
     if(sockfd <= 0)
-            return OPENFAILED;
+            return OPENFAILEDONSOCK;
+
+    //loop back send msg when opened a virtualcan netdev
+    if(NetDev.left(4) == QString("vcan"))
+    {
+        int recv_own_msgs = 1; /* 0 = disabled (default), 1 = enabled */
+
+        setsockopt(sockfd, SOL_CAN_RAW, CAN_RAW_RECV_OWN_MSGS,
+                   &recv_own_msgs, sizeof(recv_own_msgs));
+    }
     /* Locate the interface you wish to use */
     struct ifreq ifr;
-    strcpy(ifr.ifr_name, Path.toStdString().c_str());
+    strcpy(ifr.ifr_name, NetDev.toStdString().c_str());
     int ret = ioctl(sockfd, SIOCGIFINDEX, &ifr); /* ifr.ifr_ifindex gets filled
                                   * with that device's index */
 
@@ -111,7 +148,7 @@ int CANDevice::CANDeviceOpen(QString Path)
     if(ret != 0)
     {
         close(sockfd);
-        return OPENFAILED;
+        return OPENFAILEDONBIND;
     }
 
     can_err_mask_t err_mask = CAN_ERR_MASK;//all possible errors
@@ -140,6 +177,7 @@ int CANDevice::CANDeviceInit(int BaudRate, int MsgType)
 {
 //    if(CAN_Init(DevHandle, BaudRate, MsgType))
         //return 1;
+
 
     return 0;
 }
@@ -185,14 +223,11 @@ int CANDevice::CANDeviceRead(_CANMsg *Msg)
 
 int CANDevice::CANDeviceWrite(_CANMsg Msg)
 {
-//    TPCANMsg HWMsg;
-//    HWMsg.ID = Msg.ID;
-//    memcpy(HWMsg.DATA, Msg.DATA, 8);
-//    HWMsg.LEN = Msg.LEN;
-//    HWMsg.MSGTYPE = Msg.MSGTYPE;
-//
-//    if(CAN_Write(DevHandle, &HWMsg))
-//        return 0;
+    struct can_frame tx_frame;
+    tx_frame.can_dlc = 8;
+    tx_frame.can_id = Msg.ID;
+    memcpy(tx_frame.data, Msg.DATA, 8);
+    int wrote_bytes = write( sockfd, &tx_frame, sizeof(tx_frame) );
 
     return 1;
 }

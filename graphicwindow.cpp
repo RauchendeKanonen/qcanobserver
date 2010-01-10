@@ -18,14 +18,15 @@
 #include "config.h"
 #include "graphicwindow.h"
 #include "ui_graphicwindow.h"
+#include "extrect.h"
 
 
 GraphicWindow::GraphicWindow(QWidget *parent, CANSignalCollection *Collection) :
-    QWidget(parent),
+    QWidget(NULL),
     m_ui(new Ui::GraphicWindow)
 {
     pCollection = Collection;
-
+    pparent = parent;
     m_ui->setupUi(this);
     Plot = new QCanPlot(QString(""), this);
     m_ui->verticalLayout->addWidget(Plot);
@@ -35,7 +36,7 @@ GraphicWindow::GraphicWindow(QWidget *parent, CANSignalCollection *Collection) :
     Plot->setAxisTitle(QwtPlot::xBottom,"Time s");
     Plot->setAxisAutoScale(QwtPlot::xBottom);
 
-    Sel = new CANDataItemSelector(NULL, pCollection);
+    Sel = new SignalSelectorDialog(NULL, pCollection);
     connect(Sel, SIGNAL(addItemToDraw(CANSignal*, QColor)), this, SLOT(addItemToDraw(CANSignal*, QColor)));
     connect(Sel, SIGNAL(deleteItemToDraw(CANSignal*)), this, SLOT(deleteItemToDraw(CANSignal*)));
 
@@ -45,10 +46,20 @@ GraphicWindow::GraphicWindow(QWidget *parent, CANSignalCollection *Collection) :
 
 GraphicWindow::~GraphicWindow()
 {
+
+
+    for(int i = 0; i < Curves.count() ; i++)
+        delete Curves.at(i);
+
+    delete Plot;
     delete m_ui;
     delete Sel;
 }
-
+void GraphicWindow::closeEvent( QCloseEvent *e )
+{
+    delete this;
+    QWidget::closeEvent( e );
+}
 void GraphicWindow::changeEvent(QEvent *e)
 {
     QWidget::changeEvent(e);
@@ -66,14 +77,15 @@ void GraphicWindow::newMessage(_CANMsg *CANMsg, int Cnt)
     int i;
     for(i = 0 ; Curves.count() >  i ; i++)
     {
-        if(CANMsg->ID == Curves.at(i)->pSignal->Id)
+        if(CANMsg->ID == (DWORD)Curves.at(i)->pSignal->Id)
         {
-            SignalDataCollection *DataCol = Curves.at(i)->pSignal->getSignalDataCollection(CANMsg->DATA);
+            SignalDataCollection DataCol;
 
-	    if(DataCol)
+            if(Curves.at(i)->pSignal->getSignalDataCollection(CANMsg->DATA, &DataCol))
 	    {
-		Curves.at(i)->y.append(DataCol->Value);
+                Curves.at(i)->y.append(DataCol.Value);
                 Curves.at(i)->x.append((double)CANMsg->tv.tv_sec + (double)CANMsg->tv.tv_usec/1000000.0);
+
 
                 if(Follow)
                     Plot->setAxisScale(QwtPlot::xBottom, Curves.at(i)->x.last()-FollowTime,Curves.at(i)->x.last()+FollowTime/10, 10);
@@ -126,7 +138,7 @@ void GraphicWindow::on_GraphFromDB_clicked()
 
 
 //!SLOT that addes an Item to draw
-//!Takes a CalRule (specific for an ID) and the invoked Rule
+//!Takes a CANSignal (specific for an ID) and the invoked Rule
 void GraphicWindow::addItemToDraw(CANSignal* Signal, QColor Color)
 {
     QBrush br(Qt::NoBrush);
@@ -144,6 +156,7 @@ void GraphicWindow::deleteItemToDraw(CANSignal* Signal)
 	if(Curves.at(i)->pSignal == Signal)
         {
             Curves.at(i)->PlotCurve->detach();
+            delete Curves.at(i);
             Curves.removeAt(i);
         }
     }
@@ -163,7 +176,7 @@ void GraphicWindow::on_FollowCheckBox_toggled(bool checked)
     if(checked)
     {
         //disable the autoscale checkbox
-        m_ui->checkBox->setEnabled(false);
+        m_ui->AutoScalecheckBox->setEnabled(false);
         Follow = true;
         FollowTime = Plot->axisScaleDiv(QwtPlot::xBottom)->hBound() - Plot->axisScaleDiv(QwtPlot::xBottom)->lBound();
     }
@@ -171,7 +184,7 @@ void GraphicWindow::on_FollowCheckBox_toggled(bool checked)
     else
     {
         //enable the autoscale checkbox
-        m_ui->checkBox->setEnabled(true);
+        m_ui->AutoScalecheckBox->setEnabled(true);
 
         Follow = false;
 
@@ -185,7 +198,7 @@ void GraphicWindow::on_FollowCheckBox_toggled(bool checked)
     if(checked)
     {
         //disable the autoscale checkbox
-        m_ui->checkBox->setEnabled(false);
+        m_ui->AutoScalecheckBox->setEnabled(false);
         Follow = true;
         FollowTime = Plot->axisScaleDiv(QwtPlot::xBottom)->upperBound() - Plot->axisScaleDiv(QwtPlot::xBottom)->lowerBound();
     }
@@ -193,7 +206,7 @@ void GraphicWindow::on_FollowCheckBox_toggled(bool checked)
     else
     {
         //enable the autoscale checkbox
-        m_ui->checkBox->setEnabled(true);
+        m_ui->AutoScalecheckBox->setEnabled(true);
 
         Follow = false;
 
@@ -206,36 +219,53 @@ void GraphicWindow::on_FollowCheckBox_toggled(bool checked)
 #endif
 }
 
-//y autoscale
-void GraphicWindow::on_checkBox_2_toggled(bool checked)
+
+
+
+void GraphicWindow::on_ConnectedCheckBox_toggled(bool checked)
 {
-#if QWT_VERSION < 0x050200
     if(checked)
-    {
-        Plot->setAxisAutoScale(QwtPlot::yLeft);
-    }
+        connect(pparent, SIGNAL(newMessage(_CANMsg *,int)), this, SLOT(newMessage(_CANMsg *,int)));
     else
-    {
-        int lowerBound = Plot->axisScaleDiv(QwtPlot::yLeft)->lBound();
-        int higherBound = Plot->axisScaleDiv(QwtPlot::yLeft)->hBound();
-        Plot->setAxisScale(QwtPlot::yLeft, lowerBound, higherBound, 10);
-    }
-#else
-    if(checked)
-    {
-        Plot->setAxisAutoScale(QwtPlot::yLeft);
-    }
-    else
-    {
-        int lowerBound = Plot->axisScaleDiv(QwtPlot::yLeft)->lowerBound();
-        int higherBound = Plot->axisScaleDiv(QwtPlot::yLeft)->upperBound();
-        Plot->setAxisScale(QwtPlot::yLeft, lowerBound, higherBound, 10);
-    }
-#endif
+        disconnect(pparent, SIGNAL(newMessage(_CANMsg *,int)), this, SLOT(newMessage(_CANMsg *,int)));
+
 }
 
-//autoscale
-void GraphicWindow::on_checkBox_toggled(bool checked)
+ofstream& GraphicWindow::operator>>(ofstream& os)
+{
+    //layout
+    ExtRect e;
+    QRect   q = this->geometry();
+    e = &q;
+    e >> os;
+
+    //connection
+    char connectedstate = (char)m_ui->ConnectedCheckBox->isChecked();
+    os << connectedstate;
+
+    //selected signals
+    (*Sel) >> os;
+    return os;
+}
+ifstream& GraphicWindow::operator<<(ifstream& is)
+{
+    //layout
+    ExtRect e;
+    e << is;
+    this->setGeometry(e);
+
+    //connection
+    char connectedstate;
+    is >> connectedstate;
+    m_ui->ConnectedCheckBox->setChecked((bool)connectedstate);
+
+    //selected signals
+
+    (*Sel) << is;
+    return is;
+}
+
+void GraphicWindow::on_AutoScalecheckBox_toggled(bool checked)
 {
 #if QWT_VERSION < 0x050200
     if(checked)
@@ -276,6 +306,33 @@ void GraphicWindow::on_checkBox_toggled(bool checked)
         lowerBound = Plot->axisScaleDiv(QwtPlot::xBottom)->lowerBound();
         higherBound = Plot->axisScaleDiv(QwtPlot::xBottom)->upperBound();
         Plot->setAxisScale(QwtPlot::xBottom, lowerBound, higherBound, 10);
+    }
+#endif
+}
+
+void GraphicWindow::on_YAutoScalecheckBox_toggled(bool checked)
+{
+#if QWT_VERSION < 0x050200
+    if(checked)
+    {
+        Plot->setAxisAutoScale(QwtPlot::yLeft);
+    }
+    else
+    {
+        int lowerBound = Plot->axisScaleDiv(QwtPlot::yLeft)->lBound();
+        int higherBound = Plot->axisScaleDiv(QwtPlot::yLeft)->hBound();
+        Plot->setAxisScale(QwtPlot::yLeft, lowerBound, higherBound, 10);
+    }
+#else
+    if(checked)
+    {
+        Plot->setAxisAutoScale(QwtPlot::yLeft);
+    }
+    else
+    {
+        int lowerBound = Plot->axisScaleDiv(QwtPlot::yLeft)->lowerBound();
+        int higherBound = Plot->axisScaleDiv(QwtPlot::yLeft)->upperBound();
+        Plot->setAxisScale(QwtPlot::yLeft, lowerBound, higherBound, 10);
     }
 #endif
 }

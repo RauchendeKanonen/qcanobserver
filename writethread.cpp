@@ -212,8 +212,8 @@ void WriteThread::run()
     struct timeval starttime;
     gettimeofday(&starttime,NULL);
     unsigned long ProcessThreadEvts = 1;
-
-
+    unsigned long newNextTrg;
+    unsigned long dbg;
 
 
     QuitNow = 0;
@@ -265,24 +265,25 @@ void WriteThread::run()
 
         for(int s = 0 ; s < cnt ; s ++ )
         {
+
             if(NextTrg.at(s) <= usCounter)
             {
                 Dev->CANDeviceWrite(CANMsgPeriodic.at(s));
 
-                unsigned long newNextTrg = NextTrg.at(s) + Period.at(s);
+                newNextTrg = NextTrg.at(s) + Period.at(s);
                 NextTrg.replace(s, newNextTrg);
-
-
-
-                if( ( newNextTrg - usCounter ) < sleeptime && sleeptime != 0)
-                    sleeptime = (newNextTrg-usCounter);
-
-                if( newNextTrg < usCounter )
-                    sleeptime = 0;
             }
+
+            if(((unsigned long)( NextTrg.at(s) - usCounter ) < (unsigned long)sleeptime) && (sleeptime != 0))
+                sleeptime = (NextTrg.at(s)-usCounter);
+
+            if( newNextTrg <= usCounter )
+                sleeptime = 0;
         }
-        if(sleeptime > 350 && !CANMsgFifo.count())
-            usleep(sleeptime-100);
+
+
+        if(sleeptime > 50 && !CANMsgFifo.count())
+            usleep(sleeptime-25);
 
         if(CANMsgFifo.count())
         {

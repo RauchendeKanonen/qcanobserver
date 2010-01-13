@@ -51,12 +51,13 @@ protected:
 
 private:
     Ui::DevDialog *m_ui;
-
+QString *dbg;
 
 signals:
     void setDev(void *ConfData, QString InterfaceLib, bool ShareDevInterfaceLib);
 
 private slots:
+    void on_comboBoxLibSelector_activated(int index);
     void on_comboBoxLibSelector_currentIndexChanged(int index);
     void on_buttonBox1_accepted();
 };

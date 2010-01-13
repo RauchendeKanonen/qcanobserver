@@ -241,7 +241,7 @@ ofstream& GraphicWindow::operator>>(ofstream& os)
 
     //connection
     char connectedstate = (char)m_ui->ConnectedCheckBox->isChecked();
-    os << connectedstate;
+    os.put(connectedstate);
 
     //selected signals
     (*Sel) >> os;

@@ -32,22 +32,23 @@
 #include <limits.h>
 #include <errno.h>
 
+#include <QMessageBox>
+
 #include "../../candevice.h"
+#include "confdialog.h"
 
 typedef struct config
 {
-    int BoudRReg;
-    int MsgType;
+    char NetDevName[IFNAMSIZ];
+    int logErrFrs;
+    int LoopOwnMsgs;
 };
 
 extern "C" int getDeviceFlags(void)
 {
     int Flags = 0;
 
-    /*Flags |= RTR_FR;
-    Flags |= ERROR_FR;
-    Flags |= TIMESTAMP;
-*/
+
     return Flags;
 }
 
@@ -59,10 +60,26 @@ extern "C" void* createConfig(void *oldconf)
     void *cmpbuf = malloc(CONFDATA_SIZEMAX);
     memset(cmpbuf, 0, CONFDATA_SIZEMAX);
 
+    /* Create the socket */
+    int locsock = socket( PF_CAN, SOCK_RAW, CAN_RAW );
+    struct ifreq ifr;
+    QStringList NetDevList;
+    int ret = 0;
+
+
+    //search all networkdevices
+    for( ifr.ifr_ifindex = 1 ; ret == 0 ; ifr.ifr_ifindex++)
+    {
+        ret = ioctl(locsock, SIOCGIFNAME, &ifr);
+        NetDevList.append(QString(ifr.ifr_ifrn.ifrn_name));
+    }
+
+    dlg.SetNetworks(NetDevList);
+
     if(memcmp(oldconf, cmpbuf, CONFDATA_SIZEMAX))
     {
         memcpy((void*)&cfg, oldconf, sizeof(cfg));
-        dlg.setValues(cfg.BoudRReg, cfg.MsgType);
+        dlg.setValues(QString(cfg.NetDevName),(bool)cfg.logErrFrs, (bool)cfg.LoopOwnMsgs);
     }
     free(cmpbuf);
 
@@ -70,7 +87,25 @@ extern "C" void* createConfig(void *oldconf)
     dlg.setModal(true);
     dlg.exec();
 
-    dlg.getValues(&cfg.BoudRReg, &cfg.MsgType);
+    QString NetDevName;
+
+    bool LogErr;
+    bool loopown;
+
+    dlg.getValues( &NetDevName,&LogErr, &loopown);
+
+    cfg.logErrFrs = 0;
+    cfg.LoopOwnMsgs = 0;
+
+    if(LogErr)
+        cfg.logErrFrs = 1;
+
+    if(loopown)
+        cfg.LoopOwnMsgs = 1;
+
+
+    memset(cfg.NetDevName, 0, sizeof(cfg.NetDevName));
+    memcpy(cfg.NetDevName, NetDevName.toStdString().c_str(), NetDevName.count());
 
     memset(oldconf, 0, CONFDATA_SIZEMAX);
     memcpy(oldconf, (void*)(&cfg), sizeof(cfg));
@@ -99,43 +134,72 @@ CANDevice::CANDevice()
 
 CANDevice::~CANDevice()
 {
-    close(sockfd);
+    close(sock);
     DevHandle = NULL;
 }
 
 //!
 int CANDevice::CANSetFilter(int FromID, int ToID, int nCANMsgType)
 {
-//    if(DevHandle)
-//        CAN_MsgFilter(DevHandle, FromID, ToID, nCANMsgType);
-//    return 0;
+    if((ToID - FromID) < 0)
+        return OPFAIL;
+
+    struct can_filter rfilter[1+(ToID - FromID)];
+
+    int ID = FromID;
+
+    for(int i = 0; i <= (ToID-FromID) ; i ++, ID ++)
+    {
+        rfilter[i].can_id   = ID;
+        rfilter[i].can_mask = CAN_SFF_MASK;
+    }
+
+    errno = 0;
+    setsockopt(sock, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, (1+(ToID - FromID))*sizeof(can_filter));
+
+    FromID = errno;
+
+    return OPSUCCESS;
 }
 
 int CANDevice::CANClearFilters(void)
 {
 
-    return 0;
+    struct can_filter rfilter;
+
+    for(int i = 0; i <= CAN_SFF_MASK; i ++ )
+    {
+        rfilter.can_id   = i;
+        rfilter.can_mask = CAN_SFF_MASK;
+        setsockopt(sock, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(can_filter));
+    }
+
+    return OPSUCCESS;
 }
 
 int CANDevice::CANDeviceOpen(void*ConfigBuf)
 {
+    struct config cfg;
+    memcpy((void*)&cfg, ConfigBuf, sizeof(cfg));
+
+    QString NetDev(cfg.NetDevName);
     /* Create the socket */
-    sockfd = socket( PF_CAN, SOCK_RAW, CAN_RAW );
-    if(sockfd <= 0)
+    sock = socket( PF_CAN, SOCK_RAW, CAN_RAW );
+    if(sock <= 0)
             return OPENFAILEDONSOCK;
 
     //loop back send msg when opened a virtualcan netdev
-    if(NetDev.left(4) == QString("vcan"))
+    if(cfg.LoopOwnMsgs)
     {
         int recv_own_msgs = 1; /* 0 = disabled (default), 1 = enabled */
 
-        setsockopt(sockfd, SOL_CAN_RAW, CAN_RAW_RECV_OWN_MSGS,
+        setsockopt(sock, SOL_CAN_RAW, CAN_RAW_RECV_OWN_MSGS,
                    &recv_own_msgs, sizeof(recv_own_msgs));
     }
     /* Locate the interface you wish to use */
     struct ifreq ifr;
     strcpy(ifr.ifr_name, NetDev.toStdString().c_str());
-    int ret = ioctl(sockfd, SIOCGIFINDEX, &ifr); /* ifr.ifr_ifindex gets filled
+    int ret = ioctl(sock, SIOCGIFINDEX, &ifr); /* ifr.ifr_ifindex gets filled
                                   * with that device's index */
 
     /* Select that CAN interface, and bind the socket to it. */
@@ -143,18 +207,21 @@ int CANDevice::CANDeviceOpen(void*ConfigBuf)
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
-    ret = bind( sockfd, (struct sockaddr*)&addr, sizeof(addr) );
+    ret = bind( sock, (struct sockaddr*)&addr, sizeof(addr) );
 
     if(ret != 0)
     {
-        close(sockfd);
+        close(sock);
         return OPENFAILEDONBIND;
     }
 
-    can_err_mask_t err_mask = CAN_ERR_MASK;//all possible errors
+    if(cfg.logErrFrs)
+    {
+        can_err_mask_t err_mask = CAN_ERR_MASK;//all possible errors
 
-    ret = setsockopt(sockfd, SOL_CAN_RAW, CAN_RAW_ERR_FILTER,
-               &err_mask, sizeof(err_mask));
+        ret = setsockopt(sock, SOL_CAN_RAW, CAN_RAW_ERR_FILTER,
+                         &err_mask, sizeof(err_mask));
+    }
     /*Listing 2. Manually setting the send and receive socket buffer sizes
 
     int ret, sock, sock_buf_size;
@@ -170,31 +237,21 @@ int CANDevice::CANDeviceOpen(void*ConfigBuf)
 
     */
 
-    return OPENSUCCESSFUL;
-}
-
-int CANDevice::CANDeviceInit(int BaudRate, int MsgType)
-{
-//    if(CAN_Init(DevHandle, BaudRate, MsgType))
-        //return 1;
-
-
-    return 0;
-}
-
-int CANDevice::CANDeviceRead(_CANMsg *Msg)
-{
-    /* Read a message back from the CAN bus */
-    long timestamp;
+    //try to read
     errno = 0;
+    timeval tv;
     struct can_frame rx_frame;
-    int bytes_read = read( sockfd, &rx_frame, sizeof(rx_frame) );
-    int ret = ioctl(sockfd, SIOCGSTAMP, &Msg->tv);
+    int bytes_read = read( sock, &rx_frame, sizeof(rx_frame) );
+    ret = ioctl(sock, SIOCGSTAMP, &tv);
 
     int err = errno;
-
     switch(errno)
     {
+    case ENOENT:
+        QMessageBox::critical( 0,
+                               QString( "Critical Error" ),
+                               QString( "Cannot read from the Device (ENOENT)" ));
+        break;
     case EAGAIN:
         break;
               case EBADF:
@@ -207,17 +264,34 @@ int CANDevice::CANDeviceRead(_CANMsg *Msg)
         break;
               case EISDIR:
         break;
-              case ENETDOWN:
-        break;
-              case ENOENT:
+    case ENETDOWN:
+        QMessageBox::critical( 0,
+                               QString( "Critical Error" ),
+                               QString( "Net is down (ENETDOWN)" ));
         break;
     }
 
+    return OPENSUCCESSFUL;
+}
+
+int CANDevice::CANDeviceInit(int BaudRate, int MsgType)
+{
+    return 0;
+}
+
+int CANDevice::CANDeviceRead(_CANMsg *Msg)
+{
+    /* Read a message back from the CAN bus */
+    long timestamp;
+    errno = 0;
+    struct can_frame rx_frame;
+    int bytes_read = read( sock, &rx_frame, sizeof(rx_frame) );
+    int ret = ioctl(sock, SIOCGSTAMP, &Msg->tv);
     memcpy(Msg->DATA, rx_frame.data, 8);
     Msg->ID = rx_frame.can_id;
     Msg->LEN = bytes_read;
 
-    return 1;
+    return OPSUCCESS;
 }
 
 
@@ -227,7 +301,7 @@ int CANDevice::CANDeviceWrite(_CANMsg Msg)
     tx_frame.can_dlc = 8;
     tx_frame.can_id = Msg.ID;
     memcpy(tx_frame.data, Msg.DATA, 8);
-    int wrote_bytes = write( sockfd, &tx_frame, sizeof(tx_frame) );
+    int wrote_bytes = write( sock, &tx_frame, sizeof(tx_frame) );
 
     return 1;
 }

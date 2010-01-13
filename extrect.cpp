@@ -20,7 +20,7 @@ ofstream& ExtRect::operator>>(ofstream& os)
     memcpy(byteArray+12, &tmp, 4);
 
     for(int i = 0 ; i < 16 ; i++ )
-        os << byteArray[i];
+        os.put(byteArray[i]);
 
     return os;
 }
@@ -30,7 +30,7 @@ ifstream& ExtRect::operator<<(ifstream& is)
     int tmp;
 
     for(int i = 0 ; i < 16 ; i++ )
-        is >> bytearray[i];
+        is.get(bytearray[i]);
 
     memcpy(&tmp, bytearray, 4);
     this->setLeft(tmp);

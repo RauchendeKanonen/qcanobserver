@@ -22,7 +22,9 @@
  #include <QDir>
 #include "errordialog.h"
 
+
 #ifdef LINUX
+#include <errno.h>
 #include <dlfcn.h>
 #endif
 
@@ -129,10 +131,12 @@ void DevDialog::on_buttonBox1_accepted()
 
 #endif
     //Load the interface to the hardware
-    void* handle = dlopen(CANLibFilePath.toStdString().c_str(), RTLD_LAZY);
+    char *libstr =  (char*)CANLibFilePath.toStdString().c_str();
+    void* libhandle = dlopen(libstr, RTLD_LAZY);
+    QString *i = new QString(dlerror());
+    int err = errno;
 
-
-    if(!handle)
+    if(!libhandle)
     {
         QString *ErrStr = new QString(" ");
         ErrStr->sprintf("%s %s","Could not load Device Mapper: ", CANLibFilePath);
@@ -145,7 +149,7 @@ void DevDialog::on_buttonBox1_accepted()
         return;
     }
     void* (*createCfg)(void*);
-    createCfg = (void* (*)(void*))dlsym(handle, "createConfig");
+    createCfg = (void* (*)(void*))dlsym(libhandle, "createConfig");
 
 #ifdef LINUX
 
@@ -166,21 +170,22 @@ ofstream& DevDialog::operator>>(ofstream& os)
     memset(temp, 0, 512);
     memcpy(temp,CANLibFilePath.toStdString().c_str(), CANLibFilePath.count());
     for(int f = 0; f < 512 ; f++)
-        os << temp[f];
+        os.put(temp[f]);
     memset(temp, 0, 512);
 
     //Save Configuration Data of the device (used by the interface dll)
-    for(int f = 0; f < 512 ; f++)
-        os << ((char*)confBuffer)[f];
+    for(int f = 0; f < CONFDATA_SIZEMAX ; f++)
+        os.put(((char*)confBuffer)[f]);
 
     return os;
 }
 ifstream& DevDialog::operator<<(ifstream& is)
 {
+    int g=0;
     char temp[512];
     memset(temp, 0, 512);
     for(int f = 0; f < 512 ; f++)
-        is >> temp[f];
+        is.get(temp[f]);
     CANLibFilePath = QString(temp);
 
     int idx = m_ui->comboBoxLibSelector->findData(QVariant(CANLibFilePath),Qt::UserRole ,Qt::MatchCaseSensitive);
@@ -204,14 +209,20 @@ ifstream& DevDialog::operator<<(ifstream& is)
     m_ui->comboBoxLibSelector->setCurrentIndex(idx);
 
     //Load Configuration Data of the device (used by the interface dll)
-    for(int f = 0; f < 512 ; f++)
-        is >> ((char*)confBuffer)[f];
+    for(int f = 0; f < CONFDATA_SIZEMAX ; f++)
+        is.get(((char*)confBuffer)[f]);
 
     return is;
 }
 
 
 void DevDialog::on_comboBoxLibSelector_currentIndexChanged(int index)
+{
+    QVariant path = m_ui->comboBoxLibSelector->itemData(index, Qt::UserRole);
+    CANLibFilePath = path.toString();
+}
+
+void DevDialog::on_comboBoxLibSelector_activated(int index)
 {
     QVariant path = m_ui->comboBoxLibSelector->itemData(index, Qt::UserRole);
     CANLibFilePath = path.toString();

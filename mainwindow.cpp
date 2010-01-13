@@ -22,7 +22,7 @@
 #include "errordialog.h"
 #include "aboutbox.h"
 #include <modeltest.h>
-
+#include <QCloseEvent>
 
 
 
@@ -184,14 +184,16 @@ MainWindow::~MainWindow()
     delete periodicTimer;
     delete TraceModel;
 
-    delete FilterDlg;
+    if(FilterDlg)
+        delete FilterDlg;
 
     if(CANSignals)
         delete CANSignals;
 
     if(DB)
         delete DB;
-
+    if(SpecEvtDlg)
+        delete SpecEvtDlg;
 
     delete ui;
 }
@@ -219,25 +221,19 @@ void MainWindow::addnewMessage(_CANMsg *CANMsg, int MsgCnt)
     IDString.sprintf("0x%04x", (unsigned int)CANMsg->ID);
     TimeString.sprintf("%f", (float)CANMsg->tv.tv_sec + (float)CANMsg->tv.tv_usec/1000000.0);
 
-    int mod = (MsgCounter % 10);
 
-    if(MsgCounter == 0 || mod == 0)
-    {
-        QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
-        TraceModel->insertRows(0, 10, (const QModelIndex &)index1);
-    }
+    QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
+    TraceModel->insertRows(0, 1, (const QModelIndex &)index1);
 
-
-
-    QModelIndex index1 = TraceModel->index(10 - mod, 0, QModelIndex());
+    index1 = TraceModel->index(1, 0, QModelIndex());
     QVariant Col0(IDString);
     TraceModel->setData(index1,Col0,Qt::EditRole, &black);
 
-    index1 = TraceModel->index(10 - mod, 1, QModelIndex());
+    index1 = TraceModel->index(1, 1, QModelIndex());
     QVariant Col1(MsgString);
     TraceModel->setData(index1,Col1,Qt::EditRole, &black);
 
-    index1 = TraceModel->index(10 - mod, 2, QModelIndex());
+    index1 = TraceModel->index(1, 2, QModelIndex());
     QVariant Col2(TimeString);
     TraceModel->setData(index1,Col2,Qt::EditRole, &black);
 }
@@ -259,7 +255,19 @@ void MainWindow::periodicUpdate(void)
 
 void MainWindow::closeEvent( QCloseEvent *e )
 {
-        //Delete alle Graphic Windows
+    //stop first
+    if(rt->isRunning() || wt->isRunning())
+    {
+        e->ignore();
+        ErrorDialog *ed = new ErrorDialog();
+        ed->SetErrorMessage("Stop Capture first!");
+        ed->setModal(true);
+        ed->exec();
+        delete ed;
+        return;
+    }
+
+    //Delete alle Graphic Windows
     for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
         if(GraphWnd[i] != NULL)
             delete GraphWnd[i];
@@ -269,7 +277,11 @@ void MainWindow::closeEvent( QCloseEvent *e )
             delete ObserverWnd[i];
 
     delete SpecEvtDlg;
+    SpecEvtDlg = NULL;
     delete SendMsgDlg;
+    SendMsgDlg = NULL;
+    delete FilterDlg;
+    FilterDlg = NULL;
     QMainWindow::closeEvent( e );
 }
 
@@ -321,12 +333,8 @@ int MainWindow::loadDatabase(QString File)
         {
             if(GraphWnd[i] != NULL)
             {
-
-
                 ErrorDialog *ed = new ErrorDialog();
-
                 ed->SetErrorMessage("Close first all Graphic/Observer Windows!");
-
                 ed->setModal(true);
                 ed->exec();
                 delete ed;
@@ -339,9 +347,7 @@ int MainWindow::loadDatabase(QString File)
             if(ObserverWnd[i] != NULL)
             {
                 ErrorDialog *ed = new ErrorDialog();
-
                 ed->SetErrorMessage("Close first all Graphic/Observer Windows!");
-
                 ed->setModal(true);
                 ed->exec();
                 delete ed;
@@ -434,7 +440,19 @@ void MainWindow::on_actionStart_triggered()
     {
         rt->start();
         rt->moveToThread(rt);
-        periodicTimer->start(250);
+        periodicTimer->start(100);
+
+        //disable MenuItems
+        QList <QAction*> act = ui->menuFile->actions();
+        for(int i = 0; i < act.count() ; i ++)
+        {
+            if(act.at(i)->text() == QString("Start"))
+                act.at(i)->setEnabled(false);
+            if(act.at(i)->text() == QString("Clear"))
+                act.at(i)->setEnabled(false);
+        }
+
+        ui->menuFile_2->setEnabled(false);
     }
     else
     {
@@ -455,6 +473,17 @@ void MainWindow::on_actionStop_triggered()
     rt->terminate();
     wt->terminate();
     periodicTimer->stop();
+
+    //enable Menu Items
+    QList <QAction*> act = ui->menuFile->actions();
+    for(int i = 0; i < act.count() ; i ++)
+    {
+        if(act.at(i)->text() == QString("Start"))
+            act.at(i)->setEnabled(true);
+        if(act.at(i)->text() == QString("Clear"))
+            act.at(i)->setEnabled(true);
+    }
+    ui->menuFile_2->setEnabled(true);
     emit StopCapture();
 }
 
@@ -537,24 +566,26 @@ int MainWindow::SaveConfig(QString Filename)
     pos = &b;
     pos >> ofs;
     //DeviceConfig
+    ofs.flush();
     (*DevDlg) >> ofs;
-
+    ofs.flush();
     if(DB)
     {
-        ofs << (int)1;
+        //db is configured
+        ofs.put((char)1);
         //Store the dbfilename
         char temp[512];
         memset(temp, 0, 512);
         QString DBFileName = DB->getFileName();
         memcpy(temp,DBFileName.toStdString().c_str(),DBFileName.count());
         for(int f = 0; f < 512 ; f++)
-            ofs << temp[f];
+            ofs.put(temp[f]);
 
         for( char i = 0 ; i < MAX_GRAPH_WINDOWS ; i++ )
         {
             if(GraphWnd[(int)i] == NULL)
             {
-                ofs << i;       //store the number of grph windows
+                ofs.put(i);       //store the number of grph windows
                 break;
             }
         }
@@ -570,7 +601,7 @@ int MainWindow::SaveConfig(QString Filename)
         {
             if(ObserverWnd[(int)i] == NULL)
             {
-                ofs << i;       //store the number of grph windows
+                ofs.put(i);       //store the number of grph windows
                 break;
             }
         }
@@ -584,7 +615,7 @@ int MainWindow::SaveConfig(QString Filename)
     }
 
     else //No DB
-        ofs << (int)0;
+        ofs.put(0);
 
     ofs.close();
     return 1;
@@ -632,8 +663,8 @@ int MainWindow::loadConfig(QString FileName)
     //DeviceConfig
     (*DevDlg) << ifs;
 
-    int dbConfigured;
-    ifs >> dbConfigured;
+    char dbConfigured;
+    ifs.get(dbConfigured);
     //Store the dbfilename
 
     if(dbConfigured)
@@ -643,7 +674,7 @@ int MainWindow::loadConfig(QString FileName)
 
 
         for(int f = 0; f < 512 ; f++)
-            ifs >> temp[f];
+            ifs.get(temp[f]);
 
         QString DBFileName(temp);
 
@@ -652,7 +683,7 @@ int MainWindow::loadConfig(QString FileName)
 
         //load the GraphicWindows
         char numofgraphwnds;
-        ifs >> numofgraphwnds;
+        ifs.get(numofgraphwnds);
 
         for(int i = 0 ; i < numofgraphwnds ; i++ )
         {
@@ -662,7 +693,7 @@ int MainWindow::loadConfig(QString FileName)
 
         //load the ObserverWindows
         char numofobserverwnds;
-        ifs >> numofobserverwnds;
+        ifs.get(numofobserverwnds);
 
         for(int i = 0 ; i < numofobserverwnds ; i++ )
         {

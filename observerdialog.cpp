@@ -173,7 +173,7 @@ ofstream& ObserverDialog::operator>>(ofstream& os)
 
     //connection
     char connectedstate = (char)m_ui->ConnectedcheckBox->isChecked();
-    os << connectedstate;
+    os.put(connectedstate);
 
     (*Sel) >> os;
     return os;

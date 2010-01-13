@@ -86,7 +86,7 @@ private:
     struct ifreq ifr;
     struct sockaddr_can addr;
     int opt, err;
-    static int sockfd;
+    int sock;
 #endif
 #ifdef LOOPBACK
     QList <_CANMsg> MsgLst;

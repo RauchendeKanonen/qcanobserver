@@ -6,7 +6,42 @@
 	    <interpret Multiplier="1.0" Name="8BitCounter" Offset="0" Datamask="10000000">
 	    </interpret>
 	</Item0>
-    </ID>
+	</ID>
+	    <ID Id="3">
+	<Item0>
+	    <interpret Multiplier="1.0" Name="block" Offset="0" Datamask="10000000">
+	    </interpret>
+	</Item0>
+	</ID>
+	    <ID Id="4">
+	<Item0>
+	    <interpret Multiplier="1.0" Name="reinit" Offset="0" Datamask="10000000">
+	    </interpret>
+	</Item0>
+	</ID>
+	    <ID Id="5">
+	<Item0>
+	    <interpret Multiplier="1.0" Name="start" Offset="0" Datamask="10000000">
+	    </interpret>
+	</Item0>
+	</ID>
+	<ID Id="7">
+	<Item0>
+	    <interpret Multiplier="1.0" Name="Timer0 OverFlow" Offset="0" Datamask="10000000">
+	    </interpret>
+	</Item0>
+	</ID>
+	<ID Id="2">
+	<Item0>
+	<interpret Multiplier="1.0" Name="Trigval" Offset="0" Datamask="02100000">
+	</interpret>
+	</Item0>
+	<Item1>
+		<interpret Multiplier="1.0" Name="ForceVal" Offset="0" Datamask="00021000">
+		</interpret>
+	</Item1>
+	</ID>
+
 
     <ID Id="21">
         <Item0>

@@ -147,7 +147,7 @@ void SignalSelectorDialog::on_DeleteItem_clicked()
 ofstream& SignalSelectorDialog::operator>>(ofstream& ofs)
 {
     //Store num of selected items
-    ofs << (char)m_ui->ItemsToDraw->count();
+    ofs.put((char)m_ui->ItemsToDraw->count());
     char temp[64];
 
     for(int f = 0 ; f < m_ui->ItemsToDraw->count() ; f ++ )
@@ -156,7 +156,7 @@ ofstream& SignalSelectorDialog::operator>>(ofstream& ofs)
         memset(temp, 0, 64);
         memcpy(temp, m_ui->ItemsToDraw->item(f)->text().toStdString().c_str(), m_ui->ItemsToDraw->item(f)->text().count());
         for(int c = 0; c < 64 ; c++)
-            ofs << temp[c];
+            ofs.put(temp[c]);
 
         //color
         QVariant VColor = m_ui->ItemsToDraw->item(f)->data(Qt::ItemIsSelectable);
@@ -165,7 +165,7 @@ ofstream& SignalSelectorDialog::operator>>(ofstream& ofs)
         memset(temp, 0, 64);
         memcpy(temp, Color.name().toStdString().c_str(), Color.name().count());
         for(int c = 0; c < 64 ; c++)
-            ofs << temp[c];
+            ofs.put(temp[c]);
     }
     return ofs;
 }

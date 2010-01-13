@@ -60,7 +60,7 @@ void ReadThread::setDev(void *ConfData, QString InterfaceLib, bool shareDevLib)
     if(!handle)
     {
         QString *ErrStr = new QString(" ");
-        ErrStr->sprintf("%s %s","Could not load Device Mapper: ", InterfaceLib);
+        ErrStr->sprintf("%s %s","Could not load Device Mapper: ", InterfaceLib.toStdString().c_str());
         ErrorDialog *ed = new ErrorDialog;
         ed->SetErrorMessage(*ErrStr);
         delete ErrStr;
@@ -227,11 +227,13 @@ void ReadThread::run()
 {
     _CANMsg Msg;
     struct timeval tv, starttime;
-    QuitNow = 0;
+
 
 
     QEventLoop *loop = new QEventLoop();
+    loop->processEvents(QEventLoop::AllEvents);
 
+    QuitNow = 0;
 
     if(Dev == NULL)
     {

@@ -49,6 +49,11 @@ void FilterDialog::changeEvent(QEvent *e)
     }
 }
 
+void FilterDialog::closeEvent(QCloseEvent *e)
+{
+    e->ignore();
+}
+
 //Slot
 void FilterDialog::acceptedFilter(int from, int to)
 {

@@ -27,7 +27,10 @@ void ConfDialog::changeEvent(QEvent *e)
 
 void ConfDialog::getValues(QString *DevName, bool *logErrFrs, bool *LoopOwnMsgs)
 {
-    *DevName = m_ui->comboBoxNetDev->currentText();
+    if(m_ui->checkBoxCostumDevName->isChecked())
+        *DevName = m_ui->CostumDevNamelineEdit->text();
+    else
+        *DevName = m_ui->comboBoxNetDev->currentText();
 
     if(m_ui->checkBoxloopOwnMsgs->isChecked())
         *LoopOwnMsgs = true;
@@ -48,9 +51,14 @@ int ConfDialog::setValues(QString DevName, bool logErrFrs, bool LoopOwnMsgs)
     int idx = m_ui->comboBoxNetDev->findText(DevName);
 
     if(idx == -1)
-        return -1;
+    {
+        m_ui->CostumDevNamelineEdit->setEnabled(true);
+        m_ui->checkBoxCostumDevName->setChecked(true);
+        m_ui->CostumDevNamelineEdit->setText(DevName);
+    }
 
-    m_ui->comboBoxNetDev->setCurrentIndex(idx);
+    else
+        m_ui->comboBoxNetDev->setCurrentIndex(idx);
 
     return 1;
 }
@@ -60,4 +68,14 @@ void ConfDialog::SetNetworks(QStringList lst)
     m_ui->comboBoxNetDev->clear();
     for(int i = 0; lst.count() > i ; i ++ )
         m_ui->comboBoxNetDev->addItem(lst.at(i));
+}
+
+
+void ConfDialog::on_checkBoxCostumDevName_toggled(bool checked)
+{
+    if(checked)
+        m_ui->CostumDevNamelineEdit->setEnabled(true);
+
+    else
+        m_ui->CostumDevNamelineEdit->setEnabled(false);
 }

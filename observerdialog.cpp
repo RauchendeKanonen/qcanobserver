@@ -64,16 +64,16 @@ ObserverDialog::~ObserverDialog()
 }
 
 
-void ObserverDialog::newMessage(_CANMsg *CANMsg, int Cnt)
+void ObserverDialog::newMessage(_CANMsg CANMsg, int Cnt)
 {
     int i;
     for(i = 0 ; CANItems.count() >  i ; i++)
     {
-        if(CANMsg->ID == (DWORD)CANItems.at(i)->Signal->Id)
+        if(CANMsg.ID == (DWORD)CANItems.at(i)->Signal->Id)
         {
             SignalDataCollection DataCol;
 
-            if(CANItems.at(i)->Signal->getSignalDataCollection(CANMsg->DATA, &DataCol))
+            if(CANItems.at(i)->Signal->getSignalDataCollection(CANMsg.DATA, &DataCol))
             {
                 QString Name = DataCol.Name;
                 QString Unit = DataCol.Unit;
@@ -110,6 +110,8 @@ void ObserverDialog::MainTimerSlot()
 
 void ObserverDialog::ClearAll()
 {
+    disconnect(pparent, SIGNAL(newMessage(_CANMsg ,int)), this, SLOT(newMessage(_CANMsg ,int)));
+
     delete TraceModel;
     QStringList *list = new QStringList();
     list->append(QString("Name"));
@@ -119,6 +121,8 @@ void ObserverDialog::ClearAll()
     TraceModel = new StringListModel(list);
     delete list;
     m_ui->tableView->setModel(TraceModel);
+
+    connect(pparent, SIGNAL(newMessage(_CANMsg ,int)), this, SLOT(newMessage(_CANMsg ,int)));
 }
 
 
@@ -197,8 +201,8 @@ ifstream& ObserverDialog::operator<<(ifstream& is)
 void ObserverDialog::on_ConnectedcheckBox_toggled(bool checked)
 {
     if(checked)
-        connect(pparent, SIGNAL(newMessage(_CANMsg *,int)), this, SLOT(newMessage(_CANMsg *,int)));
+        connect(pparent, SIGNAL(newMessage(_CANMsg ,int)), this, SLOT(newMessage(_CANMsg ,int)));
     else
-        disconnect(pparent, SIGNAL(newMessage(_CANMsg *,int)), this, SLOT(newMessage(_CANMsg *,int)));
+        disconnect(pparent, SIGNAL(newMessage(_CANMsg ,int)), this, SLOT(newMessage(_CANMsg ,int)));
 
 }

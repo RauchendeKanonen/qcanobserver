@@ -7,7 +7,7 @@
 #include "DeviceLib/candevice.h"
 #include <QItemSelection>
 #include "obscan.h"
-
+#include <QCloseEvent>
 #define SEND_PERIODIC 1
 #define SEND_SINGLE   2
 #define SEND_TRIG     3

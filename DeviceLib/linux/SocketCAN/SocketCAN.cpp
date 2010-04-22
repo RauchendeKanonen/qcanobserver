@@ -68,9 +68,11 @@ extern "C" void* createConfig(void *oldconf)
 
 
     //search all networkdevices
-    for( ifr.ifr_ifindex = 1 ; ret == 0 ; ifr.ifr_ifindex++)
+    for( ifr.ifr_ifindex = 1 ;; ifr.ifr_ifindex++)
     {
         ret = ioctl(locsock, SIOCGIFNAME, &ifr);
+        if(ret == -1)
+            break;
         NetDevList.append(QString(ifr.ifr_ifrn.ifrn_name));
     }
 
@@ -85,7 +87,8 @@ extern "C" void* createConfig(void *oldconf)
 
 
     dlg.setModal(true);
-    dlg.exec();
+    if(!dlg.exec())
+        return NULL;
 
     QString NetDevName;
 
@@ -106,10 +109,9 @@ extern "C" void* createConfig(void *oldconf)
 
     memset(cfg.NetDevName, 0, sizeof(cfg.NetDevName));
     memcpy(cfg.NetDevName, NetDevName.toStdString().c_str(), NetDevName.count());
-
     memset(oldconf, 0, CONFDATA_SIZEMAX);
     memcpy(oldconf, (void*)(&cfg), sizeof(cfg));
-    return oldconf;
+    return oldconf;     //modified back
 }
 
 
@@ -241,8 +243,8 @@ int CANDevice::CANDeviceOpen(void*ConfigBuf)
     errno = 0;
     timeval tv;
     struct can_frame rx_frame;
-    int bytes_read = read( sock, &rx_frame, sizeof(rx_frame) );
-    ret = ioctl(sock, SIOCGSTAMP, &tv);
+    //int bytes_read = read( sock, &rx_frame, sizeof(rx_frame) );
+    //ret = ioctl(sock, SIOCGSTAMP, &tv);
 
     int err = errno;
     switch(errno)

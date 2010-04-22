@@ -88,6 +88,9 @@
       </item>
       <item>
        <widget class="QLCDNumber" name="MsgCounter">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="maximumSize">
          <size>
           <width>50</width>
@@ -102,17 +105,20 @@
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Lost Msgs:</string>
+         <string>Max. list lenght (*10^6)</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLCDNumber" name="MsgLossWarning">
+       <widget class="QLineEdit" name="listLengtLineEdit">
         <property name="maximumSize">
          <size>
-          <width>50</width>
+          <width>80</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="text">
+         <string>0.5</string>
         </property>
        </widget>
       </item>

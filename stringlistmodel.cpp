@@ -183,7 +183,8 @@ bool StringListModel::removeRows(int position, int rows, const QModelIndex &pare
     {
         for( int i = 0; i < stringList->count() ; i++ )
         {
-            stringList->removeAt(i);
+            for(int col = position; col < stringList->at(i)->count() ; col ++)
+                stringList->at(i)->removeAt(col);
         }
     }
     endRemoveRows();

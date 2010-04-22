@@ -26,6 +26,9 @@ private:
 
 private slots:
 
+
+private slots:
+    void on_checkBoxCostumDevName_toggled(bool checked);
 };
 
 #endif // CONFDIALOG_H

@@ -296,7 +296,7 @@ void WriteThread::run()
 
 void WriteThread::QuitThread()
 {
-    QuitNow = 1;
+    //QuitNow = 1;
 }
 
 void WriteThread::sendCANMsg(_CANMsg Msg, int aPeriod, _CANMsg TrigMsg, int SendType)

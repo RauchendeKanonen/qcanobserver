@@ -33,7 +33,7 @@
    <property name="geometry">
     <rect>
      <x>60</x>
-     <y>90</y>
+     <y>130</y>
      <width>151</width>
      <height>19</height>
     </rect>
@@ -59,8 +59,8 @@
    <property name="geometry">
     <rect>
      <x>60</x>
-     <y>50</y>
-     <width>151</width>
+     <y>100</y>
+     <width>181</width>
      <height>19</height>
     </rect>
    </property>
@@ -72,7 +72,7 @@
    <property name="geometry">
     <rect>
      <x>60</x>
-     <y>130</y>
+     <y>160</y>
      <width>141</width>
      <height>19</height>
     </rect>
@@ -89,6 +89,35 @@
      <width>201</width>
      <height>22</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBoxCostumDevName">
+   <property name="geometry">
+    <rect>
+     <x>60</x>
+     <y>50</y>
+     <width>141</width>
+     <height>19</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Other</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="CostumDevNamelineEdit">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>230</x>
+     <y>50</y>
+     <width>171</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>can0</string>
    </property>
   </widget>
  </widget>

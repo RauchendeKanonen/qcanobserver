@@ -37,14 +37,18 @@
 #include "cansignalcollection.h"
 #include <iostream>
 #include <fstream>
-
+#include "qcancostumplotcurve.h"
+#include <qwt_plot_magnifier.h>
 using namespace std;
 
 #define MAX_GRAPH_WINDOWS 16
 
 class QCanPlot : public QwtPlot
 {
-    public:
+    Q_OBJECT
+signals:
+    void panned(int, int);
+public:
     QCanPlot(QString Name, QWidget *parent)
     {
         legend = new QwtLegend();
@@ -53,14 +57,19 @@ class QCanPlot : public QwtPlot
         ActCanvas = canvas();
         CanvasZoomer = new QwtPlotZoomer( QwtPlot::xBottom, QwtPlot::yLeft,  ActCanvas);
         CanvasZoomer->setSelectionFlags( QwtPicker::DragSelection );
-        CanvasZoomer->setTrackerMode(QwtPicker::ActiveOnly);
-
-
+        CanvasZoomer->setTrackerMode(QwtPicker::AlwaysOn);
+        CanvasZoomer->setMousePattern(QwtEventPattern::MouseSelect2,
+        Qt::NoButton, Qt::ControlModifier);
 
         Panner = new QwtPlotPanner(canvas());
         Panner->setAxisEnabled(QwtPlot::yRight, false);
-        Panner->setMouseButton(Qt::MidButton);
+        Panner->setMouseButton(Qt::RightButton);
+        connect(Panner, SIGNAL(panned(int, int)), this, SIGNAL(panned(int, int)));
 
+        Magnifier = new QwtPlotMagnifier(canvas());
+        Magnifier->setMouseButton(Qt::RightButton, Qt::NoButton);
+        Magnifier->setMouseButton(Qt::LeftButton, Qt::NoButton);
+        Magnifier->setMouseButton(Qt::MidButton, Qt::NoButton);
     }
     ~QCanPlot()
     {
@@ -78,13 +87,18 @@ class QCanPlot : public QwtPlot
         delete CanvasZoomer;
         CanvasZoomer = new QwtPlotZoomer( QwtPlot::xBottom, QwtPlot::yLeft,  ActCanvas);
         CanvasZoomer->setSelectionFlags( QwtPicker::DragSelection );
-        CanvasZoomer->setTrackerMode(QwtPicker::ActiveOnly);
+        CanvasZoomer->setTrackerMode(QwtPicker::AlwaysOn);
     }
     QwtPlotCanvas *ActCanvas;
     QwtPlotZoomer *CanvasZoomer;
     QwtPlotPanner *Panner;
     QwtLegend *legend;
+    QwtPlotMagnifier *Magnifier;
 };
+
+
+
+
 
 class ItemCurveInfo
 {
@@ -92,7 +106,7 @@ class ItemCurveInfo
     ItemCurveInfo(CANSignal *Signal)
     {
 	pSignal = Signal;
-	PlotCurve = new QwtPlotCurve(pSignal->Name+QString(" ")+pSignal->Unit);
+        PlotCurve = new QCANCostumPlotCurve(pSignal->Name+QString(" ")+pSignal->Unit);
         PlotCurve->setItemAttribute(QwtPlotItem::Legend, true);
     }
     ~ItemCurveInfo()
@@ -100,7 +114,7 @@ class ItemCurveInfo
         delete PlotCurve;
     }
 
-    QwtPlotCurve *PlotCurve;
+    QCANCostumPlotCurve *PlotCurve;
 
     CANSignal *pSignal;
     QwtArray<double> x;
@@ -123,12 +137,14 @@ public:
 protected:
     virtual void changeEvent(QEvent *e);
 public slots:
+    void saveSignalToFile(QString, CANSignal*);
     void MainTimerSlot(void);
     void addItemToDraw(CANSignal* Signal, QColor Color);
     void deleteItemToDraw(CANSignal* Signal);
-    void newMessage(_CANMsg *, int);
+    void newMessage(_CANMsg , int);
     void ClearAll();
     void StopCapture();
+    void panned(int dx, int dy);
 private:
     Ui::GraphicWindow *m_ui;
     QList<ItemCurveInfo*> Curves;
@@ -141,6 +157,8 @@ private:
     QWidget *pparent;
 
 private slots:
+    void on_pushButton_clicked();
+    void on_checkBoxDottedLine_toggled(bool checked);
     void on_YAutoScalecheckBox_toggled(bool checked);
     void on_AutoScalecheckBox_toggled(bool checked);
     void on_ConnectedCheckBox_toggled(bool checked);

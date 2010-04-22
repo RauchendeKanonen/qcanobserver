@@ -4,7 +4,7 @@
 #include <QtGui/QDialog>
 #include "stringlistmodel.h"
 #include "obscan.h"
-
+#include <QCloseEvent>
 #ifdef LINUX
 #include<linux/can/error.h>
 #endif
@@ -21,15 +21,16 @@ public:
 
 protected:
     virtual void changeEvent(QEvent *e);
-
+    void closeEvent(QCloseEvent *e);
 public slots:
-    void newSpecialMessage(_CANMsg *CANMsg);
+    void newSpecialMessage(_CANMsg CANMsg);
     void MainTimerSlot();
-
+    void ClearAll();
 private:
     Ui::SpecialEventDialog *m_ui;
     StringListModel *TraceModel;
     QColor black;
+    QWidget *pparent;
 };
 
 #endif // SPECIALEVENTDIALOG_H

@@ -21,7 +21,7 @@
 #include <qdom.h>
 #include <QList>
 #include "cansignalcollection.h"
-
+#include "cansignal.h"
 
 
 class ProcessDataBase

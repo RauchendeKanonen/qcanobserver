@@ -5,7 +5,7 @@ TARGET = QCanObserver
 TEMPLATE = app
 
 # CONFIG(release, debug|release)
-#CONFIG += release
+# CONFIG += release
 CONFIG += debug
 SOURCES += main.cpp \
     mainwindow.cpp \
@@ -28,7 +28,8 @@ SOURCES += main.cpp \
     configdialog.cpp \
     signalselectordialog.cpp \
     specialeventdialog.cpp \
-    writethread.cpp
+    writethread.cpp \
+    qcancostumplotcurve.cpp
 HEADERS += mainwindow.h \
     readthread.h \
     DevDialog.h \
@@ -52,7 +53,8 @@ HEADERS += mainwindow.h \
     signalselectordialog.h \
     specialeventdialog.h \
     writethread.h \
-    DeviceLib/candevice.h
+    DeviceLib/candevice.h \
+    qcancostumplotcurve.h
 FORMS += mainwindow.ui \
     DevDialog.ui \
     errordialog.ui \

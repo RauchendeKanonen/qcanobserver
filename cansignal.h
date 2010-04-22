@@ -3,6 +3,12 @@
 #define CANSIGNAL_H
 
 
+#define CANSIG_FLOAT  1
+#define CANSIG_INT    2     //1/2/4/8Byte
+#define CANSIG_DOUBLE 3
+
+
+
 class SignalDataCollection
 {
     public:
@@ -22,6 +28,8 @@ public:
     unsigned long long getConstrainMaskMaskedData(unsigned char Data[8]);
     bool checkOnOff(unsigned char AData[8]);
     bool getSignalDataCollection(unsigned char Data[8],  SignalDataCollection *SigCol);
+    float getInteger(unsigned char Data[8]);
+    float getFloat(unsigned char Data[8]);
     ~CANSignal()
     {
     }
@@ -30,8 +38,8 @@ public:
     bool        isEventItem;
     QString     Name;
 private:
-
-
+    bool        isSigned;
+    int         SigType;
     int         Mask[8];
     int         ConstrainMask[8];
     float       Offset;

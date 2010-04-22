@@ -31,10 +31,10 @@ void MainWindow::initSatelites()
     rt = new ReadThread;
 
 
-    QObject::connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg *, int)),
-                     this, SLOT(addnewMessage(_CANMsg *, int)));
-    QObject::connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg *, int)),
-                     this, SIGNAL(newMessage(_CANMsg *, int)));
+    QObject::connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg , int)),
+                     this, SLOT(addnewMessage(_CANMsg , int)));
+    QObject::connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg , int)),
+                     this, SIGNAL(newMessage(_CANMsg , int)));
     QObject::connect(this, SIGNAL(ClearAll()),
                      rt, SIGNAL(ClearAll()));
     QObject::connect(this, SIGNAL(setDev(void *, QString, bool)),
@@ -97,10 +97,11 @@ void MainWindow::initSatelites()
 
 
     //for RTRs and Error Frames
-    SpecEvtDlg = new SpecialEventDialog();
-    QObject::connect(rt->MsgBuf, SIGNAL(newSpecialMessage(_CANMsg *)),
-                     SpecEvtDlg, SLOT(newSpecialMessage(_CANMsg *)));
+    SpecEvtDlg = new SpecialEventDialog(this);
+    QObject::connect(rt->MsgBuf, SIGNAL(newSpecialMessage(_CANMsg )),
+                     SpecEvtDlg, SLOT(newSpecialMessage(_CANMsg )));
     connect(periodicTimer, SIGNAL(timeout()), SpecEvtDlg, SLOT(MainTimerSlot()));
+    connect(this, SIGNAL(ClearAll()), SpecEvtDlg, SLOT(ClearAll()));
 }
 
 
@@ -110,18 +111,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     qRegisterMetaType<_CANMsg>("_CANMsg");
 
-
-
-    MsgCounter = 0;
-
     black = QColor(Qt::black);
-
 
     periodicTimer = new QTimer( );
     connect(periodicTimer, SIGNAL(timeout()), this, SLOT(periodicUpdate()));
 
 
-
+    MainStringListLength = 100;
 
     DB = NULL;
 
@@ -135,7 +131,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     ui->MsgCounter->setNumDigits(7);
-    ui->MsgLossWarning->setNumDigits(7);
+
 
     ui->tableView->verticalHeader()->setDefaultSectionSize(15);
     ui->tableView->horizontalHeader()->setDefaultSectionSize(200);
@@ -201,25 +197,16 @@ MainWindow::~MainWindow()
 
 //add the message to the Model
 //SLOT
-void MainWindow::addnewMessage(_CANMsg *CANMsg, int MsgCnt)
+void MainWindow::addnewMessage(_CANMsg CANMsg, int MsgCnt)
 {
     QString MsgString;
     QString IDString;
     QString TimeString;
 
-    MsgCounter ++ ;
-
-    if(MsgCounter != MsgCnt)
-    {
-        ui->MsgLossWarning->display(MsgCnt - MsgCounter);
-    }
-
-
-
-    MsgString.sprintf("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x", CANMsg->DATA[0], CANMsg->DATA[1], CANMsg->DATA[2], CANMsg->DATA[3], CANMsg->DATA[4]
-                                                            , CANMsg->DATA[5], CANMsg->DATA[6], CANMsg->DATA[7]);
-    IDString.sprintf("0x%04x", (unsigned int)CANMsg->ID);
-    TimeString.sprintf("%f", (float)CANMsg->tv.tv_sec + (float)CANMsg->tv.tv_usec/1000000.0);
+    MsgString.sprintf("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x", CANMsg.DATA[0], CANMsg.DATA[1], CANMsg.DATA[2], CANMsg.DATA[3], CANMsg.DATA[4]
+                                                            , CANMsg.DATA[5], CANMsg.DATA[6], CANMsg.DATA[7]);
+    IDString.sprintf("0x%04x", (unsigned int)CANMsg.ID);
+    TimeString.sprintf("%f", (float)CANMsg.tv.tv_sec + (float)CANMsg.tv.tv_usec/1000000.0);
 
 
     QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
@@ -249,6 +236,11 @@ void MainWindow::periodicUpdate(void)
     QString NumOfMsgs;
     NumOfMsgs.sprintf("%d",msgs);
     ui->MsgCounter->display(NumOfMsgs);
+
+    if(TraceModel->rowCount(QModelIndex()) > MainStringListLength+1000)
+    {
+        TraceModel->removeRows(MainStringListLength, TraceModel->rowCount(QModelIndex()) - MainStringListLength, QModelIndex());
+    }
 }
 
 
@@ -256,15 +248,15 @@ void MainWindow::periodicUpdate(void)
 void MainWindow::closeEvent( QCloseEvent *e )
 {
     //stop first
+
+    //stop the write thread if running    
+    ui->checkBoxSendMsg->setChecked(false);
+    //wait for shutdown
+    while(wt->isRunning());
+
     if(rt->isRunning() || wt->isRunning())
     {
-        e->ignore();
-        ErrorDialog *ed = new ErrorDialog();
-        ed->SetErrorMessage("Stop Capture first!");
-        ed->setModal(true);
-        ed->exec();
-        delete ed;
-        return;
+        on_actionStop_triggered();
     }
 
     //Delete alle Graphic Windows
@@ -298,7 +290,7 @@ void MainWindow::on_actionGraphicWindow_triggered()
                 GraphWnd[i]->move(this->pos().x()+this->geometry().width(), this->pos().y());
                 GraphWnd[i]->show();
                 connect(this, SIGNAL(StopCapture()), GraphWnd[i], SLOT(StopCapture()));
-                connect(this, SIGNAL(newMessage(_CANMsg *, int)), GraphWnd[i], SLOT(newMessage(_CANMsg *,int)));
+                connect(this, SIGNAL(newMessage(_CANMsg , int)), GraphWnd[i], SLOT(newMessage(_CANMsg ,int)));
                 connect(periodicTimer, SIGNAL(timeout()), GraphWnd[i], SLOT(MainTimerSlot()));
                 connect(this, SIGNAL(ClearAll()), GraphWnd[i], SLOT(ClearAll()));
                 connect(GraphWnd[i], SIGNAL(destroyed(QObject*)), this, SLOT(SateliteDestroyed(QObject *)));
@@ -390,7 +382,7 @@ void MainWindow::on_actionObserverWindow_triggered()
                 ObserverWnd[i]->move(this->pos().x()+this->geometry().width(), this->pos().y());
                 ObserverWnd[i]->show();
 
-                connect(this, SIGNAL(newMessage(_CANMsg *, int)), ObserverWnd[i], SLOT(newMessage(_CANMsg *,int)));
+                connect(this, SIGNAL(newMessage(_CANMsg , int)), ObserverWnd[i], SLOT(newMessage(_CANMsg ,int)));
                 connect(periodicTimer, SIGNAL(timeout()), ObserverWnd[i], SLOT(MainTimerSlot()));
                 connect(this, SIGNAL(ClearAll()), ObserverWnd[i], SLOT(ClearAll()));
                 connect(ObserverWnd[i], SIGNAL(destroyed(QObject*)), this, SLOT(SateliteDestroyed(QObject *)));
@@ -438,8 +430,17 @@ void MainWindow::on_actionStart_triggered()
 {
     if(rt->isConfigured())
     {
+        ui->MsgCounter->setEnabled(true);
+
         rt->start();
         rt->moveToThread(rt);
+
+        if(ui->checkBoxSendMsg->isChecked())
+        {
+            wt->start(QThread::TimeCriticalPriority);
+            wt->moveToThread(wt);
+        }
+
         periodicTimer->start(100);
 
         //disable MenuItems
@@ -447,8 +448,6 @@ void MainWindow::on_actionStart_triggered()
         for(int i = 0; i < act.count() ; i ++)
         {
             if(act.at(i)->text() == QString("Start"))
-                act.at(i)->setEnabled(false);
-            if(act.at(i)->text() == QString("Clear"))
                 act.at(i)->setEnabled(false);
         }
 
@@ -474,13 +473,13 @@ void MainWindow::on_actionStop_triggered()
     wt->terminate();
     periodicTimer->stop();
 
+    ui->MsgCounter->setEnabled(false);
+
     //enable Menu Items
     QList <QAction*> act = ui->menuFile->actions();
     for(int i = 0; i < act.count() ; i ++)
     {
         if(act.at(i)->text() == QString("Start"))
-            act.at(i)->setEnabled(true);
-        if(act.at(i)->text() == QString("Clear"))
             act.at(i)->setEnabled(true);
     }
     ui->menuFile_2->setEnabled(true);
@@ -504,8 +503,6 @@ void MainWindow::on_actionClear_triggered()
     list->append(QString("Time"));
     TraceModel = new StringListModel(list);
     delete list;
-    MsgCounter = 0;
-    ui->MsgLossWarning->display(0);
     ui->MsgCounter->display(0);
     ui->tableView->setModel(TraceModel);
 }
@@ -573,7 +570,7 @@ int MainWindow::SaveConfig(QString Filename)
     {
         //db is configured
         ofs.put((char)1);
-        //Store the dbfilename
+        //Store the dbname
         char temp[512];
         memset(temp, 0, 512);
         QString DBFileName = DB->getFileName();
@@ -759,4 +756,16 @@ void MainWindow::on_checkBoxSendMsg_toggled(bool checked)
         SendMsgDlg->hide();
         wt->terminate();
     }
+}
+
+void MainWindow::on_listLengtLineEdit_editingFinished()
+{
+    bool b;
+    MainStringListLength = (int)(ui->listLengtLineEdit->text().toFloat(&b)*1000000.0);
+    if(!b)
+        MainStringListLength = 1000000;
+
+    if(MainStringListLength > 1000000000)
+        MainStringListLength = 1000000;
+
 }

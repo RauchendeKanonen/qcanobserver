@@ -270,5 +270,5 @@ void ReadThread::run()
 
 void ReadThread::QuitThread()
 {
-    QuitNow = 1;
+    //QuitNow = 1;
 }

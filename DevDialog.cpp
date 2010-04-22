@@ -85,9 +85,9 @@ void DevDialog::changeEvent(QEvent *e)
 
 void DevDialog::on_buttonBox1_accepted()
 {
-
+    void *tmp;
     bool shareDevInstLib = false;
-
+    QString *ErrStr = new QString(" ");
     if(CANLibFilePath == QString("none"))
     {
         QString *ErrStr = new QString("Please place the interface .so/.dll first inside of lib subdirectory!");
@@ -138,7 +138,6 @@ void DevDialog::on_buttonBox1_accepted()
 
     if(!libhandle)
     {
-        QString *ErrStr = new QString(" ");
         ErrStr->sprintf("%s %s","Could not load Device Mapper: ", CANLibFilePath);
         ErrorDialog *ed = new ErrorDialog;
         ed->SetErrorMessage(*ErrStr);
@@ -152,16 +151,13 @@ void DevDialog::on_buttonBox1_accepted()
     createCfg = (void* (*)(void*))dlsym(libhandle, "createConfig");
 
 #ifdef LINUX
-
-
-
-
 #endif
-    confBuffer = createCfg(confBuffer);
+
+    tmp = createCfg(confBuffer);
 
     shareDevInstLib = m_ui->checkBoxShareLibInst->isChecked();
-
-    emit setDev(confBuffer, CANLibFilePath, shareDevInstLib);
+    if(tmp)
+        emit setDev(confBuffer, CANLibFilePath, shareDevInstLib);
 }
 
 ofstream& DevDialog::operator>>(ofstream& os)

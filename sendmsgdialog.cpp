@@ -208,6 +208,8 @@ void SendMsgDialog::on_SendButton_clicked()
         MsgModel->setflags(idx,MsgModel->flags(idx) & ~Qt::ItemIsEditable);
         MsgModel->setColor(idx,&red);
     }
+
+    MsgModel->Update();
 }
 
 
@@ -336,9 +338,11 @@ void SendMsgDialog::on_DeleteIdButton_clicked()
     QModelIndex idx = MsgModel->index(SelectedMsg.row(), 0, QModelIndex());
     QModelIndex root = MsgModel->index(0,0,QModelIndex());
     MsgModel->removeRows(idx.row(), 1, root);
+    MsgModel->Update();
 }
 void SendMsgDialog::closeEvent(QCloseEvent *e)
 {
+    e->ignore();
 }
 
 void SendMsgDialog::selectionChanged(const QItemSelection &current, const QItemSelection &parent)
@@ -374,3 +378,5 @@ void SendMsgDialog::on_MsgtableView_pressed(QModelIndex index)
     if(idx.row() != -1)
         m_ui->MsgtableView->selectRow(idx.row());
 }
+
+

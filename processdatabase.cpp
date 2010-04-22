@@ -21,6 +21,9 @@
 #include <qfile.h>
 #include <QMessageBox>
 
+
+
+
 //!Reads all the Items out of the XML File and Creates a QList <CalRule*>
 ProcessDataBase::ProcessDataBase(QString FileName)
 {
@@ -76,6 +79,16 @@ ProcessDataBase::ProcessDataBase(QString FileName)
                 QString EventItem = Interpret.attribute( "EventItem" );
                 QString ConstrainValStr = Interpret.attribute( "Constrain" );
 
+                QString SignalTypeStr = Interpret.attribute( "Type" );
+
+                int SignalType = CANSIG_INT;
+
+                if(SignalTypeStr == QString("float"))
+                    SignalType = CANSIG_FLOAT;
+
+                if(SignalTypeStr == QString("double"))
+                    SignalType = CANSIG_DOUBLE;
+
 
                 long ConstrainVal = ConstrainValStr.toLong(NULL, 16);
                 if(EventItem.compare("true", Qt::CaseSensitive) == 0)
@@ -108,7 +121,7 @@ ProcessDataBase::ProcessDataBase(QString FileName)
 				      ConstrainVal,
 				      true,
 				      true,
-				      1);
+                                      SignalType);
 
 
 

@@ -21,6 +21,7 @@
 #include <QtGui/QDialog>
 #include "filterdef.h"
 #include <QListWidget>
+#include <QCloseEvent>
 
 #define HWFILTER 1
 #define BEHINDDBFILTER 2
@@ -40,7 +41,7 @@ public:
 
 protected:
     virtual void changeEvent(QEvent *e);
-
+    void closeEvent(QCloseEvent *e);
 public slots:
     void acceptedFilter(int from, int to);
 

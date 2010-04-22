@@ -79,10 +79,8 @@ private:
     QColor black;
     QTimer *periodicTimer;
     ProcessDataBase *DB;
-
-    int MsgCounter;
     struct timeval tv_1;
-
+    unsigned int MainStringListLength;
 
 
 
@@ -100,14 +98,14 @@ private:
     int loadConfig(QString FileName);
 
 signals:
-    void newMessage(_CANMsg *, int);
+    void newMessage(_CANMsg , int);
     void setDev(void *ConfData, QString InterfaceLib, bool);
     void StopCapture();
     void ClearAll();
 
 
 public slots:
-    void addnewMessage(_CANMsg *, int);
+    void addnewMessage(_CANMsg , int);
     void periodicUpdate(void);
     void SateliteDestroyed(QObject *);
     void DevIsConfigured(bool);
@@ -115,6 +113,7 @@ public slots:
 
 
 private slots:
+    void on_listLengtLineEdit_editingFinished();
     void on_checkBoxSendMsg_toggled(bool checked);
     void on_checkBoxFilters_toggled(bool checked);
     void on_checkBoxSpecEvtDlg_toggled(bool checked);

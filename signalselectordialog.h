@@ -29,6 +29,8 @@
 
 using namespace std;
 
+#define SELECTORMODE 1
+#define SINGLEITEM   2
 
 namespace Ui {
     class SignalSelectorDialog;
@@ -43,6 +45,9 @@ class SignalSelectorDialog : public QDialog {
     ofstream& operator>>(ofstream& os);
     ifstream&  operator<<(ifstream& is);
 
+public:
+    void switchMode(int Mode);
+
 protected:
     virtual void changeEvent(QEvent *e);
 
@@ -52,10 +57,12 @@ private:
 signals:
     void addItemToDraw(CANSignal*, QColor);
     void deleteItemToDraw(CANSignal*);
+    void saveSignalToFile(QString, CANSignal*);
+
 private slots:
+    void on_pushButtonSaveSignal_clicked();
     void on_DeleteItem_clicked();
     void on_AddItem_clicked();
-    void on_pushButton_clicked();
     void on_ComboItemSelector_currentIndexChanged(int index);
     void on_ComboItemSelector_highlighted(int index);
 };

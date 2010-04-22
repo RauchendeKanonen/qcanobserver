@@ -62,11 +62,11 @@ int MessageBufferInterface::AddMessage(_CANMsg *Msg)
 
     MsgIndex++;
 
-    emit newMessage(pCANMsg+MsgIndex-1, MsgIndex);
+    emit newMessage(pCANMsg[MsgIndex-1], MsgIndex);
 
 #ifdef LINUX
     if(Msg->ID & (CAN_ERR_FLAG | CAN_RTR_FLAG))
-        emit newSpecialMessage(pCANMsg+MsgIndex-1);
+        emit newSpecialMessage(pCANMsg[+MsgIndex-1]);
 #endif
     return 1;
 

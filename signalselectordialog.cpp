@@ -18,6 +18,7 @@
 #include "signalselectordialog.h"
 #include "ui_signalselectordialog.h"
 #include <QVariant>
+#include <QFileDialog>
 
 SignalSelectorDialog::SignalSelectorDialog(QWidget *parent, CANSignalCollection *Collection) :
     QDialog(parent),
@@ -44,7 +45,7 @@ SignalSelectorDialog::SignalSelectorDialog(QWidget *parent, CANSignalCollection 
 	ID.sprintf("<0x%x>",Collection->getSignal(i)->Id);
 	m_ui->ComboItemSelector->addItem(ID+Collection->getSignal(i)->Name,NULL);
     }
-
+    switchMode(SELECTORMODE);
 }
 
 SignalSelectorDialog::~SignalSelectorDialog()
@@ -74,9 +75,27 @@ void SignalSelectorDialog::on_ComboItemSelector_currentIndexChanged(int index)
 
 }
 
-void SignalSelectorDialog::on_pushButton_clicked()
-{
 
+
+void SignalSelectorDialog::switchMode(int Mode)
+{
+    if(Mode == SELECTORMODE)
+    {
+        m_ui->AddItem->setEnabled(true);
+        m_ui->ComboItemColorSelector->setEnabled(true);
+        m_ui->ComboItemSelector->setEnabled(true);
+        m_ui->DeleteItem->setEnabled(true);
+        m_ui->pushButtonSaveSignal->setEnabled(false);
+    }
+
+    if(Mode == SINGLEITEM)
+    {
+        m_ui->AddItem->setEnabled(false);
+        m_ui->ComboItemColorSelector->setEnabled(false);
+        m_ui->ComboItemSelector->setEnabled(false);
+        m_ui->DeleteItem->setEnabled(false);
+        m_ui->pushButtonSaveSignal->setEnabled(true);
+    }
 }
 
 void SignalSelectorDialog::on_AddItem_clicked()
@@ -193,7 +212,8 @@ ifstream& SignalSelectorDialog::operator<<(ifstream& is)
             ErrorDialog *ed = new ErrorDialog();
 
             QString ErrMsg;
-            ErrMsg.sprintf("Could not find the CAN Signal %s in the Database", temp);
+            ErrMsg.sprintf("Could not find the CAN Signal %s in the Database. Maybe there \
+                           are white-space in the Name of the Signal?", temp);
 
             ed->SetErrorMessage(ErrMsg);
             ed->setModal(true);
@@ -236,4 +256,29 @@ ifstream& SignalSelectorDialog::operator<<(ifstream& is)
         on_AddItem_clicked();
     }
     return is;
+}
+
+void SignalSelectorDialog::on_pushButtonSaveSignal_clicked()
+{
+    QFileDialog dlg(this, QString("Select a CSV file"),QString("export/"),NULL);
+    dlg.setModal(true);
+
+    int row;
+    if(m_ui->ItemsToDraw->selectionModel()->selection().count())
+        row = m_ui->ItemsToDraw->selectionModel()->selectedRows(0).at(0).row();
+    else
+        return;
+
+    QString ItemStr = m_ui->ItemsToDraw->item(row)->text();
+    QString SignalName = ItemStr.right(-ItemStr.indexOf(QString("("))+ItemStr.length());
+    QString IDStr = ItemStr.right(-ItemStr.indexOf(QString("<"))+ItemStr.length()-1);
+    IDStr = IDStr.left(IDStr.indexOf(QString(">")));
+
+    int id = IDStr.toInt(NULL, 16);
+
+    if(dlg.exec())
+    {
+        if(dlg.selectedFiles().count())
+            emit saveSignalToFile(dlg.selectedFiles().at(0) , pCollection->getSignal(id, SignalName));
+    }
 }

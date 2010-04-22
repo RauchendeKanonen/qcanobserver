@@ -53,8 +53,8 @@ private:
 
 
 signals:
-    void newMessage(_CANMsg *, int);
-    void newSpecialMessage(_CANMsg *CANMsg);
+    void newMessage(_CANMsg , int);
+    void newSpecialMessage(_CANMsg CANMsg);
 
 public slots:
     int ClearAll();

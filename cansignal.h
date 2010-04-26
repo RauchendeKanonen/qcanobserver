@@ -30,6 +30,11 @@ public:
     bool getSignalDataCollection(unsigned char Data[8],  SignalDataCollection *SigCol);
     float getInteger(unsigned char Data[8]);
     float getFloat(unsigned char Data[8]);
+
+    char* CreateDataFromValue(float Value);
+    char* CreateDataFromFloat(float Value);
+    char* CreateDataFromInteger(float ValueFl);
+
     ~CANSignal()
     {
     }

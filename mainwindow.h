@@ -83,7 +83,7 @@ private:
     unsigned int MainStringListLength;
 
 
-
+    void initSendMsgDlg(void);
     SendMsgDialog *SendMsgDlg;
     DevDialog *DevDlg;
     SpecialEventDialog *SpecEvtDlg;

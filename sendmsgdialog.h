@@ -8,6 +8,9 @@
 #include <QItemSelection>
 #include "obscan.h"
 #include <QCloseEvent>
+#include "cansignal.h"
+#include "cansignalcollection.h"
+#include "signalselectordialog.h"
 #define SEND_PERIODIC 1
 #define SEND_SINGLE   2
 #define SEND_TRIG     3
@@ -21,7 +24,9 @@ class SendMsgDialog : public QDialog {
     Q_OBJECT
     Q_DISABLE_COPY(SendMsgDialog)
 public:
-    explicit SendMsgDialog(QWidget *parent = 0);
+    ofstream& operator>>(ofstream& os);
+    ifstream& operator<<(ifstream& is);
+    explicit SendMsgDialog(QWidget *parent = 0, CANSignalCollection *Collection = 0);
     ~SendMsgDialog();
 
 protected:
@@ -29,6 +34,8 @@ protected:
     void closeEvent(QCloseEvent *e);
 
 private:
+    QList <SignalSelectorDialog*> *Sel;
+    CANSignalCollection *pCollection;
     Ui::SendMsgDialog *m_ui;
     MsgDefDialog *SMsg;
     StringListModel *MsgModel;
@@ -53,6 +60,7 @@ public slots:
    void selectionChanged(const QItemSelection &,const QItemSelection &);
 
 private slots:
+    void on_fromDbButton_clicked();
     void on_MsgtableView_pressed(QModelIndex index);
     void on_MsgtableView_activated(QModelIndex index);
     void on_DeleteIdButton_clicked();

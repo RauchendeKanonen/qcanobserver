@@ -421,9 +421,13 @@ void GraphicWindow::saveSignalToFile(QString Path, CANSignal* Sig)
 
 int writeCSV(QString Path, ItemCurveInfo *Curve)
 {
-    int LengthOfBuf = Curve->x.count() * (2*32+4); // 32Bytes per float x,y and " : " "\n"
+    int LengthOfBuf = Curve->x.count() * (2*32+4); // 32Bytes per float x,y and " : " "\n
+
     char *FileBuf = (char*)malloc(LengthOfBuf);
     char *ptr = FileBuf;
+
+    memset(ptr, 0, LengthOfBuf);
+
     int OUTFILE;
 
     for(int i = 0; i < Curve->x.count() ; i++)

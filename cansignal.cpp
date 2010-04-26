@@ -104,8 +104,90 @@ float CANSignal::getFloat(unsigned char Data[8])
         Ret *= Multiplier - Offset;
     }
 
+    if(isSigned == false && Ret < 0)
+        Ret *= -1.0;
+
     return Ret;
 }
+
+char* CANSignal::CreateDataFromValue(float Value)
+{
+
+}
+
+char* CANSignal::CreateDataFromInteger(float ValueFl)
+{
+    char Data[8];
+    int Value = (int) ValueFl;
+
+    for( int i = 1 ; i <= 8 ; i++)
+    {
+        if(Mask[0] == i)
+            Data[0] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[1] == i)
+            Data[1] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[2] == i)
+            Data[2] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[3] == i)
+            Data[3] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[4] == i)
+            Data[4] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[5] == i)
+            Data[5] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[6] == i)
+            Data[6] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[7] == i)
+            Data[7] = (char)(Value >> ((i-1)*8));
+    }
+
+    return Data;
+}
+
+
+char* CANSignal::CreateDataFromFloat(float ValueFl)
+{
+    char Data[8];
+    int Value;
+    memcpy(&Value, &ValueFl, 4);
+    int num_of_bytes=0;
+
+    for( int i = 1 ; i <= 8 ; i++)
+    {
+        if(Mask[0] == i)
+            Data[0] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[1] == i)
+            Data[1] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[2] == i)
+            Data[2] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[3] == i)
+            Data[3] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[4] == i)
+            Data[4] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[5] == i)
+            Data[5] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[6] == i)
+            Data[6] = (char)(Value >> ((i-1)*8));
+
+        if(Mask[7] == i)
+            Data[7] = (char)(Value >> ((i-1)*8));
+    }
+
+    return Data;
+}
+
 //!Takes the Data of a CAN-Frame with the Rule-Index and calculates the associated Value.
 //!AMask describes how to put the data for this Rule(Value) together.
 //!12003400 as Mask leads to a Value collected of the first two bytes and the fith and sixth.
@@ -288,15 +370,15 @@ bool CANSignal::getSignalDataCollection(unsigned char Data[8], SignalDataCollect
 
     if(isEventItem == true)
     {
-	// has the event happened
-	if(checkOnOff(Data))
-	{
-	    SigCol->Name = QString("Evt: ")+Name;
-	    SigCol->Value = getValue(Data);
-	    SigCol->Unit = Unit;
-	    SigCol->isEventItem = true;
+        // has the event happened
+        if(checkOnOff(Data))
+        {
+            SigCol->Name = QString("Evt: ")+Name;
+            SigCol->Value = getValue(Data);
+            SigCol->Unit = Unit;
+            SigCol->isEventItem = true;
             return true;
-	}
+        }
         return false;
     }
     SigCol->Value = getValue(Data);

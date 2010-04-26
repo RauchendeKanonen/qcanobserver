@@ -3,17 +3,22 @@
 
 
 
-SendMsgDialog::SendMsgDialog(QWidget *parent) :
+SendMsgDialog::SendMsgDialog(QWidget *parent, CANSignalCollection *Collection ) :
         QDialog(parent),
         m_ui(new Ui::SendMsgDialog)
 {
     m_ui->setupUi(this);
 
+    pCollection = Collection;
 
     black = QColor(Qt::black);
     red = QColor(Qt::red);
     green = QColor(Qt::green);
 
+    Sel = NULL;
+
+    if(pCollection)
+        Sel = new QList <SignalSelectorDialog*>;
 
     QStringList *list = new QStringList();
     list->append(QString("ID"));
@@ -372,6 +377,7 @@ void SendMsgDialog::on_MsgtableView_doubleClicked(QModelIndex index)
     if(idx.row() != -1)
         m_ui->MsgtableView->selectRow(idx.row());
 }
+
 void SendMsgDialog::on_MsgtableView_pressed(QModelIndex index)
 {
     QModelIndex idx = MsgModel->index(SelectedMsg.row(), 0, QModelIndex());
@@ -379,4 +385,27 @@ void SendMsgDialog::on_MsgtableView_pressed(QModelIndex index)
         m_ui->MsgtableView->selectRow(idx.row());
 }
 
+void SendMsgDialog::on_fromDbButton_clicked()
+{
+    Sel->append(new SignalSelectorDialog(this, pCollection));
+    Sel->last()->setModal(true);
+    if(Sel->last()->exec())
+    {
+        //Sel->last()->
 
+
+    }
+}
+
+ofstream& SendMsgDialog::operator>>(ofstream& os)
+{
+
+    return os;
+}
+ifstream& SendMsgDialog::operator<<(ifstream& is)
+{
+
+
+
+    return is;
+}

@@ -30,7 +30,8 @@
 #include "obscan.h"
 #include "sendmsgdialog.h"
 #include <QEventLoop>
-
+#include <QWaitCondition>
+#include <QMutex>
 #ifdef LINUX
 #include <dlfcn.h>
 #endif
@@ -68,7 +69,8 @@ private:
     CANDevice *Dev;
     int QuitNow;
     bool DevLibInstIsShared;
-
+    QWaitCondition *WaitForMsg;
+    QMutex         *WaitMutex;
 
     unsigned long usCounter;
     QList <_CANMsg> CANMsgFifo;

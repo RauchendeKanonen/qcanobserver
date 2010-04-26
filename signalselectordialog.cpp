@@ -52,6 +52,14 @@ SignalSelectorDialog::~SignalSelectorDialog()
 {
     delete m_ui;
 }
+QList <CANSignal*> SignalSelectorDialog::getSelectedSignals(void)
+{
+
+
+
+
+}
+
 
 void SignalSelectorDialog::changeEvent(QEvent *e)
 {
@@ -282,3 +290,4 @@ void SignalSelectorDialog::on_pushButtonSaveSignal_clicked()
             emit saveSignalToFile(dlg.selectedFiles().at(0) , pCollection->getSignal(id, SignalName));
     }
 }
+

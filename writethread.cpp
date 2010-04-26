@@ -20,6 +20,8 @@
 #include <sys/time.h>
 #include <QString>
 
+
+
 #include "errordialog.h"
 
 #ifdef WINDOWS
@@ -33,7 +35,8 @@ WriteThread::WriteThread()
 {
     RemovePeriodic = -1;
     setTerminationEnabled(true);
-    Dev = NULL;
+    WaitForMsg = new QWaitCondition();
+    WaitMutex  = new QMutex();
 }
 
 WriteThread::~WriteThread()
@@ -283,7 +286,22 @@ void WriteThread::run()
 
 
         if(sleeptime > 50 && !CANMsgFifo.count())
-            usleep(sleeptime-25);
+        {
+            //sleep more than ms and stay wakable
+            if(sleeptime > 5000)        //more than 5 ms
+            {
+                WaitMutex->lock();
+                WaitForMsg->wait(WaitMutex, sleeptime/1000);         //in ms
+                WaitMutex->unlock();
+            }
+
+            //Sleep only some us
+            else
+                usleep(sleeptime - 25);
+
+        }
+
+
 
         if(CANMsgFifo.count())
         {
@@ -303,11 +321,13 @@ void WriteThread::sendCANMsg(_CANMsg Msg, int aPeriod, _CANMsg TrigMsg, int Send
 {
     if(SendType == SEND_SINGLE)
     {
+        WaitForMsg->wakeAll();
         CANMsgFifo.append(Msg);
         return;
     }
     if(SendType == SEND_TRIG)
     {
+        WaitForMsg->wakeAll();
         CANMsgTrigLst.append(TrigMsg);
         CANMsgOnTrigLst.append(Msg);
         return;
@@ -315,6 +335,7 @@ void WriteThread::sendCANMsg(_CANMsg Msg, int aPeriod, _CANMsg TrigMsg, int Send
 
     if(SendType == SEND_PERIODIC)
     {
+        WaitForMsg->wakeAll();
         CANMsgPeriodic.append(Msg);
         Period.append(aPeriod);
         //now

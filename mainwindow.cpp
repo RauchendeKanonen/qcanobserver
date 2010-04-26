@@ -76,20 +76,10 @@ void MainWindow::initSatelites()
 
     FilterDlg = new FilterDialog();
 
-    SendMsgDlg = new SendMsgDialog();
-
-
-
     //After the device is configured
     DevDlg = new DevDialog(this);
     QObject::connect(DevDlg, SIGNAL(setDev(void *, QString, bool)),
                      this, SIGNAL(setDev(void *, QString, bool)));
-
-    QObject::connect(SendMsgDlg, SIGNAL(sendCANMsg(_CANMsg , int, _CANMsg, int)),
-                     wt, SLOT(sendCANMsg(_CANMsg , int , _CANMsg, int )));
-    QObject::connect(SendMsgDlg, SIGNAL(deleteCANMsg(_CANMsg , int, _CANMsg, int)),
-                     wt, SLOT(deleteCANMsg(_CANMsg , int, _CANMsg, int )));
-
 
     QObject::connect(FilterDlg, SIGNAL(setFilter(int, int, int)),
                      rt, SLOT(setFilter(int, int, int)));
@@ -102,6 +92,16 @@ void MainWindow::initSatelites()
                      SpecEvtDlg, SLOT(newSpecialMessage(_CANMsg )));
     connect(periodicTimer, SIGNAL(timeout()), SpecEvtDlg, SLOT(MainTimerSlot()));
     connect(this, SIGNAL(ClearAll()), SpecEvtDlg, SLOT(ClearAll()));
+}
+
+void MainWindow::initSendMsgDlg(void)
+{
+
+    SendMsgDlg = new SendMsgDialog(this, CANSignals);
+    QObject::connect(SendMsgDlg, SIGNAL(sendCANMsg(_CANMsg , int, _CANMsg, int)),
+                     wt, SLOT(sendCANMsg(_CANMsg , int , _CANMsg, int )));
+    QObject::connect(SendMsgDlg, SIGNAL(deleteCANMsg(_CANMsg , int, _CANMsg, int)),
+                     wt, SLOT(deleteCANMsg(_CANMsg , int, _CANMsg, int )));
 }
 
 
@@ -158,6 +158,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     initSatelites();
 
+
     if(-1 == loadDefaultConfig())
     {
         ErrorDialog *Error = new ErrorDialog();
@@ -165,6 +166,8 @@ MainWindow::MainWindow(QWidget *parent)
         Error->setModal(true);
         Error->exec();
     }
+
+    initSendMsgDlg();
 }
 
 MainWindow::~MainWindow()

@@ -47,6 +47,7 @@ class SignalSelectorDialog : public QDialog {
 
 public:
     void switchMode(int Mode);
+    QList <CANSignal*> getSelectedSignals(void);
 
 protected:
     virtual void changeEvent(QEvent *e);

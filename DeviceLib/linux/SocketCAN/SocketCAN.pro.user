@@ -70,7 +70,7 @@
     <value type="QString" >CONFIG_PROTECT=/usr/share/X11/xkb /usr/share/config</value>
     <value type="QString" >CONFIG_PROTECT_MASK=/etc/sandbox.d /etc/env.d/java/ /etc/php/cli-php5/ext-active/ /etc/php/cgi-php5/ext-active/ /etc/php/apache2-php5/ext-active/ /etc/fonts/fonts.conf /etc/gconf /etc/terminfo /etc/ca-certificates.conf /etc/texmf/web2c /etc/texmf/language.dat.d /etc/texmf/language.def.d /etc/texmf/updmap.d /etc/revdep-rebuild</value>
     <value type="QString" >CVS_RSH=ssh</value>
-    <value type="QString" >DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-ZoE5kVHTWX,guid=8ca15a56ad4cb4e6400f835a4bc79adb</value>
+    <value type="QString" >DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-qGA4N9IcDx,guid=f809c65a09e5564f25546cab4bcf7448</value>
     <value type="QString" >DESKTOP_STARTUP_ID=</value>
     <value type="QString" >DISPLAY=:0.0</value>
     <value type="QString" >EDITOR=/bin/nano</value>
@@ -110,7 +110,7 @@
     <value type="QString" >SANE_CONFIG_DIR=/etc/sane.d</value>
     <value type="QString" >SBCL_HOME=/usr/lib/sbcl</value>
     <value type="QString" >SBCL_SOURCE_ROOT=/usr/lib/sbcl/src</value>
-    <value type="QString" >SESSION_MANAGER=local/localhost:@/tmp/.ICE-unix/4665,unix/localhost:/tmp/.ICE-unix/4665</value>
+    <value type="QString" >SESSION_MANAGER=local/localhost:@/tmp/.ICE-unix/4706,unix/localhost:/tmp/.ICE-unix/4706</value>
     <value type="QString" >SHELL=/bin/bash</value>
     <value type="QString" >SHLVL=4</value>
     <value type="QString" >STRIGI_PLUGIN_PATH=/usr/lib/strigi:</value>
@@ -131,7 +131,7 @@
     <value type="QString" >CONFIG+=debug</value>
    </valuelist>
    <value key="abstractProcess.command" type="QString" >/usr/bin/qmake</value>
-   <value key="abstractProcess.enabled" type="bool" >false</value>
+   <value key="abstractProcess.enabled" type="bool" >true</value>
    <value key="abstractProcess.workingDirectory" type="QString" >/home/florian/dev/qcanobserver/DeviceLib/linux/SocketCAN</value>
    <value key="buildConfiguration" type="int" >2</value>
   </valuemap>
@@ -146,7 +146,7 @@
     <value type="QString" >CONFIG_PROTECT=/usr/share/X11/xkb /usr/share/config</value>
     <value type="QString" >CONFIG_PROTECT_MASK=/etc/sandbox.d /etc/env.d/java/ /etc/php/cli-php5/ext-active/ /etc/php/cgi-php5/ext-active/ /etc/php/apache2-php5/ext-active/ /etc/fonts/fonts.conf /etc/gconf /etc/terminfo /etc/ca-certificates.conf /etc/texmf/web2c /etc/texmf/language.dat.d /etc/texmf/language.def.d /etc/texmf/updmap.d /etc/revdep-rebuild</value>
     <value type="QString" >CVS_RSH=ssh</value>
-    <value type="QString" >DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-ZoE5kVHTWX,guid=8ca15a56ad4cb4e6400f835a4bc79adb</value>
+    <value type="QString" >DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-qGA4N9IcDx,guid=f809c65a09e5564f25546cab4bcf7448</value>
     <value type="QString" >DESKTOP_STARTUP_ID=</value>
     <value type="QString" >DISPLAY=:0.0</value>
     <value type="QString" >EDITOR=/bin/nano</value>
@@ -186,7 +186,7 @@
     <value type="QString" >SANE_CONFIG_DIR=/etc/sane.d</value>
     <value type="QString" >SBCL_HOME=/usr/lib/sbcl</value>
     <value type="QString" >SBCL_SOURCE_ROOT=/usr/lib/sbcl/src</value>
-    <value type="QString" >SESSION_MANAGER=local/localhost:@/tmp/.ICE-unix/4665,unix/localhost:/tmp/.ICE-unix/4665</value>
+    <value type="QString" >SESSION_MANAGER=local/localhost:@/tmp/.ICE-unix/4706,unix/localhost:/tmp/.ICE-unix/4706</value>
     <value type="QString" >SHELL=/bin/bash</value>
     <value type="QString" >SHLVL=4</value>
     <value type="QString" >STRIGI_PLUGIN_PATH=/usr/lib/strigi:</value>

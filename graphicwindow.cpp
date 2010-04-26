@@ -445,7 +445,7 @@ int writeCSV(QString Path, ItemCurveInfo *Curve)
 #endif
 
 
-    int flength = write(OUTFILE, FileBuf, LengthOfBuf);
+    int flength = write(OUTFILE, FileBuf, ptr - FileBuf);
     close(OUTFILE);
 
     free(FileBuf);

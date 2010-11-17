@@ -33,8 +33,8 @@ ReadThread::ReadThread()
 {
     setTerminationEnabled(true);
     MsgBuf = new MessageBufferInterface(15000);
-    QObject::connect(this, SIGNAL(ClearAll()),
-                     MsgBuf,SLOT(ClearAll()));
+    /*QObject::connect(this, SIGNAL(ClearAll()),
+                     MsgBuf,SLOT(ClearAll()));*/
     Dev = NULL;
 }
 
@@ -243,12 +243,12 @@ void ReadThread::run()
 
     gettimeofday( &starttime, NULL);
     //Read all out that came before and remained in the buffer
-    while(Dev->CANDeviceRead(&Msg) == OPSUCCESS)
+/*    while(Dev->CANDeviceRead(&Msg) == OPSUCCESS)
     {
         gettimeofday( &tv, NULL);
         if((tv.tv_sec - starttime.tv_sec) > 0.01)
             break;
-    }
+    }*/
 
     gettimeofday( &starttime, NULL);
 

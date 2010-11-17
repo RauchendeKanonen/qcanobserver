@@ -41,8 +41,8 @@
 #include "extrect.h"
 #include "specialeventdialog.h"
 #include "obscan.h"
-
-
+#include "averagefilter.h"
+#include "debugterminal.h"
 using namespace std;
 
 
@@ -53,7 +53,7 @@ namespace Ui
 }
 
 
-
+#define UPDATETIM_MS 200
 
 
 class MainWindow : public QMainWindow
@@ -73,15 +73,16 @@ private:
 
     ReadThread *rt;
     WriteThread *wt;
-
-
+    AverageFilter *SpeedFilter;
+    int FreqDivFlipFlop;
     CANSignalCollection *CANSignals;
     QColor black;
     QTimer *periodicTimer;
     ProcessDataBase *DB;
     struct timeval tv_1;
     unsigned int MainStringListLength;
-
+    int msgs_1;
+    struct timeval lasttime;
 
     void initSendMsgDlg(void);
     SendMsgDialog *SendMsgDlg;
@@ -90,6 +91,8 @@ private:
     GraphicWindow *GraphWnd[MAX_GRAPH_WINDOWS];
     ObserverDialog *ObserverWnd [MAX_GRAPH_WINDOWS];
     FilterDialog *FilterDlg;
+    DebugTerminal *DbgTerminal[MAX_GRAPH_WINDOWS];
+
 
     void initSatelites();
     int loadDatabase(QString File);
@@ -113,6 +116,9 @@ public slots:
 
 
 private slots:
+    void on_RunButton_clicked();
+    void on_ClearButton_clicked();
+    void on_actionDebug_Terminal_triggered();
     void on_listLengtLineEdit_editingFinished();
     void on_checkBoxSendMsg_toggled(bool checked);
     void on_checkBoxFilters_toggled(bool checked);

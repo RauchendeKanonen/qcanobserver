@@ -31,6 +31,20 @@
        <number>5</number>
       </property>
       <item>
+       <widget class="QToolButton" name="RunButton">
+        <property name="text">
+         <string>run</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="ClearButton">
+        <property name="text">
+         <string>Clear</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QCheckBox" name="checkBoxSendMsg">
         <property name="maximumSize">
          <size>
@@ -80,13 +94,6 @@
        <number>5</number>
       </property>
       <item>
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Added Msgs:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QLCDNumber" name="MsgCounter">
         <property name="enabled">
          <bool>false</bool>
@@ -99,6 +106,23 @@
         </property>
         <property name="segmentStyle">
          <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLCDNumber" name="lcdNumberMsgsperSec">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>1/s</string>
         </property>
        </widget>
       </item>
@@ -132,7 +156,7 @@
      <x>0</x>
      <y>0</y>
      <width>510</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -167,6 +191,7 @@
     <addaction name="actionGraphicWindow"/>
     <addaction name="actionObserverWindow"/>
     <addaction name="actionError_RTR_Window"/>
+    <addaction name="actionDebug_Terminal"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -271,6 +296,11 @@
   <action name="actionError_RTR_Window">
    <property name="text">
     <string>Error/RTR Window</string>
+   </property>
+  </action>
+  <action name="actionDebug_Terminal">
+   <property name="text">
+    <string>Debug Terminal</string>
    </property>
   </action>
  </widget>

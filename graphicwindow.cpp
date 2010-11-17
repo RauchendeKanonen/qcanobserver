@@ -29,7 +29,7 @@
 
 #include <QBitmap>
 #include <QPixmap>
-#include <QIcon>S
+#include <QIcon>
 
 
 int writeCSV(QString Path, ItemCurveInfo *Curve);

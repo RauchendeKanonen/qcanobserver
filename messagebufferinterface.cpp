@@ -36,7 +36,7 @@ MessageBufferInterface::MessageBufferInterface(int size)
     tv_1.tv_sec = 0;
     tv_1.tv_usec = 0;
     MsgIndex = 0;
-
+    Stop = 0;
     MsgBufsize = size;
     pCANMsg = (_CANMsg*)malloc(sizeof(_CANMsg)*size);
 }
@@ -50,6 +50,9 @@ MessageBufferInterface::~MessageBufferInterface()
 //!Emits newMessage(CANMsgandTimeStruct* CANMsgandTime, int NumOfMsgs);
 int MessageBufferInterface::AddMessage(_CANMsg *Msg)
 {
+    if(Stop)
+        return 0;
+
     if(MsgIndex >= MsgBufsize)
     {
         pCANMsg = (_CANMsg*)realloc((_CANMsg*)pCANMsg, (MsgBufsize + REALLOCSIZE) * sizeof(_CANMsg));
@@ -179,9 +182,13 @@ int MessageBufferInterface::Load(char *Filename)
 //!Resets the internal Messagecounter to zero. But does not free the mem
 int MessageBufferInterface::ClearAll()
 {
+    Stop = 1;
+    usleep(10000);  //wait a little till the last message is added an nobody can
+                    //access our internal buffer
     free(pCANMsg);
     pCANMsg = (_CANMsg*)malloc(sizeof(_CANMsg)*REALLOCSIZE);
     MsgBufsize = REALLOCSIZE;
     MsgIndex = 0;
+    Stop=0;
     return 1;
 }

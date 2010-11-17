@@ -50,7 +50,7 @@ private:
     int MsgIndex;
     int MsgBufsize;
     struct timeval tv_1;
-
+    int Stop;
 
 signals:
     void newMessage(_CANMsg , int);

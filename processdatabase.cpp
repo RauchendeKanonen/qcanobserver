@@ -89,6 +89,13 @@ ProcessDataBase::ProcessDataBase(QString FileName)
                 if(SignalTypeStr == QString("double"))
                     SignalType = CANSIG_DOUBLE;
 
+                bool Signed = true;
+
+                QString Sign = Interpret.attribute( "Range" );
+                if(Sign == QString("unsigned"))
+                    Signed = false;
+
+
 
                 long ConstrainVal = ConstrainValStr.toLong(NULL, 16);
                 if(EventItem.compare("true", Qt::CaseSensitive) == 0)
@@ -119,7 +126,7 @@ ProcessDataBase::ProcessDataBase(QString FileName)
 				      UnitStr,
 				      isEventItem,
 				      ConstrainVal,
-				      true,
+                                      Signed,
 				      true,
                                       SignalType);
 

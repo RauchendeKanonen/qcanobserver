@@ -264,30 +264,64 @@ float CANSignal::getInteger(unsigned char Data[8])
 
     if(num_of_bytes == 1)
     {
-        char datum = Value;
-        Ret = datum * Multiplier - Offset;
+        if(isSigned == false)
+        {
+            unsigned char datum = Value;
+            Ret = datum * Multiplier - Offset;
+        }
+
+        if(isSigned == true)
+        {
+            char datum = Value;
+            Ret = datum * Multiplier - Offset;
+        }
     }
 
     if(num_of_bytes == 2)
     {
-        short datum = Value;
-        Ret = datum * Multiplier - Offset;
+        if(isSigned == false)
+        {
+            unsigned short datum = Value;
+            Ret = datum * Multiplier - Offset;
+        }
+
+        if(isSigned == true)
+        {
+            short datum = Value;
+            Ret = datum * Multiplier - Offset;
+        }
     }
 
     if(num_of_bytes == 4)
     {
-        int datum = Value;
-        Ret = datum * Multiplier - Offset;
+        if(isSigned == false)
+        {
+            unsigned int datum = Value;
+            Ret = datum * Multiplier - Offset;
+        }
+
+        if(isSigned == true)
+        {
+            int datum = Value;
+            Ret = datum * Multiplier - Offset;
+        }
     }
 
     if(num_of_bytes == 8)
     {
-        long long datum = Value;
-        Ret = datum * Multiplier - Offset;
+        if(isSigned == false)
+        {
+            unsigned long long datum = Value;
+            Ret = datum * Multiplier - Offset;
+        }
+
+        if(isSigned == true)
+        {
+            long long datum = Value;
+            Ret = datum * Multiplier - Offset;
+        }
     }
 
-    if(isSigned == false && Ret < 0)
-        Ret *= -1.0;
     return Ret;
 }
 
@@ -330,7 +364,7 @@ unsigned long long CANSignal::getConstrainMaskMaskedData(unsigned char Data[8])
 //!If ConstrainMask consists of more than one bit an exact match is required to trigger the event
 bool CANSignal::checkOnOff(unsigned char AData[8])
 {
-    long long Data = getConstrainMaskMaskedData(AData);
+    unsigned long long Data = getConstrainMaskMaskedData(AData);
 
     int bits = 0;
 

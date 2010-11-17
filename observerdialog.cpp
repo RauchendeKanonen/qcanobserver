@@ -35,6 +35,7 @@ ObserverDialog::ObserverDialog(QWidget *parent, CANSignalCollection *Collection)
     list->append(QString("Name"));
     list->append(QString("Value"));
     list->append(QString("Unit"));
+    list->append(QString("Time"));
     TraceModel = new StringListModel(list);
     delete list;
 
@@ -45,6 +46,7 @@ ObserverDialog::ObserverDialog(QWidget *parent, CANSignalCollection *Collection)
     m_ui->tableView->setColumnWidth(0, 120);
     m_ui->tableView->setColumnWidth(1, 80);
     m_ui->tableView->setColumnWidth(2, 80);
+    m_ui->tableView->setColumnWidth(2, 120);
     m_ui->tableView->verticalHeader()->setDefaultSectionSize(15);
 
 
@@ -97,7 +99,11 @@ void ObserverDialog::newMessage(_CANMsg CANMsg, int Cnt)
                 QVariant Col2(Unit);
                 TraceModel->setData(index1,Col2,Qt::EditRole, CANItems.at(i)->Color);
 
-
+                index1 = TraceModel->index(0, 3, QModelIndex());
+                QString TimeString;
+                TimeString.sprintf("%f", (float)CANMsg.tv.tv_sec + (float)CANMsg.tv.tv_usec/1000000.0);
+                QVariant Col3(TimeString);
+                TraceModel->setData(index1,Col3,Qt::EditRole, CANItems.at(i)->Color);
             }
         }
     }

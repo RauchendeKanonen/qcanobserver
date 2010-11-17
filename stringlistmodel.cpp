@@ -170,7 +170,7 @@ bool StringListModel::Update()
 
 
 #endif
-    emit dataChanged(updated_index, akt_index);
+    //emit dataChanged(updated_index, akt_index);
     updated_index = akt_index;
     return true;
 }

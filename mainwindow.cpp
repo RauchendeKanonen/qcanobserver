@@ -71,6 +71,11 @@ void MainWindow::initSatelites()
 
     for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
     {
+        DbgTerminal[i] = NULL;
+    }
+
+    for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
+    {
         ObserverWnd[i] = NULL;
     }
 
@@ -121,6 +126,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     DB = NULL;
 
+    msgs_1 = 0;
+    FreqDivFlipFlop = 0;
+    SpeedFilter = new AverageFilter(5);
+
     ui->setupUi(this);
     setWindowTitle("QCANObserver");
 
@@ -131,7 +140,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     ui->MsgCounter->setNumDigits(7);
-
+    ui->lcdNumberMsgsperSec->setNumDigits(7);
+    ui->lcdNumberMsgsperSec->setEnabled(true);
 
     ui->tableView->verticalHeader()->setDefaultSectionSize(15);
     ui->tableView->horizontalHeader()->setDefaultSectionSize(200);
@@ -233,17 +243,33 @@ void MainWindow::addnewMessage(_CANMsg CANMsg, int MsgCnt)
 //update the view with all arrived msgs
 void MainWindow::periodicUpdate(void)
 {
-    TraceModel->Update();
-    int msgs = TraceModel->rowCount();
+    FreqDivFlipFlop++;
+    int ArrivedMsgs = TraceModel->rowCount(QModelIndex());
 
-    QString NumOfMsgs;
-    NumOfMsgs.sprintf("%d",msgs);
-    ui->MsgCounter->display(NumOfMsgs);
+    SpeedFilter->addPoint((float)(ArrivedMsgs - msgs_1)*1000.0/UPDATETIM_MS);
 
-    if(TraceModel->rowCount(QModelIndex()) > MainStringListLength+1000)
+    msgs_1 = ArrivedMsgs;
+
+
+  /*  if(TraceModel->rowCount(QModelIndex()) > MainStringListLength)
     {
         TraceModel->removeRows(MainStringListLength, TraceModel->rowCount(QModelIndex()) - MainStringListLength, QModelIndex());
+        msgs_1 = TraceModel->rowCount(QModelIndex());
+    }*/
+
+    QString NumOfMsgs;
+    NumOfMsgs.sprintf("%d",TraceModel->rowCount());
+    ui->MsgCounter->display(NumOfMsgs);
+
+
+
+
+    if(FreqDivFlipFlop > 5)
+    {
+        FreqDivFlipFlop = 0;
+        ui->lcdNumberMsgsperSec->display(SpeedFilter->getPoint());
     }
+    TraceModel->Update();
 }
 
 
@@ -266,6 +292,10 @@ void MainWindow::closeEvent( QCloseEvent *e )
     for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
         if(GraphWnd[i] != NULL)
             delete GraphWnd[i];
+
+    for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
+        if(GraphWnd[i] != NULL)
+            delete DbgTerminal[i];
 
     for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
         if(ObserverWnd[i] != NULL)
@@ -444,7 +474,7 @@ void MainWindow::on_actionStart_triggered()
             wt->moveToThread(wt);
         }
 
-        periodicTimer->start(100);
+        periodicTimer->start(UPDATETIM_MS);
 
         //disable MenuItems
         QList <QAction*> act = ui->menuFile->actions();
@@ -508,6 +538,7 @@ void MainWindow::on_actionClear_triggered()
     delete list;
     ui->MsgCounter->display(0);
     ui->tableView->setModel(TraceModel);
+    rt->MsgBuf->ClearAll();
 }
 
 void MainWindow::on_actionSave_triggered()
@@ -553,6 +584,10 @@ void MainWindow::SateliteDestroyed(QObject *Obj)
     for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
         if(ObserverWnd[i] == Obj)
             ObserverWnd[i] = NULL;
+
+    for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
+        if(DbgTerminal[i] == Obj)
+            DbgTerminal[i] = NULL;
     return;
 }
 
@@ -612,6 +647,23 @@ int MainWindow::SaveConfig(QString Filename)
                 break;
             (*ObserverWnd[i]) >> ofs;
         }
+
+        for( char i = 0 ; i < MAX_GRAPH_WINDOWS ; i++ )
+        {
+            if(DbgTerminal[(int)i] == NULL)
+            {
+                ofs.put(i);       //store the number of grph windows
+                break;
+            }
+        }
+
+        for( int i = 0 ; i < MAX_GRAPH_WINDOWS ; i++ )
+        {
+            if(DbgTerminal[i] == NULL)
+                break;
+            (*DbgTerminal[i]) >> ofs;
+        }
+
     }
 
     else //No DB
@@ -700,6 +752,16 @@ int MainWindow::loadConfig(QString FileName)
             on_actionObserverWindow_triggered();
             (*ObserverWnd[i]) << ifs;
         }
+
+        //load the DebugWindows
+        char numofdebugwnds;
+        ifs.get(numofdebugwnds);
+
+        for(int i = 0 ; i < numofdebugwnds ; i++ )
+        {
+            on_actionDebug_Terminal_triggered();
+            (*DbgTerminal[i]) << ifs;
+        }
     }
     ifs.close();
     return 1;
@@ -771,4 +833,41 @@ void MainWindow::on_listLengtLineEdit_editingFinished()
     if(MainStringListLength > 1000000000)
         MainStringListLength = 1000000;
 
+}
+
+void MainWindow::on_actionDebug_Terminal_triggered()
+{
+        if(DB)
+    {
+        for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
+        {
+            if(DbgTerminal[i] == NULL)
+            {
+                DbgTerminal[i] = new DebugTerminal(this, CANSignals);
+                DbgTerminal[i]->setWindowTitle("Debug Terminal");
+                DbgTerminal[i]->move(this->pos().x()+this->geometry().width(), this->pos().y());
+                DbgTerminal[i]->show();
+                connect(this, SIGNAL(StopCapture()), DbgTerminal[i], SLOT(StopCapture()));
+                connect(this, SIGNAL(newMessage(_CANMsg , int)), DbgTerminal[i], SLOT(newMessage(_CANMsg ,int)));
+                connect(periodicTimer, SIGNAL(timeout()), DbgTerminal[i], SLOT(MainTimerSlot()));
+                connect(this, SIGNAL(ClearAll()), DbgTerminal[i], SLOT(ClearAll()));
+                connect(DbgTerminal[i], SIGNAL(destroyed(QObject*)), this, SLOT(SateliteDestroyed(QObject *)));
+                return;
+            }
+        }
+    }
+    return;
+}
+
+
+void MainWindow::on_ClearButton_clicked()
+{
+        on_actionClear_triggered();
+}
+
+void MainWindow::on_RunButton_clicked()
+{
+    DevDlg->setModal(true);
+    DevDlg->exec();
+    DevDlg->accept();
 }

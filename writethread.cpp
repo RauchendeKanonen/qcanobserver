@@ -37,6 +37,7 @@ WriteThread::WriteThread()
     setTerminationEnabled(true);
     WaitForMsg = new QWaitCondition();
     WaitMutex  = new QMutex();
+    Dev = NULL;
 }
 
 WriteThread::~WriteThread()

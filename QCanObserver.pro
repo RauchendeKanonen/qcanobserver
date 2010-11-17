@@ -29,7 +29,10 @@ SOURCES += main.cpp \
     signalselectordialog.cpp \
     specialeventdialog.cpp \
     writethread.cpp \
-    qcancostumplotcurve.cpp
+    qcancostumplotcurve.cpp \
+    averagefilter.cpp \
+    debugterminal.cpp \
+    qconsole.cpp
 HEADERS += mainwindow.h \
     readthread.h \
     DevDialog.h \
@@ -54,7 +57,10 @@ HEADERS += mainwindow.h \
     specialeventdialog.h \
     writethread.h \
     DeviceLib/candevice.h \
-    qcancostumplotcurve.h
+    qcancostumplotcurve.h \
+    averagefilter.h \
+    debugterminal.h \
+    qconsole.h
 FORMS += mainwindow.ui \
     DevDialog.ui \
     errordialog.ui \
@@ -69,7 +75,9 @@ FORMS += mainwindow.ui \
     msgdefdialog.ui \
     configdialog.ui \
     signalselectordialog.ui \
-    specialeventdialog.ui
+    specialeventdialog.ui \
+    debugterminal.ui
+
 unix { 
     INCLUDEPATH += /usr/include/qwt5/
     LIBS += -L/usr/lib/ \

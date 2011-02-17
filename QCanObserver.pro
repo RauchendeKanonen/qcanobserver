@@ -81,8 +81,7 @@ FORMS += mainwindow.ui \
 unix { 
     INCLUDEPATH += /usr/include/qwt5/
     LIBS += -L/usr/lib/ \
-        -lqwt \
-        -lpcan
+        -lqwt 
 }
 win32 { 
     SOURCES += wingettimeofday.cpp

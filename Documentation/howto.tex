@@ -9,39 +9,64 @@
 
 \maketitle
 \section{General}
-First you need to install the Drivers for your CAN-Hardware. Currently there is only support for the PEAK-System interfaces. The USB-Interface is the only tested one but the others should work out of the box. If you have not got a CAN Interface, you can try the Program too, since it allows you to use all the functionality by loading sniffed information from a file. A little file is included. A little Database that shows the defition of Items too. The Software is the very first release and might steel your Beer. So pay attention!
+First you need to install the Drivers for your CAN-Hardware. Currently there is only support for the PEAK-System interfaces. 
+The USB-Interface is the only tested one but the others should work out of the box. If you have not got a CAN Interface, 
+you can try the Program too, since it allows you to use all the functionality by loading sniffed information from a file. 
+A little file is included. A little Database that shows the defition of Items too. 
+The Software is the very first release and might steel your Beer. So pay attention!
 
 
 \section{Driverinstallation}
-Go to www.peak-system.com and download the actual Drivers.
-Open a shell, go to the dirctory where you downloaded the gzip file and execute something like this:
+Your linux kernel needs support for your CAN hardware and additinally support for the SocketCAN network interface.
+Follow the instruction on the SocketCAN wiki site: http://en.wikipedia.org/wiki/SocketCAN.
+Additinally see
+After installation, plug in your hardware and load the drivers:
+\newline
 \begin{verbatim}
- tar xvf peak-linux-driver*.tar.gz
-\end{verbatim} 
-It is necessary that you meet the prequisites from the driverdocumentation.
-At least there should be the Kernel-Headers of your running Kernel. Look in the documentation of your Linux-Distribution.\\
-Build the Modul:
-\begin{verbatim}
-cd peak-linux-driver-x.y
-make clean
-make
-su -c "make install"
-\end{verbatim} 
-If the compilation was successful, try to load the driver:
+modprobe can_bcm
+modprobe can_raw
+modprobe can
+modprobe pcan		//my PEAK interface
+\end{verbatim}
 
-\begin{verbatim}
-modprobe pcan
-\end{verbatim} 
-If no error occures:
+lsmod should show the followin output:\newline
+\begin{tabular}[h]{|p{2cm}|p{2cm}|p{3cm}|p{4cm}|}
+\hline
+\textbf{Module}&\textbf{Size}&\textbf{Used by}&\textbf{comment}\\
+\hline
+\hline
+pcan & 28135 & 0 & my driver for the PEAK hardware\\
+\hline
+vcan & 28135 & 0 & virtual can interface driver (SocketCAN)\\
+\hline
+can raw & 4261 & 0& raw can interface driver (SocketCAN)\\
+\hline
+can bcm & 9366 & 0& bcm can interface driver (SocketCAN)\\
+\hline
+can & 19090 & 2 can bcm,can raw & driver (SocketCAN)\\
+\hline
+\end{tabular}\newline
+\newline
+- Create a virtual CAN network interface:
+\begin{verbatim}     
+ip link add type vcan
+\end{verbatim}
 
-\begin{verbatim}
-lsmod | grep pcan
+I do not know if the can0/can1 ... networkinterfaces are created automatically on plug in. If not 
+you need something like this for creation:
+\begin{verbatim}     
+ip link add can0
 \end{verbatim} 
-lsmod should show something like this:
 
+Establish a network interface with this little script:
 \begin{verbatim}
-pcan                   44412  0
+ #/bin/bash
+ifconfig can0 down
+echo i 0x0014 e > /dev/pcanusb0			#for the peak driver 1 Mboud of datarate. 
+#See the manual of your hardware
+ifconfig can0 up
 \end{verbatim} 
+
 
 \section{Getting the Source}
 
@@ -57,13 +82,22 @@ If you want to commit some changes, contact me on my sourceforge account.
 \section{Qt}
 If you haven't, you should install the QT4 libraries. Also you need the Qwt libs. Best you try to install them from you Distro's package manager.
 I found the QT-Creator useful. It is a lightwight IDE for GUI development.
-Open the .pro file inside of The Creator and add a Form-Class called Observer. It should be a dialog. 
 Here one should be able to add specific ID's. Display the States of the Items inside the Message that you got out of the Database.
 Follow your own ideas!
-You can build the Programm also without the Qt Creator. Try make at the shell.
+
+\section{Build QCANObserver}
+You can build the Programm also without the Qt Creator. Execute qmake, then run make at the shell inside of the base directory.
+Next you need to build the device library. Look inside of DeviceLib dir for your lib. Actually there is only an interface for the SocketCAN-network interface.
+Run qmake and make inside. Then copy the .so files all into the lib dir of QCANObserver.
+
+
+
+
 
 \section{Basic usage}
-In the menu select a device first. Then select a database. In the menu select ``new'' -> Graphic. Add some Items to the Graphic window then. Start sniffing!
+In the menu select a devicelib (the one you compiled and copied into) first. Click ok. Select the network interface on the next dialog in the pull down menu.
+Or if it not appears, give the name in the field below.
+Then select a database. In the menu select ``new'' -> Graphic. Add some Items to the Graphic window then. Start sniffing!
 
 \subsection{Without a CAN-Interface}
 In the menu select a database first. In the menu select ``new'' -> Graphic. Add some Items to the Graphic window then. Load a sniffed file!

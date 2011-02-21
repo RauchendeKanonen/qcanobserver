@@ -125,6 +125,13 @@ bool StringListModel::setColor(const QModelIndex &index, QColor *color)
 }
 
 bool StringListModel::setData(const QModelIndex &index,
+			      const void *value, int role)
+{
+
+    return false;
+}
+
+bool StringListModel::setData(const QModelIndex &index,
                               const QVariant &value, int role)
 {
     if (index.isValid() && role == Qt::EditRole)

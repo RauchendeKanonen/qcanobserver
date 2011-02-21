@@ -39,8 +39,8 @@ void MainWindow::initSatelites()
                      rt, SIGNAL(ClearAll()));
     QObject::connect(this, SIGNAL(setDev(void *, QString, bool)),
                      rt, SLOT(setDev(void *, QString, bool)));
-    QObject::connect(this, SIGNAL(StopCapture()),
-                     rt, SLOT(QuitThread()));
+    QObject::connect(rt, SIGNAL(StopCapture()),
+		     this, SLOT(QuitThread()));
     QObject::connect(rt, SIGNAL(DevIsConfigured(bool)),
                      this, SLOT(DevIsConfigured(bool)));
 
@@ -50,7 +50,8 @@ void MainWindow::initSatelites()
                      wt, SLOT(setDev(void *, QString, bool)));
     QObject::connect(this, SIGNAL(ClearAll()),
                      rt, SIGNAL(ClearAll()));
-
+    QObject::connect(rt, SIGNAL(NoMem()),
+		     this, SLOT(NoMem()));
  //   QObject::connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg *, int)),
  //                    wt, SLOT(addnewMessage(_CANMsg *, int)));
 
@@ -151,8 +152,8 @@ MainWindow::MainWindow(QWidget *parent)
     list->append(QString("ID"));
     list->append(QString("Data"));
     list->append(QString("Time"));
-    TraceModel = new StringListModel(list);
-    
+    TraceModel = new RawDataModel(list);
+    TraceModel->setMaxRows(1000);
     delete list;
 
     //Model Checker
@@ -212,30 +213,11 @@ MainWindow::~MainWindow()
 //SLOT
 void MainWindow::addnewMessage(_CANMsg CANMsg, int MsgCnt)
 {
-    QString MsgString;
-    QString IDString;
-    QString TimeString;
-
-    MsgString.sprintf("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x", CANMsg.DATA[0], CANMsg.DATA[1], CANMsg.DATA[2], CANMsg.DATA[3], CANMsg.DATA[4]
-                                                            , CANMsg.DATA[5], CANMsg.DATA[6], CANMsg.DATA[7]);
-    IDString.sprintf("0x%04x", (unsigned int)CANMsg.ID);
-    TimeString.sprintf("%f", (float)CANMsg.tv.tv_sec + (float)CANMsg.tv.tv_usec/1000000.0);
-
-
     QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
     TraceModel->insertRows(0, 1, (const QModelIndex &)index1);
+    index1 = TraceModel->index(0, 0, QModelIndex());
+    TraceModel->setData(index1,&CANMsg,Qt::EditRole);
 
-    index1 = TraceModel->index(1, 0, QModelIndex());
-    QVariant Col0(IDString);
-    TraceModel->setData(index1,Col0,Qt::EditRole, &black);
-
-    index1 = TraceModel->index(1, 1, QModelIndex());
-    QVariant Col1(MsgString);
-    TraceModel->setData(index1,Col1,Qt::EditRole, &black);
-
-    index1 = TraceModel->index(1, 2, QModelIndex());
-    QVariant Col2(TimeString);
-    TraceModel->setData(index1,Col2,Qt::EditRole, &black);
 }
 
 
@@ -250,18 +232,9 @@ void MainWindow::periodicUpdate(void)
 
     msgs_1 = ArrivedMsgs;
 
-
-  /*  if(TraceModel->rowCount(QModelIndex()) > MainStringListLength)
-    {
-        TraceModel->removeRows(MainStringListLength, TraceModel->rowCount(QModelIndex()) - MainStringListLength, QModelIndex());
-        msgs_1 = TraceModel->rowCount(QModelIndex());
-    }*/
-
     QString NumOfMsgs;
     NumOfMsgs.sprintf("%d",TraceModel->rowCount());
     ui->MsgCounter->display(NumOfMsgs);
-
-
 
 
     if(FreqDivFlipFlop > 5)
@@ -280,8 +253,7 @@ void MainWindow::closeEvent( QCloseEvent *e )
 
     //stop the write thread if running    
     ui->checkBoxSendMsg->setChecked(false);
-    //wait for shutdown
-    while(wt->isRunning());
+
 
     if(rt->isRunning() || wt->isRunning())
     {
@@ -519,6 +491,20 @@ void MainWindow::on_actionStop_triggered()
     emit StopCapture();
 }
 
+void MainWindow::NoMem(void)
+{
+    on_actionStop_triggered();
+
+    ErrorDialog *ed = new ErrorDialog;
+    ed->SetErrorMessage("No free memory available. Stopping capture.");
+
+    ed->setModal(true);
+    ed->exec();
+    delete ed;
+
+    return;
+}
+
 
 void MainWindow::on_actionClose_triggered()
 {
@@ -534,7 +520,7 @@ void MainWindow::on_actionClear_triggered()
     list->append(QString("ID"));
     list->append(QString("Data"));
     list->append(QString("Time"));
-    TraceModel = new StringListModel(list);
+    TraceModel = new RawDataModel(list);
     delete list;
     ui->MsgCounter->display(0);
     ui->tableView->setModel(TraceModel);

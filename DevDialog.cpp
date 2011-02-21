@@ -46,7 +46,7 @@ DevDialog::DevDialog(QWidget *parent) :
 #ifdef WINDOWS
     QString filterstr("*.dll");
 #endif
-
+    CANLibFilePath = new QString("");
     filter.append(filterstr);
     moduldir.setNameFilters(filter);
     QFileInfoList list = moduldir.entryInfoList();
@@ -131,9 +131,10 @@ void DevDialog::on_buttonBox1_accepted()
 
 #endif
     //Load the interface to the hardware
-    char *libstr =  (char*)CANLibFilePath.toStdString().c_str();
+    const char *libstr;
+    libstr =  (char*)CANLibFilePath->toStdString().c_str();
     void* libhandle = dlopen(libstr, RTLD_LAZY);
-    QString *i = new QString(dlerror());
+
     int err = errno;
 
     if(!libhandle)
@@ -157,14 +158,14 @@ void DevDialog::on_buttonBox1_accepted()
 
     shareDevInstLib = m_ui->checkBoxShareLibInst->isChecked();
     if(tmp)
-        emit setDev(confBuffer, CANLibFilePath, shareDevInstLib);
+	emit setDev(confBuffer, *CANLibFilePath, shareDevInstLib);
 }
 
 ofstream& DevDialog::operator>>(ofstream& os)
 {
     char temp[512];
     memset(temp, 0, 512);
-    memcpy(temp,CANLibFilePath.toStdString().c_str(), CANLibFilePath.count());
+    memcpy(temp,CANLibFilePath->toStdString().c_str(), CANLibFilePath->count());
     for(int f = 0; f < 512 ; f++)
         os.put(temp[f]);
     memset(temp, 0, 512);
@@ -182,9 +183,9 @@ ifstream& DevDialog::operator<<(ifstream& is)
     memset(temp, 0, 512);
     for(int f = 0; f < 512 ; f++)
         is.get(temp[f]);
-    CANLibFilePath = QString(temp);
+    CANLibFilePath = new QString(temp);
 
-    int idx = m_ui->comboBoxLibSelector->findData(QVariant(CANLibFilePath),Qt::UserRole ,Qt::MatchCaseSensitive);
+    int idx = m_ui->comboBoxLibSelector->findData(QVariant(*CANLibFilePath),Qt::UserRole ,Qt::MatchCaseSensitive);
 
     if(idx == -1)
     {
@@ -215,11 +216,11 @@ ifstream& DevDialog::operator<<(ifstream& is)
 void DevDialog::on_comboBoxLibSelector_currentIndexChanged(int index)
 {
     QVariant path = m_ui->comboBoxLibSelector->itemData(index, Qt::UserRole);
-    CANLibFilePath = path.toString();
+    *CANLibFilePath = path.toString();
 }
 
 void DevDialog::on_comboBoxLibSelector_activated(int index)
 {
     QVariant path = m_ui->comboBoxLibSelector->itemData(index, Qt::UserRole);
-    CANLibFilePath = path.toString();
+    *CANLibFilePath = path.toString();
 }

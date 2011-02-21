@@ -29,25 +29,6 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QWidget" name="verticalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>40</x>
-     <y>30</y>
-     <width>177</width>
-     <height>361</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="QCheckBox" name="ConfigureDeviceatStartup">
-      <property name="text">
-       <string>Auto Device Initialization</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
  </widget>
  <resources/>
  <connections>

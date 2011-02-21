@@ -32,7 +32,8 @@ SOURCES += main.cpp \
     qcancostumplotcurve.cpp \
     averagefilter.cpp \
     debugterminal.cpp \
-    qconsole.cpp
+    qconsole.cpp \
+    rawdatamodel.cpp
 HEADERS += mainwindow.h \
     readthread.h \
     DevDialog.h \
@@ -60,7 +61,8 @@ HEADERS += mainwindow.h \
     qcancostumplotcurve.h \
     averagefilter.h \
     debugterminal.h \
-    qconsole.h
+    qconsole.h \
+    rawdatamodel.h
 FORMS += mainwindow.ui \
     DevDialog.ui \
     errordialog.ui \
@@ -77,11 +79,10 @@ FORMS += mainwindow.ui \
     signalselectordialog.ui \
     specialeventdialog.ui \
     debugterminal.ui
-
 unix { 
     INCLUDEPATH += /usr/include/qwt5/
     LIBS += -L/usr/lib/ \
-        -lqwt 
+        -lqwt
 }
 win32 { 
     SOURCES += wingettimeofday.cpp

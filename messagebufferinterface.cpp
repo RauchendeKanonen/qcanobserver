@@ -24,26 +24,41 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/time.h>
-
+#include <QFile>
 #ifdef LINUX
 #include <linux/can.h>
 #include <linux/can/raw.h>
+#include <syscall.h>
 #endif
 
 
-MessageBufferInterface::MessageBufferInterface(int size)
+MessageBufferInterface::MessageBufferInterface(int mode)
 {
     tv_1.tv_sec = 0;
     tv_1.tv_usec = 0;
-    MsgIndex = 0;
     Stop = 0;
-    MsgBufsize = size;
-    pCANMsg = (_CANMsg*)malloc(sizeof(_CANMsg)*size);
+    Mode = mode;
+    if(Mode == TEMPSTORE)
+    {
+#ifdef LINUX
+    if((TMPFILE = open("tmp.dat",O_CREAT|O_WRONLY|O_TRUNC,S_IRWXU|S_IRWXG|S_IRWXO))<=0)
+    {
+
+    }
+#endif
+
+#ifdef WINDOWS
+    if((TMPFILE = open("tmp.dat",O_CREAT | O_WRONLY |O_TRUNC | _O_BINARY, _S_IREAD | _S_IWRITE))<=0)
+    {
+
+    }
+#endif
+    }
 }
 
 MessageBufferInterface::~MessageBufferInterface()
 {
-    free(pCANMsg);
+
 }
 
 //!Adds a Message to the internal increasing Buffer.
@@ -53,69 +68,63 @@ int MessageBufferInterface::AddMessage(_CANMsg *Msg)
     if(Stop)
         return 0;
 
-    if(MsgIndex >= MsgBufsize)
-    {
-        pCANMsg = (_CANMsg*)realloc((_CANMsg*)pCANMsg, (MsgBufsize + REALLOCSIZE) * sizeof(_CANMsg));
-        MsgBufsize = (MsgBufsize + REALLOCSIZE);
-    }
-
-
-    *(pCANMsg+MsgIndex) = *Msg;
-
-
-    MsgIndex++;
-
-    emit newMessage(pCANMsg[MsgIndex-1], MsgIndex);
+    emit newMessage(*Msg, 0);
 
 #ifdef LINUX
     if(Msg->ID & (CAN_ERR_FLAG | CAN_RTR_FLAG))
-        emit newSpecialMessage(pCANMsg[+MsgIndex-1]);
+	emit newSpecialMessage(*Msg);
 #endif
+
+    if(Mode==TEMPSTORE)
+	if(write(TMPFILE, (const void*)Msg, sizeof(_CANMsg)) != sizeof(_CANMsg))
+	{
+	    QString *Err = new QString();
+	    Err->sprintf("Could not write to temporary file!");
+	    ErrorDialog *ed = new ErrorDialog;
+	    ed->SetErrorMessage(*Err);
+	    delete Err;
+	    ed->setModal(true);
+	    ed->exec();
+	    delete ed;
+	    Mode = NOSTORE;
+	}
+
     return 1;
 
 }
 
 
-
-int MessageBufferInterface::GetMessage(_CANMsg *Msg, int idx)
-{
-   /* if(MsgIndex > 0 && MsgIndex <= idx)
-    {
-        Msg = pTPCANMsg+idx;
-        return 1;
-    }*/
-
-    return 0;
-}
 //!Saves the internal Buffer to a File
 int MessageBufferInterface::Save(char *Filename)
 {
-    int LengthOfBuf = MsgIndex * sizeof(_CANMsg);
-    int OUTFILE;
+    close(TMPFILE);
+    QString cmd(QString("mv ./tmp.dat ")+QString(Filename));
+    int ret = system(cmd.toStdString().c_str());
 
+    if(ret)
+    {
+	QString *Err = new QString();
+	Err->sprintf("Could not Save the Capture File propperly!");
+	ErrorDialog *ed = new ErrorDialog;
+	ed->SetErrorMessage(*Err);
+	delete Err;
+	ed->setModal(true);
+	ed->exec();
+	delete ed;
+    }
 #ifdef LINUX
-    if((OUTFILE = open(Filename,O_CREAT|O_WRONLY|O_TRUNC,S_IRWXU|S_IRWXG|S_IRWXO))<=0)
-      return -1;
+    if((TMPFILE = open("tmp.dat",O_CREAT|O_WRONLY|O_TRUNC,S_IRWXU|S_IRWXG|S_IRWXO))<=0)
+    {
+
+    }
 #endif
 
 #ifdef WINDOWS
-    if((OUTFILE = open(Filename,O_CREAT | O_WRONLY |O_TRUNC | _O_BINARY, _S_IREAD | _S_IWRITE))<=0)
-      return -1;
-#endif
-
-    int flength = write(OUTFILE, pCANMsg, LengthOfBuf);
-    close(OUTFILE);
-    if(LengthOfBuf != flength)
+    if((TMPFILE = open("tmp.dat",O_CREAT | O_WRONLY |O_TRUNC | _O_BINARY, _S_IREAD | _S_IWRITE))<=0)
     {
-        QString *Err = new QString();
-        Err->sprintf("Could not Save the Capture File propperly!");
-        ErrorDialog *ed = new ErrorDialog;
-        ed->SetErrorMessage(*Err);
-        delete Err;
-        ed->setModal(true);
-        ed->show();
-        //delete ed;
+
     }
+#endif
     return 0;
 }
 //!Loads Messages from Filename, adds them to the Buffer via AddMessage (TPCANMsg *Msg, timeval *tv)
@@ -134,7 +143,7 @@ int MessageBufferInterface::Load(char *Filename)
         t = read(INFILE,((char*)&Msg),sizeof(Msg));
 
         if( t == sizeof(Msg))
-            AddMessage(&Msg);
+	    AddMessage(&Msg);
 
         else if( t != sizeof(Msg) && (t != 0))
         {
@@ -144,7 +153,7 @@ int MessageBufferInterface::Load(char *Filename)
             ed->SetErrorMessage(*Err);
             delete Err;
             ed->setModal(true);
-            ed->show();
+	    ed->exec();
             return 0;
         }
     }
@@ -160,7 +169,7 @@ int MessageBufferInterface::Load(char *Filename)
         length += t;
 
         if( t == sizeof(Msg) && (t > 0))
-            AddMessage(&Msg);
+	    AddMessage(&Msg);
 
         else if( t != sizeof(Msg) && (t != 0))
         {
@@ -170,7 +179,7 @@ int MessageBufferInterface::Load(char *Filename)
             ed->SetErrorMessage(*Err);
             delete Err;
             ed->setModal(true);
-            ed->show();
+	    ed->exec();
             return 0;
         }
 
@@ -185,10 +194,17 @@ int MessageBufferInterface::ClearAll()
     Stop = 1;
     usleep(10000);  //wait a little till the last message is added an nobody can
                     //access our internal buffer
-    free(pCANMsg);
-    pCANMsg = (_CANMsg*)malloc(sizeof(_CANMsg)*REALLOCSIZE);
-    MsgBufsize = REALLOCSIZE;
-    MsgIndex = 0;
+    close(TMPFILE);
+
+#ifdef LINUX
+    if((TMPFILE = open("tmp.dat",O_CREAT|O_WRONLY|O_TRUNC,S_IRWXU|S_IRWXG|S_IRWXO))<=0)
+      return -1;
+#endif
+
+#ifdef WINDOWS
+    if((TMPFILE = open("tmp.dat",O_CREAT | O_WRONLY |O_TRUNC | _O_BINARY, _S_IREAD | _S_IWRITE))<=0)
+      return -1;
+#endif
     Stop=0;
     return 1;
 }

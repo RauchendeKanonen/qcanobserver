@@ -46,7 +46,7 @@ public:
 
 protected:
     virtual void changeEvent(QEvent *e);
-    QString CANLibFilePath;
+    QString *CANLibFilePath;
     void *confBuffer;
 
 private:

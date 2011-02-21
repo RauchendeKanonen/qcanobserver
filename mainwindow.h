@@ -43,6 +43,7 @@
 #include "obscan.h"
 #include "averagefilter.h"
 #include "debugterminal.h"
+#include "rawdatamodel.h"
 using namespace std;
 
 
@@ -68,7 +69,7 @@ public:
 
 
 private:
-    StringListModel *TraceModel;
+    RawDataModel *TraceModel;
     Ui::MainWindow *ui;
 
     ReadThread *rt;
@@ -112,7 +113,7 @@ public slots:
     void periodicUpdate(void);
     void SateliteDestroyed(QObject *);
     void DevIsConfigured(bool);
-
+    void NoMem(void);
 
 
 private slots:

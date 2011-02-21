@@ -21,12 +21,11 @@
 
 #include "obscan.h"
 
-
 #ifdef WINDOWS
 #include <winsock2.h>
 #endif
-
-#define REALLOCSIZE 1000000
+#define TEMPSTORE 1
+#define NOSTORE 2
 
 
 
@@ -37,18 +36,16 @@ class MessageBufferInterface : public QObject
 {
   Q_OBJECT
 public:
-    int GetMessage(_CANMsg *Msg, int idx);
     MessageBufferInterface(int size);
     int AddMessage(_CANMsg *Msg);
     ~MessageBufferInterface();
     int Save(char *Filename);
     int Load(char *Filename);
-    //int AddMessage(_CANMsg *Msg);
 
 private:
-    _CANMsg *pCANMsg;
-    int MsgIndex;
-    int MsgBufsize;
+    int TMPFILE;
+
+    int Mode;
     struct timeval tv_1;
     int Stop;
 
@@ -58,8 +55,6 @@ signals:
 
 public slots:
     int ClearAll();
-
-
 
 };
 

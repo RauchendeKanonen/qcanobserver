@@ -32,7 +32,7 @@
 ReadThread::ReadThread()
 {
     setTerminationEnabled(true);
-    MsgBuf = new MessageBufferInterface(15000);
+    MsgBuf = new MessageBufferInterface(TEMPSTORE);
     /*QObject::connect(this, SIGNAL(ClearAll()),
                      MsgBuf,SLOT(ClearAll()));*/
     Dev = NULL;
@@ -262,7 +262,8 @@ void ReadThread::run()
         if(Dev->CANDeviceRead(&Msg) == OPSUCCESS)
         {
             Msg.tv.tv_sec -= starttime.tv_sec;
-            MsgBuf->AddMessage(&Msg);
+            if(MsgBuf->AddMessage(&Msg) == 0)
+		emit NoMem();
         }
         loop->processEvents(QEventLoop::AllEvents);
     }

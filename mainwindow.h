@@ -69,6 +69,7 @@ public:
 
 
 private:
+    QList <_CANMsg> TempDataList;
     RawDataModel *TraceModel;
     Ui::MainWindow *ui;
 

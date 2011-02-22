@@ -153,7 +153,6 @@ MainWindow::MainWindow(QWidget *parent)
     list->append(QString("Data"));
     list->append(QString("Time"));
     TraceModel = new RawDataModel(list);
-    TraceModel->setMaxRows(1000);
     delete list;
 
     //Model Checker
@@ -213,11 +212,7 @@ MainWindow::~MainWindow()
 //SLOT
 void MainWindow::addnewMessage(_CANMsg CANMsg, int MsgCnt)
 {
-    QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
-    TraceModel->insertRows(0, 1, (const QModelIndex &)index1);
-    index1 = TraceModel->index(0, 0, QModelIndex());
-    TraceModel->setData(index1,&CANMsg,Qt::EditRole);
-
+    TempDataList.append(CANMsg);
 }
 
 
@@ -242,7 +237,19 @@ void MainWindow::periodicUpdate(void)
         FreqDivFlipFlop = 0;
         ui->lcdNumberMsgsperSec->display(SpeedFilter->getPoint());
     }
-    TraceModel->Update();
+
+    QModelIndex index1;
+    if(TempDataList.count())
+    {
+	index1 = TraceModel->index(0, 0, QModelIndex());
+	TraceModel->insertRows(0, TempDataList.count(), (const QModelIndex &)index1);
+    }
+
+    for(int i = 0; i < TempDataList.count(); i ++)
+    {
+	index1 = TraceModel->index(i, 0, QModelIndex());
+	TraceModel->setData(index1, &TempDataList.takeLast(),Qt::EditRole);
+    }
 }
 
 

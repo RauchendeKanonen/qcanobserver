@@ -20,7 +20,7 @@
 #define MESSAGEBUFFERINTERFACE_H
 
 #include "obscan.h"
-
+#include "configdialog.h"
 #ifdef WINDOWS
 #include <winsock2.h>
 #endif
@@ -36,12 +36,12 @@ class MessageBufferInterface : public QObject
 {
   Q_OBJECT
 public:
-    MessageBufferInterface(int size);
+    MessageBufferInterface(void);
     int AddMessage(_CANMsg *Msg);
     ~MessageBufferInterface();
     int Save(char *Filename);
     int Load(char *Filename);
-
+    void updateConfig(void);
 private:
     int TMPFILE;
 
@@ -54,6 +54,7 @@ signals:
     void newSpecialMessage(_CANMsg CANMsg);
 
 public slots:
+    void configChanged(__config cfg);
     int ClearAll();
 
 };

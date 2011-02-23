@@ -32,9 +32,9 @@
 ReadThread::ReadThread()
 {
     setTerminationEnabled(true);
-    MsgBuf = new MessageBufferInterface(TEMPSTORE);
-    /*QObject::connect(this, SIGNAL(ClearAll()),
-                     MsgBuf,SLOT(ClearAll()));*/
+    MsgBuf = new MessageBufferInterface();
+    connect(this, SIGNAL(configChanged(__config)),
+		     MsgBuf,SLOT(configChanged(__config)));
     Dev = NULL;
 }
 

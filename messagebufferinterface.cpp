@@ -19,41 +19,62 @@
 #include "errordialog.h"
 #include <stdio.h>
 #include <fcntl.h>
-#include<sys/types.h>
-#include<sys/stat.h>
+
 #include <string.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <QFile>
-#ifdef LINUX
+
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <syscall.h>
+
+#include "configdialog.h"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+
+
+void MessageBufferInterface::configChanged(__config cfg)
+{
+    TMPFILE = NULL;
+    if(cfg.WriteToDisk)
+	Mode = TEMPSTORE;
+    else
+	Mode = NOSTORE;
+    updateConfig();
+}
+
+void MessageBufferInterface::updateConfig(void)
+{
+    if(Mode == TEMPSTORE)
+    {
+#ifdef LINUX
+	if((TMPFILE = open("tmp.dat",O_CREAT|O_WRONLY|O_TRUNC,S_IRWXU|S_IRWXG|S_IRWXO))<=0)
+	{
+
+	}
 #endif
 
+#ifdef WINDOWS
+	if((TMPFILE = open("tmp.dat",O_CREAT | O_WRONLY |O_TRUNC | _O_BINARY, _S_IREAD | _S_IWRITE))<=0)
+	{
 
-MessageBufferInterface::MessageBufferInterface(int mode)
+	}
+#endif
+    }
+    else
+    {
+	if(TMPFILE)
+	    close(TMPFILE);
+    }
+}
+MessageBufferInterface::MessageBufferInterface(void)
 {
     tv_1.tv_sec = 0;
     tv_1.tv_usec = 0;
     Stop = 0;
-    Mode = mode;
-    if(Mode == TEMPSTORE)
-    {
-#ifdef LINUX
-    if((TMPFILE = open("tmp.dat",O_CREAT|O_WRONLY|O_TRUNC,S_IRWXU|S_IRWXG|S_IRWXO))<=0)
-    {
-
-    }
-#endif
-
-#ifdef WINDOWS
-    if((TMPFILE = open("tmp.dat",O_CREAT | O_WRONLY |O_TRUNC | _O_BINARY, _S_IREAD | _S_IWRITE))<=0)
-    {
-
-    }
-#endif
-    }
+    Mode = TEMPSTORE;
 }
 
 MessageBufferInterface::~MessageBufferInterface()

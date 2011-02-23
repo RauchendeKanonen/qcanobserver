@@ -56,7 +56,7 @@ signals:
     void setDevLibInstance(CANDevice *);
     void DevIsConfigured(bool isIt);
     void NoMem();
-
+    void configChanged(__config);
 public slots:
     void setDev(void *ConfData, QString InterfaceLib, bool shareDevLib);
     void QuitThread();

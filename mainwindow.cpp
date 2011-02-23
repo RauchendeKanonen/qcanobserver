@@ -33,7 +33,8 @@ void MainWindow::initSatelites()
                      this, SLOT(configChanged(__config)));
 
     rt = new ReadThread;
-
+    QObject::connect(ConfDlg, SIGNAL(configChanged(__config)),
+		    rt, SLOT(configChanged(__config)));
 
     QObject::connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg , int)),
                      this, SLOT(addnewMessage(_CANMsg , int)));

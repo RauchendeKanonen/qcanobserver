@@ -39,16 +39,14 @@ ObserverDialog::ObserverDialog(QWidget *parent, CANSignalCollection *Collection)
     TraceModel = new StringListModel(list);
     delete list;
 
-
-
     m_ui->tableView->setModel(TraceModel);
 
     m_ui->tableView->setColumnWidth(0, 120);
     m_ui->tableView->setColumnWidth(1, 80);
-    m_ui->tableView->setColumnWidth(2, 80);
-    m_ui->tableView->setColumnWidth(2, 120);
+    m_ui->tableView->setColumnWidth(2, 40);
+    m_ui->tableView->setColumnWidth(3, 120);
     m_ui->tableView->verticalHeader()->setDefaultSectionSize(15);
-
+    m_ui->tableView->horizontalHeader()->setStretchLastSection(true);
 
     Sel = new SignalSelectorDialog(NULL, pCollection);
     connect(Sel, SIGNAL(addItemToDraw(CANSignal*, QColor)), this, SLOT(addItemToObserve(CANSignal*, QColor)));
@@ -68,50 +66,84 @@ ObserverDialog::~ObserverDialog()
 
 void ObserverDialog::newMessage(_CANMsg CANMsg, int Cnt)
 {
-    int i;
-    for(i = 0 ; CANItems.count() >  i ; i++)
+
+    for( int i = 0 ; CANItems.count() >  i ; i++ )
     {
+
         if(CANMsg.ID == (DWORD)CANItems.at(i)->Signal->Id)
         {
-            SignalDataCollection DataCol;
-
-            if(CANItems.at(i)->Signal->getSignalDataCollection(CANMsg.DATA, &DataCol))
-            {
-                QString Name = DataCol.Name;
-                QString Unit = DataCol.Unit;
-                float Value = DataCol.Value;
-
-                QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
-
-                TraceModel->insertRows(0, 1, (const QModelIndex &)index1);
-                //get the valid index
-                index1 = TraceModel->index(0, 0, QModelIndex());
-                QVariant Col0(Name);
-                TraceModel->setData(index1,Col0,Qt::EditRole, CANItems.at(i)->Color);
-
-
-                index1 = TraceModel->index(0, 1, QModelIndex());
-
-                QVariant Col1(Value);
-                TraceModel->setData(index1,Col1,Qt::EditRole,  CANItems.at(i)->Color);
-
-                index1 = TraceModel->index(0, 2, QModelIndex());
-                QVariant Col2(Unit);
-                TraceModel->setData(index1,Col2,Qt::EditRole, CANItems.at(i)->Color);
-
-                index1 = TraceModel->index(0, 3, QModelIndex());
-                QString TimeString;
-                TimeString.sprintf("%f", (float)CANMsg.tv.tv_sec + (float)CANMsg.tv.tv_usec/1000000.0);
-                QVariant Col3(TimeString);
-                TraceModel->setData(index1,Col3,Qt::EditRole, CANItems.at(i)->Color);
-            }
+            this->TempCANFRMS.append(CANMsg);
         }
     }
+
 }
 
 void ObserverDialog::MainTimerSlot()
 {
-    TraceModel->Update();
+
+    QList <_CANMsg> TempLst;
+    TempLst =  QList <_CANMsg> (TempCANFRMS);
+    TempCANFRMS.clear();
+
+
+    QModelIndex index1 = TraceModel->index(0, 0, QModelIndex());
+    TraceModel->insertRows(0,TempLst.count() , (const QModelIndex &)index1);
+
+    int line = 0;
+
+    QModelIndex vis = m_ui->tableView->indexAt(QPoint(1,1));
+
+
+
+    while(TempLst.count())
+    {
+        _CANMsg CANMsg = TempLst.takeLast();
+        for( int i = 0 ; CANItems.count() >  i ; i++ )
+        {
+            if(CANMsg.ID == (DWORD)CANItems.at(i)->Signal->Id)
+            {
+                SignalDataCollection DataCol;
+
+                if(CANItems.at(i)->Signal->getSignalDataCollection(CANMsg.DATA, &DataCol))
+                {
+                    QString Name = DataCol.Name;
+                    QString Unit = DataCol.Unit;
+                    float Value = DataCol.Value;
+                    index1 = TraceModel->index(line, 0, QModelIndex());
+
+
+                    //get the valid index
+                    index1 = TraceModel->index(line, 0, QModelIndex());
+                    QVariant Col0(Name);
+                    TraceModel->setData(index1,Col0,Qt::EditRole, CANItems.at(i)->Color);
+
+
+                    index1 = TraceModel->index(line, 1, QModelIndex());
+
+                    QVariant Col1(Value);
+                    TraceModel->setData(index1,Col1,Qt::EditRole,  CANItems.at(i)->Color);
+
+                    index1 = TraceModel->index(line, 2, QModelIndex());
+                    QVariant Col2(Unit);
+                    TraceModel->setData(index1,Col2,Qt::EditRole, CANItems.at(i)->Color);
+
+                    index1 = TraceModel->index(line, 3, QModelIndex());
+                    QString TimeString;
+                    TimeString.sprintf("%f", (float)CANMsg.tv.tv_sec + (float)CANMsg.tv.tv_usec/1000000.0);
+                    QVariant Col3(TimeString);
+                    TraceModel->setData(index1,Col3,Qt::EditRole, CANItems.at(i)->Color);
+                    line ++ ;
+                }
+            }
+        }
+    }
+    if(0 != MaxDots && TraceModel->rowCount(QModelIndex()) > MaxDots)
+    {
+        int cnt = TraceModel->rowCount(QModelIndex());
+        TraceModel->removeRows(MaxDots ,cnt-MaxDots, QModelIndex());
+    }
+    if(vis.isValid())
+        m_ui->tableView->scrollTo(vis,QAbstractItemView::PositionAtTop);
 }
 
 void ObserverDialog::ClearAll()
@@ -123,9 +155,21 @@ void ObserverDialog::ClearAll()
     list->append(QString("Name"));
     list->append(QString("Value"));
     list->append(QString("Unit"));
-
+    list->append(QString("Time"));
     TraceModel = new StringListModel(list);
     delete list;
+
+
+
+    m_ui->tableView->setModel(TraceModel);
+
+    m_ui->tableView->setColumnWidth(0, 120);
+    m_ui->tableView->setColumnWidth(1, 80);
+    m_ui->tableView->setColumnWidth(2, 40);
+    m_ui->tableView->setColumnWidth(3, 120);
+    m_ui->tableView->verticalHeader()->setDefaultSectionSize(15);
+    m_ui->tableView->horizontalHeader()->setStretchLastSection(true);
+
     m_ui->tableView->setModel(TraceModel);
 
     connect(pparent, SIGNAL(newMessage(_CANMsg ,int)), this, SLOT(newMessage(_CANMsg ,int)));
@@ -212,3 +256,14 @@ void ObserverDialog::on_ConnectedcheckBox_toggled(bool checked)
         disconnect(pparent, SIGNAL(newMessage(_CANMsg ,int)), this, SLOT(newMessage(_CANMsg ,int)));
 
 }
+
+
+void ObserverDialog::configChanged(__config cfg)
+{
+
+    if( 0 != cfg.GraphMemByte)
+        MaxDots = cfg.GraphMemByte/(64);//??64Bytes in Tracemode for stringlist???
+    else
+        MaxDots = 0;
+}
+

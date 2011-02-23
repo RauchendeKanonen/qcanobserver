@@ -101,7 +101,7 @@ void SendMsgDialog::newMsgAccepted(QString ID,
         MsgModel->setData(MsgModel->index(0, 8, QModelIndex()), Byte7, Qt::EditRole, &black);
         MsgModel->setData(MsgModel->index(0, 9, QModelIndex()), PeriodTime, Qt::EditRole, &black);
         MsgModel->setData(MsgModel->index(0, 10, QModelIndex()), QString("Periodic"), Qt::EditRole, &black);
-        MsgModel->Update();
+
         return;
     }
 
@@ -131,7 +131,7 @@ void SendMsgDialog::newMsgAccepted(QString ID,
         MsgModel->setData(MsgModel->index(0, 7, QModelIndex()), Byte6, Qt::EditRole, &black);
         MsgModel->setData(MsgModel->index(0, 8, QModelIndex()), Byte7, Qt::EditRole, &black);
         MsgModel->setData(MsgModel->index(0, 10, QModelIndex()), QString("Trigger"), Qt::EditRole, &black);
-        MsgModel->Update();
+
         return;
     }
 
@@ -147,7 +147,7 @@ void SendMsgDialog::newMsgAccepted(QString ID,
     MsgModel->setData(MsgModel->index(0, 7, QModelIndex()), Byte6, Qt::EditRole, &black);
     MsgModel->setData(MsgModel->index(0, 8, QModelIndex()), Byte7, Qt::EditRole, &black);
     MsgModel->setData(MsgModel->index(0, 10, QModelIndex()), QString("Single"), Qt::EditRole, &black);
-    MsgModel->Update();
+
     return;
 }
 
@@ -214,7 +214,7 @@ void SendMsgDialog::on_SendButton_clicked()
         MsgModel->setColor(idx,&red);
     }
 
-    MsgModel->Update();
+
 }
 
 
@@ -343,7 +343,7 @@ void SendMsgDialog::on_DeleteIdButton_clicked()
     QModelIndex idx = MsgModel->index(SelectedMsg.row(), 0, QModelIndex());
     QModelIndex root = MsgModel->index(0,0,QModelIndex());
     MsgModel->removeRows(idx.row(), 1, root);
-    MsgModel->Update();
+
 }
 void SendMsgDialog::closeEvent(QCloseEvent *e)
 {

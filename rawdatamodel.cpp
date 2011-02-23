@@ -27,7 +27,7 @@ int RawDataModel::rowCount(const QModelIndex &parent) const
 	int cnt = DataList.count();
         return cnt;
     }
-    return 0;
+    return DataList.count();;
 }
 
 int RawDataModel::columnCount(const QModelIndex &parent) const
@@ -126,10 +126,11 @@ bool RawDataModel::Update()
 
 bool RawDataModel::removeRows(int position, int rows, const QModelIndex &parent)
 {
-    beginRemoveRows(index(position,0, parent), position, position+rows-1);
+    beginRemoveRows(QModelIndex(), position, position+rows-1);
+
     for (int row = 0; row < rows; ++row)
     {
-	DataList.removeAt(position+row);
+        DataList.removeAt(position);
     }
     endRemoveRows();
     return true;

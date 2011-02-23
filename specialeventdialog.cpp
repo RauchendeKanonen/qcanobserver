@@ -209,7 +209,7 @@ void SpecialEventDialog::newSpecialMessage(_CANMsg CANMsg)
 
 void SpecialEventDialog::MainTimerSlot()
 {
-    TraceModel->Update();
+
 }
 
 

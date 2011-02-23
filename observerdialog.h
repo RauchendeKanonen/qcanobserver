@@ -2,11 +2,16 @@
 #define OBSERVERDIALOG_H
 
 #include <QtGui/QDialog>
+#include <QList>
 #include "processdatabase.h"
 #include "signalselectordialog.h"
 #include "messagebufferinterface.h"
 #include "stringlistmodel.h"
 #include "cansignalcollection.h"
+#include "obscan.h"
+ #include <QMutex>
+#include "configdialog.h"
+
 
 namespace Ui {
     class ObserverDialog;
@@ -38,17 +43,20 @@ public:
     virtual ~ObserverDialog();
     ofstream& operator>>(ofstream& os);
     ifstream& operator<<(ifstream& is);
+
 public slots:
     void MainTimerSlot(void);
     void addItemToObserve(CANSignal* Signal, QColor Color);
     void deleteItemToObserve(CANSignal* Signal);
     void newMessage(_CANMsg , int);
     void ClearAll();
-
+    void configChanged(__config cfg);
 protected:
     virtual void changeEvent(QEvent *e);
 
 private:
+    int MaxDots;
+    QList <_CANMsg> TempCANFRMS;
     CANSignalCollection *pCollection;
     Ui::ObserverDialog *m_ui;
     QList<ObserveItems*> CANItems;

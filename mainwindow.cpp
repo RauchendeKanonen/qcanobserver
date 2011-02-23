@@ -28,6 +28,10 @@
 
 void MainWindow::initSatelites()
 {
+    ConfDlg = new ConfigDialog();
+     QObject::connect(ConfDlg, SIGNAL(configChanged(__config)),
+                     this, SLOT(configChanged(__config)));
+
     rt = new ReadThread;
 
 
@@ -122,8 +126,7 @@ MainWindow::MainWindow(QWidget *parent)
     periodicTimer = new QTimer( );
     connect(periodicTimer, SIGNAL(timeout()), this, SLOT(periodicUpdate()));
 
-
-    MainStringListLength = 100;
+    MaxTraceListLenght = 0;
 
     DB = NULL;
 
@@ -163,9 +166,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     ui->tableView->setColumnWidth(0, 70);
-    ui->tableView->setColumnWidth(1, 300);
+    ui->tableView->setColumnWidth(1, 270);
     ui->tableView->setColumnWidth(2, 90);
-
+    ui->tableView->horizontalHeader()->setStretchLastSection(true);
     initSatelites();
 
 
@@ -221,14 +224,14 @@ void MainWindow::addnewMessage(_CANMsg CANMsg, int MsgCnt)
 void MainWindow::periodicUpdate(void)
 {
     FreqDivFlipFlop++;
-    int ArrivedMsgs = TraceModel->rowCount(QModelIndex());
+    QList  <_CANMsg> TempLocList;
 
-    SpeedFilter->addPoint((float)(ArrivedMsgs - msgs_1)*1000.0/UPDATETIM_MS);
-
-    msgs_1 = ArrivedMsgs;
+    int ArrivedMsgs = TempDataList.count();
+    msgs_1 += ArrivedMsgs;
+    SpeedFilter->addPoint((float)(ArrivedMsgs)*1000.0/UPDATETIM_MS);
 
     QString NumOfMsgs;
-    NumOfMsgs.sprintf("%d",TraceModel->rowCount());
+    NumOfMsgs.sprintf("%d",msgs_1);
     ui->MsgCounter->display(NumOfMsgs);
 
 
@@ -237,19 +240,33 @@ void MainWindow::periodicUpdate(void)
         FreqDivFlipFlop = 0;
         ui->lcdNumberMsgsperSec->display(SpeedFilter->getPoint());
     }
+    QModelIndex vis = ui->tableView->indexAt(QPoint(1,1));
 
+
+
+    int msgsadded = TempDataList.count();
     QModelIndex index1;
     if(TempDataList.count())
     {
-	index1 = TraceModel->index(0, 0, QModelIndex());
-	TraceModel->insertRows(0, TempDataList.count(), (const QModelIndex &)index1);
+        index1 = TraceModel->index(0, 0, QModelIndex());
+        TraceModel->insertRows(0, TempDataList.count(), (const QModelIndex &)index1);
+
+        for(int i = 0; TempDataList.count() ; i ++)
+        {
+            index1 = TraceModel->index(i, 0, QModelIndex());
+            TraceModel->setData(index1, &TempDataList.takeLast(),Qt::EditRole);
+        }
     }
 
-    for(int i = 0; i < TempDataList.count(); i ++)
+    if(MaxTraceListLenght != 0 && TraceModel->rowCount(QModelIndex()) > MaxTraceListLenght)
     {
-	index1 = TraceModel->index(i, 0, QModelIndex());
-	TraceModel->setData(index1, &TempDataList.takeLast(),Qt::EditRole);
+        int cnt = TraceModel->rowCount(QModelIndex());
+        TraceModel->removeRows(MaxTraceListLenght ,cnt-MaxTraceListLenght, QModelIndex());
     }
+
+    if(vis.isValid())
+        ui->tableView->scrollTo(vis,QAbstractItemView::PositionAtTop);
+
 }
 
 
@@ -306,6 +323,7 @@ void MainWindow::on_actionGraphicWindow_triggered()
                 connect(periodicTimer, SIGNAL(timeout()), GraphWnd[i], SLOT(MainTimerSlot()));
                 connect(this, SIGNAL(ClearAll()), GraphWnd[i], SLOT(ClearAll()));
                 connect(GraphWnd[i], SIGNAL(destroyed(QObject*)), this, SLOT(SateliteDestroyed(QObject *)));
+                 connect(ConfDlg, SIGNAL(configChanged(__config)),  GraphWnd[i], SLOT(configChanged(__config)));
                 return;
             }
         }
@@ -398,6 +416,7 @@ void MainWindow::on_actionObserverWindow_triggered()
                 connect(periodicTimer, SIGNAL(timeout()), ObserverWnd[i], SLOT(MainTimerSlot()));
                 connect(this, SIGNAL(ClearAll()), ObserverWnd[i], SLOT(ClearAll()));
                 connect(ObserverWnd[i], SIGNAL(destroyed(QObject*)), this, SLOT(SateliteDestroyed(QObject *)));
+                connect(ConfDlg, SIGNAL(configChanged(__config)),  ObserverWnd[i], SLOT(configChanged(__config)));
                 return;
             }
         }
@@ -521,6 +540,7 @@ void MainWindow::on_actionClose_triggered()
 
 void MainWindow::on_actionClear_triggered()
 {
+    msgs_1 = 0;
     emit ClearAll();
     delete TraceModel;
     QStringList *list = new QStringList();
@@ -657,6 +677,9 @@ int MainWindow::SaveConfig(QString Filename)
             (*DbgTerminal[i]) >> ofs;
         }
 
+        (*ConfDlg) >> ofs;
+
+
     }
 
     else //No DB
@@ -755,6 +778,9 @@ int MainWindow::loadConfig(QString FileName)
             on_actionDebug_Terminal_triggered();
             (*DbgTerminal[i]) << ifs;
         }
+
+        (*ConfDlg) << ifs;
+
     }
     ifs.close();
     return 1;
@@ -776,7 +802,7 @@ void MainWindow::on_actionLoad_Config_triggered()
 
 void MainWindow::on_actionConfiguration_triggered()
 {
-
+    ConfDlg->show();
 }
 
 
@@ -816,17 +842,7 @@ void MainWindow::on_checkBoxSendMsg_toggled(bool checked)
     }
 }
 
-void MainWindow::on_listLengtLineEdit_editingFinished()
-{
-    bool b;
-    MainStringListLength = (int)(ui->listLengtLineEdit->text().toFloat(&b)*1000000.0);
-    if(!b)
-        MainStringListLength = 1000000;
 
-    if(MainStringListLength > 1000000000)
-        MainStringListLength = 1000000;
-
-}
 
 void MainWindow::on_actionDebug_Terminal_triggered()
 {
@@ -864,3 +880,9 @@ void MainWindow::on_RunButton_clicked()
     DevDlg->exec();
     DevDlg->accept();
 }
+
+ void MainWindow::configChanged(__config cfg)
+ {
+     MaxTraceListLenght = cfg.MainMemByte/sizeof(_CANMsg);
+ }
+

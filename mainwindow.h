@@ -44,6 +44,9 @@
 #include "averagefilter.h"
 #include "debugterminal.h"
 #include "rawdatamodel.h"
+#include <QMutex>
+#include "configdialog.h"
+
 using namespace std;
 
 
@@ -72,7 +75,8 @@ private:
     QList <_CANMsg> TempDataList;
     RawDataModel *TraceModel;
     Ui::MainWindow *ui;
-
+    ConfigDialog *ConfDlg;
+    int MaxTraceListLenght;
     ReadThread *rt;
     WriteThread *wt;
     AverageFilter *SpeedFilter;
@@ -82,7 +86,6 @@ private:
     QTimer *periodicTimer;
     ProcessDataBase *DB;
     struct timeval tv_1;
-    unsigned int MainStringListLength;
     int msgs_1;
     struct timeval lasttime;
 
@@ -115,13 +118,12 @@ public slots:
     void SateliteDestroyed(QObject *);
     void DevIsConfigured(bool);
     void NoMem(void);
-
+    void configChanged(__config cfg);
 
 private slots:
     void on_RunButton_clicked();
     void on_ClearButton_clicked();
     void on_actionDebug_Terminal_triggered();
-    void on_listLengtLineEdit_editingFinished();
     void on_checkBoxSendMsg_toggled(bool checked);
     void on_checkBoxFilters_toggled(bool checked);
     void on_checkBoxSpecEvtDlg_toggled(bool checked);

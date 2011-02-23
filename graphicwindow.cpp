@@ -54,9 +54,9 @@ GraphicWindow::GraphicWindow(QWidget *parent, CANSignalCollection *Collection) :
     connect(Sel, SIGNAL(addItemToDraw(CANSignal*, QColor)), this, SLOT(addItemToDraw(CANSignal*, QColor)));
     connect(Sel, SIGNAL(deleteItemToDraw(CANSignal*)), this, SLOT(deleteItemToDraw(CANSignal*)));
     connect(Sel, SIGNAL(saveSignalToFile(QString, CANSignal*)), this, SLOT(saveSignalToFile(QString, CANSignal*)));
+    MaxDots = 0;
 
-    Follow = false;
-    FollowTime = 10; //s
+
 }
 
 GraphicWindow::~GraphicWindow()
@@ -97,18 +97,23 @@ void GraphicWindow::newMessage(_CANMsg CANMsg, int Cnt)
             SignalDataCollection DataCol;
 
             if(Curves.at(i)->pSignal->getSignalDataCollection(CANMsg.DATA, &DataCol))
-	    {
+            {
                 Curves.at(i)->y.append(DataCol.Value);
                 Curves.at(i)->x.append((double)CANMsg.tv.tv_sec + (double)CANMsg.tv.tv_usec/1000000.0);
 
-
-                if(Follow)
-                    Plot->setAxisScale(QwtPlot::xBottom, Curves.at(i)->x.last()-FollowTime,Curves.at(i)->x.last()+FollowTime/10, 10);
+                if(MaxDots != 0 && Curves.at(i)->y.count() > MaxDots)
+                {
+                    int rem = Curves.at(i)->y.count() - MaxDots;
+                    Curves.at(i)->y.remove(0,rem);
+                    Curves.at(i)->x.remove(0,rem);
+                }
 	    }
 	}
     }
 
 }
+
+
 
 void GraphicWindow::MainTimerSlot()
 {
@@ -152,6 +157,7 @@ void GraphicWindow::on_GraphFromScratch_clicked()
 
 void GraphicWindow::on_GraphFromDB_clicked()
 {
+    Sel->switchMode(SELECTORMODE);
     Sel->show();
 }
 
@@ -172,6 +178,7 @@ void GraphicWindow::addItemToDraw(CANSignal* Signal, QColor Color)
     Pen.setWidth(1);
     Curves.last()->PlotCurve->setLinePen(Pen);
     Curves.last()->PlotCurve->updateLegend(Plot->legend);
+    setConfig(MemBytesMax);
 }
 
 void GraphicWindow::deleteItemToDraw(CANSignal* Signal)
@@ -187,69 +194,12 @@ void GraphicWindow::deleteItemToDraw(CANSignal* Signal)
     }
 
     Plot->replot();
+    setConfig(MemBytesMax);
 }
 void GraphicWindow::StopCapture()
 {
     Plot->setAutoScaleCanvas();
 }
-
-
-//follow
-void GraphicWindow::on_FollowCheckBox_toggled(bool checked)
-{
-#if QWT_VERSION < 0x050200
-    if(checked)
-    {
-        //disable the autoscale checkbox
-        m_ui->AutoScalecheckBox->setEnabled(false);
-        Follow = true;
-        bool b;
-
-        FollowTime = (float)m_ui->FollowTimeEdit->text().toInt(&b,10);//Plot->axisScaleDiv(QwtPlot::xBottom)->hBound() - Plot->axisScaleDiv(QwtPlot::xBottom)->lBound();
-
-        if(!b)
-            FollowTime = 10;
-    }
-
-    else
-    {
-        //enable the autoscale checkbox
-        m_ui->AutoScalecheckBox->setEnabled(true);
-
-        Follow = false;
-
-        int lowerBound = Plot->axisScaleDiv(QwtPlot::xBottom)->lBound();
-        int higherBound = Plot->axisScaleDiv(QwtPlot::xBottom)->hBound();
-        //store the autoscaled canvas for max outter zoom
-        Plot->setAutoScaleCanvas();
-        Plot->setAxisScale(QwtPlot::xBottom, lowerBound, higherBound, 10);
-    }
-#else
-    if(checked)
-    {
-        //disable the autoscale checkbox
-        m_ui->AutoScalecheckBox->setEnabled(false);
-        Follow = true;
-        FollowTime = Plot->axisScaleDiv(QwtPlot::xBottom)->upperBound() - Plot->axisScaleDiv(QwtPlot::xBottom)->lowerBound();
-    }
-
-    else
-    {
-        //enable the autoscale checkbox
-        m_ui->AutoScalecheckBox->setEnabled(true);
-
-        Follow = false;
-
-        int lowerBound = Plot->axisScaleDiv(QwtPlot::xBottom)->lowerBound();
-        int higherBound = Plot->axisScaleDiv(QwtPlot::xBottom)->upperBound();
-        //store the autoscaled canvas for max outter zoom
-        Plot->setAutoScaleCanvas();
-        Plot->setAxisScale(QwtPlot::xBottom, lowerBound, higherBound, 10);
-    }
-#endif
-}
-
-
 
 
 void GraphicWindow::on_ConnectedCheckBox_toggled(bool checked)
@@ -300,42 +250,15 @@ void GraphicWindow::on_AutoScalecheckBox_toggled(bool checked)
 #if QWT_VERSION < 0x050200
     if(checked)
     {
-        m_ui->FollowCheckBox->setEnabled(false);
         Plot->setAxisAutoScale(QwtPlot::xBottom);
         Plot->setAxisAutoScale(QwtPlot::yLeft);
     }
-    else
-    {
-        m_ui->FollowCheckBox->setEnabled(true);
 
-        int lowerBound = Plot->axisScaleDiv(QwtPlot::yLeft)->lBound();
-        int higherBound = Plot->axisScaleDiv(QwtPlot::yLeft)->hBound();
-        Plot->setAxisScale(QwtPlot::yRight, lowerBound, higherBound, 10);
-
-
-        lowerBound = Plot->axisScaleDiv(QwtPlot::xBottom)->lBound();
-        higherBound = Plot->axisScaleDiv(QwtPlot::xBottom)->hBound();
-        Plot->setAxisScale(QwtPlot::xBottom, lowerBound, higherBound, 10);
-    }
 #else
     if(checked)
     {
-        m_ui->FollowCheckBox->setEnabled(false);
         Plot->setAxisAutoScale(QwtPlot::xBottom);
         Plot->setAxisAutoScale(QwtPlot::yLeft);
-    }
-    else
-    {
-        m_ui->FollowCheckBox->setEnabled(true);
-
-        int lowerBound = Plot->axisScaleDiv(QwtPlot::yLeft)->lowerBound();
-        int higherBound = Plot->axisScaleDiv(QwtPlot::yLeft)->upperBound();
-        Plot->setAxisScale(QwtPlot::yRight, lowerBound, higherBound, 10);
-
-
-        lowerBound = Plot->axisScaleDiv(QwtPlot::xBottom)->lowerBound();
-        higherBound = Plot->axisScaleDiv(QwtPlot::xBottom)->upperBound();
-        Plot->setAxisScale(QwtPlot::xBottom, lowerBound, higherBound, 10);
     }
 #endif
 }
@@ -441,7 +364,7 @@ int writeCSV(QString Path, ItemCurveInfo *Curve)
 
 #ifdef WINDOWS
     if((OUTFILE = open(Path.toStdString().c_str(),O_CREAT | O_WRONLY |O_TRUNC | _O_BINARY, _S_IREAD | _S_IWRITE))<=0)
-      return -1;
+        return -1;
 #endif
 
 
@@ -450,4 +373,22 @@ int writeCSV(QString Path, ItemCurveInfo *Curve)
 
     free(FileBuf);
     return flength;
+}
+
+void GraphicWindow::configChanged(__config cfg)
+{
+        MemBytesMax = cfg.GraphMemByte;
+    if( 0 != MemBytesMax)
+        MaxDots = MemBytesMax/(Curves.count()*2*sizeof(double));
+    else
+        MaxDots = 0;
+}
+//recalc
+void GraphicWindow::setConfig(int AMemBytesMax)
+{
+        MemBytesMax = AMemBytesMax;
+    if( 0 != MemBytesMax)
+        MaxDots = MemBytesMax/(Curves.count()*2*sizeof(double));
+    else
+        MaxDots = 0;
 }

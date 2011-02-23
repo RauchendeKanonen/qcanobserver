@@ -16,9 +16,6 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QTableWidget" name="tableWidget"/>
-    </item>
-    <item>
      <widget class="QTableView" name="tableView">
       <property name="enabled">
        <bool>true</bool>
@@ -129,26 +126,6 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Max. list lenght (*10^6)</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="listLengtLineEdit">
-        <property name="maximumSize">
-         <size>
-          <width>80</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>0.5</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
    </layout>
@@ -159,7 +136,7 @@
      <x>0</x>
      <y>0</y>
      <width>510</width>
-     <height>21</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

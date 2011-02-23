@@ -112,7 +112,6 @@ bool StringListModel::setData(const QModelIndex &index,
         ColorList.replace(index.row(), color);
 
         stringList->at(index.column())->replace(index.row(), value.toString());
-        akt_index = index;
         return true;
     }
     return false;
@@ -125,20 +124,12 @@ bool StringListModel::setColor(const QModelIndex &index, QColor *color)
 }
 
 bool StringListModel::setData(const QModelIndex &index,
-			      const void *value, int role)
-{
-
-    return false;
-}
-
-bool StringListModel::setData(const QModelIndex &index,
                               const QVariant &value, int role)
 {
     if (index.isValid() && role == Qt::EditRole)
     {
         ColorList.replace(index.row(), &black);
         stringList->at(index.column())->replace(index.row(), value.toString());
-        akt_index = index;
         return true;
     }
     return false;
@@ -146,9 +137,9 @@ bool StringListModel::setData(const QModelIndex &index,
 
 bool StringListModel::insertRows(int position, int rows, const QModelIndex &parent)
 {
-#ifdef WINDOWS
+
     beginInsertRows(QModelIndex(), position, position+rows-1);
-#endif
+
     for (int row = 0; row < rows; ++row)
     {
         ColorList.insert(position, &black);
@@ -157,42 +148,24 @@ bool StringListModel::insertRows(int position, int rows, const QModelIndex &pare
             stringList->at(i)->insert(position, "");
         }
     }
-    akt_position += rows;
-#ifdef WINDOWS
     endInsertRows();
-#endif
+
     return true;
 }
 
-bool StringListModel::Update()
-{
-    //This is no legal operation for the model
-    //it is made in this way for performance hints
-    //It is restricted to linux because windows exits sometimes with a
-    //runtime-error
-#ifdef LINUX
-    beginInsertRows(QModelIndex(), updated_position+1, akt_position);
-    updated_position = akt_position;
-    endInsertRows();
-
-
-#endif
-    //emit dataChanged(updated_index, akt_index);
-    updated_index = akt_index;
-    return true;
-}
 
 bool StringListModel::removeRows(int position, int rows, const QModelIndex &parent)
 {
-    beginRemoveRows(parent, position, position+rows-1);
+    beginRemoveRows(QModelIndex(), position, position+rows-1);
 
     for (int row = 0; row < rows; ++row)
     {
-        for( int i = 0; i < stringList->count() ; i++ )
-        {
-            for(int col = position; col < stringList->at(i)->count() ; col ++)
-                stringList->at(i)->removeAt(col);
-        }
+        if(stringList->at(0)->count() < position)
+            return true;
+        stringList->at(0)->removeAt(position);
+        stringList->at(1)->removeAt(position);
+        stringList->at(2)->removeAt(position);
+        stringList->at(3)->removeAt(position);
     }
     endRemoveRows();
 

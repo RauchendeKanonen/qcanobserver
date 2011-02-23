@@ -39,6 +39,9 @@
 #include <fstream>
 #include "qcancostumplotcurve.h"
 #include <qwt_plot_magnifier.h>
+#include <QLinkedList>
+#include "configdialog.h"
+
 using namespace std;
 
 #define MAX_GRAPH_WINDOWS 16
@@ -137,6 +140,8 @@ public:
 protected:
     virtual void changeEvent(QEvent *e);
 public slots:
+    void configChanged(__config cfg);
+    void setConfig(int MemBytesMax);
     void saveSignalToFile(QString, CANSignal*);
     void MainTimerSlot(void);
     void addItemToDraw(CANSignal* Signal, QColor Color);
@@ -152,17 +157,15 @@ private:
     CANSignalCollection *pCollection;
     SignalSelectorDialog *Sel;
     QCanPlot *Plot;
-    bool Follow;
-    float FollowTime;
+    int MemBytesMax;
     QWidget *pparent;
-
+    int MaxDots;
 private slots:
     void on_pushButton_clicked();
     void on_checkBoxDottedLine_toggled(bool checked);
     void on_YAutoScalecheckBox_toggled(bool checked);
     void on_AutoScalecheckBox_toggled(bool checked);
     void on_ConnectedCheckBox_toggled(bool checked);
-    void on_FollowCheckBox_toggled(bool checked);
     void on_GraphFromDB_clicked();
     void on_GraphFromScratch_clicked();
 };

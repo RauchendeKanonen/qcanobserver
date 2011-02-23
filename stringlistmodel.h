@@ -56,10 +56,7 @@ class StringListModel : public QAbstractListModel
     QList <QColor*> ColorList;
     QList <QModelIndex> FlagIdxLst;
     QList <int> FlagLst;
-    QModelIndex akt_index;
-    QModelIndex updated_index;
-    int akt_position;
-    int updated_position;
+
     QColor black;
 
 
@@ -77,10 +74,6 @@ class StringListModel : public QAbstractListModel
         ColumnNames = new QStringList(*columnnames);
         beginInsertColumns(QModelIndex(), 0, 3);
         endInsertColumns();
-        akt_position = 0;
-        updated_position = 0;
-        akt_index = this->index(0, 0, QModelIndex());
-        updated_index = this->index(0, 0, QModelIndex());
      }
      ~StringListModel()
      {
@@ -106,7 +99,6 @@ class StringListModel : public QAbstractListModel
      Qt::ItemFlags flags(const QModelIndex &index) const;
      bool setData(const QModelIndex &index,
                                const QVariant &value, int role, QColor *color);
-     bool Update(void);
      bool insertRows(int position, int rows, const QModelIndex &index = QModelIndex());
      bool removeRows(int position, int rows, const QModelIndex &index = QModelIndex());
      void setflags(QModelIndex index, int Flags);

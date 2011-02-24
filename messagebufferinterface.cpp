@@ -37,7 +37,7 @@
 
 void MessageBufferInterface::configChanged(__config cfg)
 {
-    TMPFILE = NULL;
+    TMPFILE = 0;
     if(cfg.WriteToDisk)
 	Mode = TEMPSTORE;
     else
@@ -71,6 +71,7 @@ void MessageBufferInterface::updateConfig(void)
 }
 MessageBufferInterface::MessageBufferInterface(void)
 {
+    TMPFILE = 0;
     tv_1.tv_sec = 0;
     tv_1.tv_usec = 0;
     Stop = 0;
@@ -103,10 +104,11 @@ int MessageBufferInterface::AddMessage(_CANMsg *Msg)
 	    Err->sprintf("Could not write to temporary file!");
 	    ErrorDialog *ed = new ErrorDialog;
 	    ed->SetErrorMessage(*Err);
-	    delete Err;
+
 	    ed->setModal(true);
 	    ed->exec();
 	    delete ed;
+            delete Err;
 	    Mode = NOSTORE;
 	}
 

@@ -261,8 +261,8 @@ void ObserverDialog::on_ConnectedcheckBox_toggled(bool checked)
 void ObserverDialog::configChanged(__config cfg)
 {
 
-    if( 0 != cfg.GraphMemByte)
-        MaxDots = cfg.GraphMemByte/(64);//??64Bytes in Tracemode for stringlist???
+    if( 0 != cfg.ObserverMemByte)
+        MaxDots = cfg.ObserverMemByte/(64);//??64Bytes in Tracemode for stringlist???
     else
         MaxDots = 0;
 }

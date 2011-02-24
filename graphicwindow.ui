@@ -32,29 +32,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="FollowCheckBox">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Follw the signal</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="FollowTimeEdit">
-         <property name="maximumSize">
-          <size>
-           <width>45</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>10</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QCheckBox" name="AutoScalecheckBox">
          <property name="text">
           <string>Autoscale</string>

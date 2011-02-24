@@ -55,7 +55,7 @@ GraphicWindow::GraphicWindow(QWidget *parent, CANSignalCollection *Collection) :
     connect(Sel, SIGNAL(deleteItemToDraw(CANSignal*)), this, SLOT(deleteItemToDraw(CANSignal*)));
     connect(Sel, SIGNAL(saveSignalToFile(QString, CANSignal*)), this, SLOT(saveSignalToFile(QString, CANSignal*)));
     MaxDots = 0;
-
+    MemBytesMax = 0;
 
 }
 
@@ -253,7 +253,10 @@ void GraphicWindow::on_AutoScalecheckBox_toggled(bool checked)
         Plot->setAxisAutoScale(QwtPlot::xBottom);
         Plot->setAxisAutoScale(QwtPlot::yLeft);
     }
-
+    else
+    {
+        Plot->setAutoScaleCanvas();
+    }
 #else
     if(checked)
     {

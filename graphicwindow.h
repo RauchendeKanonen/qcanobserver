@@ -85,6 +85,7 @@ public:
     {
         this->setAxisAutoScale(QwtPlot::xBottom);
         this->setAxisAutoScale(QwtPlot::yLeft);
+
         ActCanvas = canvas();
 
         delete CanvasZoomer;

@@ -135,7 +135,7 @@ void DevDialog::on_buttonBox1_accepted()
     libstr =  (char*)CANLibFilePath->toStdString().c_str();
     void* libhandle = dlopen(libstr, RTLD_LAZY);
 
-    int err = errno;
+    char *est  = dlerror();
 
     if(!libhandle)
     {

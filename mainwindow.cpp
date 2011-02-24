@@ -34,7 +34,9 @@ void MainWindow::initSatelites()
 
     rt = new ReadThread;
     QObject::connect(ConfDlg, SIGNAL(configChanged(__config)),
-		    rt, SLOT(configChanged(__config)));
+                    rt, SIGNAL(configChanged(__config)));
+    QObject::connect(ConfDlg, SIGNAL(configChanged(__config)),
+                    rt->MsgBuf, SLOT(configChanged(__config)));
 
     QObject::connect(rt->MsgBuf, SIGNAL(newMessage(_CANMsg , int)),
                      this, SLOT(addnewMessage(_CANMsg , int)));
@@ -447,6 +449,7 @@ void MainWindow::on_actionDevice_triggered()
 {
     DevDlg->setModal(true);
     DevDlg->exec();
+    emit ClearAll();
 }
 
 
@@ -465,7 +468,8 @@ void MainWindow::on_actionStart_triggered()
         ui->MsgCounter->setEnabled(true);
 
         rt->start();
-        rt->moveToThread(rt);
+        if(rt->thread() == this->thread())
+            rt->moveToThread(rt);
 
         if(ui->checkBoxSendMsg->isChecked())
         {
@@ -523,7 +527,7 @@ void MainWindow::NoMem(void)
     on_actionStop_triggered();
 
     ErrorDialog *ed = new ErrorDialog;
-    ed->SetErrorMessage("No free memory available. Stopping capture.");
+    ed->SetErrorMessage("Can not write to disk. Disabling.");
 
     ed->setModal(true);
     ed->exec();

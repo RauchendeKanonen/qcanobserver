@@ -65,7 +65,7 @@ public slots:
 private:
     QString Path;
     CANDevice *Dev;
-    int QuitNow;
+    struct timeval starttime;
 
 #ifdef WINDOWS
     _create create;

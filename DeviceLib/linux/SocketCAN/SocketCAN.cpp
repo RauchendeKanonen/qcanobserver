@@ -206,6 +206,7 @@ int CANDevice::CANDeviceOpen(void*ConfigBuf)
 
     /* Select that CAN interface, and bind the socket to it. */
     struct sockaddr_can addr;
+    memset((void*)&addr, 0, sizeof(addr));
     addr.can_family = AF_CAN;
     addr.can_ifindex = ifr.ifr_ifindex;
 
@@ -240,13 +241,9 @@ int CANDevice::CANDeviceOpen(void*ConfigBuf)
     */
 
     //try to read
-    errno = 0;
-    timeval tv;
-    struct can_frame rx_frame;
     //int bytes_read = read( sock, &rx_frame, sizeof(rx_frame) );
     //ret = ioctl(sock, SIOCGSTAMP, &tv);
 
-    int err = errno;
     switch(errno)
     {
     case ENOENT:
@@ -284,11 +281,10 @@ int CANDevice::CANDeviceInit(int BaudRate, int MsgType)
 int CANDevice::CANDeviceRead(_CANMsg *Msg)
 {
     /* Read a message back from the CAN bus */
-    long timestamp;
     errno = 0;
     struct can_frame rx_frame;
     int bytes_read = read( sock, &rx_frame, sizeof(rx_frame) );
-    int ret = ioctl(sock, SIOCGSTAMP, &Msg->tv);
+    ioctl(sock, SIOCGSTAMP, &Msg->tv);
     memcpy(Msg->DATA, rx_frame.data, 8);
     Msg->ID = rx_frame.can_id;
     Msg->LEN = bytes_read;
@@ -303,7 +299,7 @@ int CANDevice::CANDeviceWrite(_CANMsg Msg)
     tx_frame.can_dlc = 8;
     tx_frame.can_id = Msg.ID;
     memcpy(tx_frame.data, Msg.DATA, 8);
-    int wrote_bytes = write( sock, &tx_frame, sizeof(tx_frame) );
+    write( sock, &tx_frame, sizeof(tx_frame) );
 
     return 1;
 }

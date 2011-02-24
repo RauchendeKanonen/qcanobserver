@@ -195,7 +195,7 @@ void ReadThread::setDev(void *ConfData, QString InterfaceLib, bool shareDevLib)
     if(shareDevLib)
         emit setDevLibInstance(Dev);
 
-
+    gettimeofday( &starttime, NULL);
     emit DevIsConfigured(true);
 }
 //!SLOT for setting the Hardware Filter Place == HWFILTER makes this function acting
@@ -226,14 +226,14 @@ bool ReadThread::isConfigured()
 void ReadThread::run()
 {
     _CANMsg Msg;
-    struct timeval tv, starttime;
+    struct timeval tv;
 
 
 
     QEventLoop *loop = new QEventLoop();
     loop->processEvents(QEventLoop::AllEvents);
 
-    QuitNow = 0;
+
 
     if(Dev == NULL)
     {
@@ -241,35 +241,24 @@ void ReadThread::run()
         return;
     }
 
-    gettimeofday( &starttime, NULL);
-    //Read all out that came before and remained in the buffer
-/*    while(Dev->CANDeviceRead(&Msg) == OPSUCCESS)
-    {
-        gettimeofday( &tv, NULL);
-        if((tv.tv_sec - starttime.tv_sec) > 0.01)
-            break;
-    }*/
-
-    gettimeofday( &starttime, NULL);
+    int i;
 
     while(1)
     {
-        if(QuitNow)
-        {
-            delete loop;
-            return;
-        }
+
         if(Dev->CANDeviceRead(&Msg) == OPSUCCESS)
         {
             Msg.tv.tv_sec -= starttime.tv_sec;
-            if(MsgBuf->AddMessage(&Msg) == 0)
-		emit NoMem();
+            if(Msg.tv.tv_sec > 0)
+                if(MsgBuf->AddMessage(&Msg) == 0)
+                    emit NoMem();
         }
         loop->processEvents(QEventLoop::AllEvents);
+        i ++;
     }
 }
 
 void ReadThread::QuitThread()
 {
-    //QuitNow = 1;
+
 }

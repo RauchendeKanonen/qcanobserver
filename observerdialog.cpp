@@ -51,6 +51,7 @@ ObserverDialog::ObserverDialog(QWidget *parent, CANSignalCollection *Collection)
     Sel = new SignalSelectorDialog(NULL, pCollection);
     connect(Sel, SIGNAL(addItemToDraw(CANSignal*, QColor)), this, SLOT(addItemToObserve(CANSignal*, QColor)));
     connect(Sel, SIGNAL(deleteItemToDraw(CANSignal*)), this, SLOT(deleteItemToObserve(CANSignal*)));
+    MaxDots = 0;
 
 }
 

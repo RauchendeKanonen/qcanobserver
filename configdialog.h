@@ -38,6 +38,7 @@ class ConfigDialog : public QDialog {
     Q_OBJECT
     Q_DISABLE_COPY(ConfigDialog)
 public:
+            void informOthers(void);
     explicit ConfigDialog(QWidget *parent = 0);
     virtual ~ConfigDialog();
     ofstream& operator>>(ofstream& os);
@@ -58,7 +59,7 @@ private:
     int GraphMemByte;
     int ObserverMemByte;
     int WriteToDisk;
-    void informOthers(void);
+
 private slots:
     void on_buttonBox_accepted();
 };

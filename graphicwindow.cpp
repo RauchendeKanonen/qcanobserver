@@ -49,6 +49,7 @@ GraphicWindow::GraphicWindow(QWidget *parent, CANSignalCollection *Collection) :
 
     Plot->setAxisTitle(QwtPlot::xBottom,"Time s");
     Plot->setAxisAutoScale(QwtPlot::xBottom);
+    Plot->setCanvasBackground(QColor(0x3d,0x93,0xfd,255));
 
     Sel = new SignalSelectorDialog(NULL, pCollection);
     connect(Sel, SIGNAL(addItemToDraw(CANSignal*, QColor)), this, SLOT(addItemToDraw(CANSignal*, QColor)));
@@ -198,7 +199,7 @@ void GraphicWindow::deleteItemToDraw(CANSignal* Signal)
 }
 void GraphicWindow::StopCapture()
 {
-    Plot->setAutoScaleCanvas();
+    Plot->setAutoScaleCanvas(true);
 }
 
 
@@ -255,7 +256,7 @@ void GraphicWindow::on_AutoScalecheckBox_toggled(bool checked)
     }
     else
     {
-        Plot->setAutoScaleCanvas();
+        Plot->setAutoScaleCanvas(false);
     }
 #else
     if(checked)

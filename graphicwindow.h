@@ -81,8 +81,10 @@ public:
         delete Panner;
     }
     //Left Mouse Button scales to the max autoscale
-    void setAutoScaleCanvas()
+    void setAutoScaleCanvas(bool autosc)
     {
+        if(autosc)
+        {
         this->setAxisAutoScale(QwtPlot::xBottom);
         this->setAxisAutoScale(QwtPlot::yLeft);
 
@@ -93,6 +95,15 @@ public:
         CanvasZoomer->setSelectionFlags( QwtPicker::DragSelection );
         CanvasZoomer->setTrackerMode(QwtPicker::AlwaysOn);
     }
+        else
+        {
+            QRect  a = CanvasZoomer->pickRect();
+
+            setAxisScale  	(  	QwtPlot::yRight,   a.y(),   a.y()+a.height()    );
+            setAxisScale  	(  	QwtPlot::xBottom,   a.x(),   a.x()+a.width()    );
+        }
+    }
+
     QwtPlotCanvas *ActCanvas;
     QwtPlotZoomer *CanvasZoomer;
     QwtPlotPanner *Panner;

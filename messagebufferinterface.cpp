@@ -88,7 +88,7 @@ MessageBufferInterface::~MessageBufferInterface()
 int MessageBufferInterface::AddMessage(_CANMsg *Msg)
 {
     if(Stop)
-        return 0;
+        return 1;
 
     emit newMessage(*Msg, 0);
 
@@ -110,6 +110,7 @@ int MessageBufferInterface::AddMessage(_CANMsg *Msg)
 	    delete ed;
             delete Err;
 	    Mode = NOSTORE;
+            return 0;
 	}
 
     return 1;

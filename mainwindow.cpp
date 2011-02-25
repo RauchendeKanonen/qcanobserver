@@ -326,7 +326,8 @@ void MainWindow::on_actionGraphicWindow_triggered()
                 connect(periodicTimer, SIGNAL(timeout()), GraphWnd[i], SLOT(MainTimerSlot()));
                 connect(this, SIGNAL(ClearAll()), GraphWnd[i], SLOT(ClearAll()));
                 connect(GraphWnd[i], SIGNAL(destroyed(QObject*)), this, SLOT(SateliteDestroyed(QObject *)));
-                 connect(ConfDlg, SIGNAL(configChanged(__config)),  GraphWnd[i], SLOT(configChanged(__config)));
+                connect(ConfDlg, SIGNAL(configChanged(__config)),  GraphWnd[i], SLOT(configChanged(__config)));
+                ConfDlg->informOthers();
                 return;
             }
         }
@@ -420,6 +421,7 @@ void MainWindow::on_actionObserverWindow_triggered()
                 connect(this, SIGNAL(ClearAll()), ObserverWnd[i], SLOT(ClearAll()));
                 connect(ObserverWnd[i], SIGNAL(destroyed(QObject*)), this, SLOT(SateliteDestroyed(QObject *)));
                 connect(ConfDlg, SIGNAL(configChanged(__config)),  ObserverWnd[i], SLOT(configChanged(__config)));
+                ConfDlg->informOthers();
                 return;
             }
         }
@@ -866,6 +868,7 @@ void MainWindow::on_actionDebug_Terminal_triggered()
                 connect(periodicTimer, SIGNAL(timeout()), DbgTerminal[i], SLOT(MainTimerSlot()));
                 connect(this, SIGNAL(ClearAll()), DbgTerminal[i], SLOT(ClearAll()));
                 connect(DbgTerminal[i], SIGNAL(destroyed(QObject*)), this, SLOT(SateliteDestroyed(QObject *)));
+                ConfDlg->informOthers();
                 return;
             }
         }

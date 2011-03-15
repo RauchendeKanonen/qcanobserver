@@ -48,7 +48,7 @@
    <value key="ToolChain" type="int">0</value>
    <value key="addQDumper" type=""></value>
    <value key="buildConfiguration" type="int">2</value>
-   <value key="buildDirectory" type="QString">/home/florian/dev/qcanobserver</value>
+   <value key="buildDirectory" type="QString">/home/florian/dev/new/qcanobserver</value>
   </valuemap>
  </data>
  <data>
@@ -73,7 +73,7 @@
     <value type="QString">CONFIG_PROTECT_MASK=/etc/sandbox.d /etc/env.d/java/ /etc/php/cli-php5/ext-active/ /etc/php/cgi-php5/ext-active/ /etc/php/apache2-php5/ext-active/ /etc/fonts/fonts.conf /etc/gconf /etc/terminfo /etc/ca-certificates.conf /etc/texmf/web2c /etc/texmf/language.dat.d /etc/texmf/language.def.d /etc/texmf/updmap.d /etc/revdep-rebuild</value>
     <value type="QString">CVSROOT=:pserver:florian@172.24.24.230:/root</value>
     <value type="QString">CVS_RSH=ssh</value>
-    <value type="QString">DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-WHbStu1u5K,guid=577186ffa0f2d68c822bf59100000037</value>
+    <value type="QString">DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-Y9CBj5KGIX,guid=eaf2416d0afbd9d5810ccef300000040</value>
     <value type="QString">DISPLAY=:0.0</value>
     <value type="QString">EDITOR=/bin/nano</value>
     <value type="QString">FLTK_DOCDIR=/usr/share/doc/fltk-2.0_pre6970/html</value>
@@ -90,6 +90,7 @@
     <value type="QString">JAVAC=/home/florian/.gentoo/java-config-2/current-user-vm/bin/javac</value>
     <value type="QString">JAVA_HOME=/home/florian/.gentoo/java-config-2/current-user-vm</value>
     <value type="QString">JDK_HOME=/home/florian/.gentoo/java-config-2/current-user-vm</value>
+    <value type="QString">LANGUAGE=</value>
     <value type="QString">LESS=-R -M --shift 5</value>
     <value type="QString">LESSOPEN=|lesspipe.sh %s</value>
     <value type="QString">LIBGLADE_MODULE_PATH=:/usr/lib/libglade/2.0</value>
@@ -108,11 +109,11 @@
     <value type="QString">SANE_CONFIG_DIR=/etc/sane.d</value>
     <value type="QString">SBCL_HOME=/usr/lib/sbcl</value>
     <value type="QString">SBCL_SOURCE_ROOT=/usr/lib/sbcl/src</value>
-    <value type="QString">SESSION_MANAGER=local/localhost:@/tmp/.ICE-unix/4919,unix/localhost:/tmp/.ICE-unix/4919</value>
+    <value type="QString">SESSION_MANAGER=local/localhost:@/tmp/.ICE-unix/4985,unix/localhost:/tmp/.ICE-unix/4985</value>
     <value type="QString">SHELL=/bin/bash</value>
     <value type="QString">SHLVL=3</value>
-    <value type="QString">SSH_AGENT_PID=4911</value>
-    <value type="QString">SSH_AUTH_SOCK=/tmp/ssh-DqWUzu4910/agent.4910</value>
+    <value type="QString">SSH_AGENT_PID=4977</value>
+    <value type="QString">SSH_AUTH_SOCK=/tmp/ssh-YGebMG4976/agent.4976</value>
     <value type="QString">TERM=linux</value>
     <value type="QString">USER=florian</value>
     <value type="QString">WINDOWPATH=7</value>
@@ -145,7 +146,7 @@
     <value type="QString">CONFIG_PROTECT_MASK=/etc/sandbox.d /etc/env.d/java/ /etc/php/cli-php5/ext-active/ /etc/php/cgi-php5/ext-active/ /etc/php/apache2-php5/ext-active/ /etc/fonts/fonts.conf /etc/gconf /etc/terminfo /etc/ca-certificates.conf /etc/texmf/web2c /etc/texmf/language.dat.d /etc/texmf/language.def.d /etc/texmf/updmap.d /etc/revdep-rebuild</value>
     <value type="QString">CVSROOT=:pserver:florian@172.24.24.230:/root</value>
     <value type="QString">CVS_RSH=ssh</value>
-    <value type="QString">DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-WHbStu1u5K,guid=577186ffa0f2d68c822bf59100000037</value>
+    <value type="QString">DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-Y9CBj5KGIX,guid=eaf2416d0afbd9d5810ccef300000040</value>
     <value type="QString">DISPLAY=:0.0</value>
     <value type="QString">EDITOR=/bin/nano</value>
     <value type="QString">FLTK_DOCDIR=/usr/share/doc/fltk-2.0_pre6970/html</value>
@@ -162,6 +163,7 @@
     <value type="QString">JAVAC=/home/florian/.gentoo/java-config-2/current-user-vm/bin/javac</value>
     <value type="QString">JAVA_HOME=/home/florian/.gentoo/java-config-2/current-user-vm</value>
     <value type="QString">JDK_HOME=/home/florian/.gentoo/java-config-2/current-user-vm</value>
+    <value type="QString">LANGUAGE=</value>
     <value type="QString">LESS=-R -M --shift 5</value>
     <value type="QString">LESSOPEN=|lesspipe.sh %s</value>
     <value type="QString">LIBGLADE_MODULE_PATH=:/usr/lib/libglade/2.0</value>
@@ -180,11 +182,11 @@
     <value type="QString">SANE_CONFIG_DIR=/etc/sane.d</value>
     <value type="QString">SBCL_HOME=/usr/lib/sbcl</value>
     <value type="QString">SBCL_SOURCE_ROOT=/usr/lib/sbcl/src</value>
-    <value type="QString">SESSION_MANAGER=local/localhost:@/tmp/.ICE-unix/4919,unix/localhost:/tmp/.ICE-unix/4919</value>
+    <value type="QString">SESSION_MANAGER=local/localhost:@/tmp/.ICE-unix/4985,unix/localhost:/tmp/.ICE-unix/4985</value>
     <value type="QString">SHELL=/bin/bash</value>
     <value type="QString">SHLVL=3</value>
-    <value type="QString">SSH_AGENT_PID=4911</value>
-    <value type="QString">SSH_AUTH_SOCK=/tmp/ssh-DqWUzu4910/agent.4910</value>
+    <value type="QString">SSH_AGENT_PID=4977</value>
+    <value type="QString">SSH_AUTH_SOCK=/tmp/ssh-YGebMG4976/agent.4976</value>
     <value type="QString">TERM=linux</value>
     <value type="QString">USER=florian</value>
     <value type="QString">WINDOWPATH=7</value>

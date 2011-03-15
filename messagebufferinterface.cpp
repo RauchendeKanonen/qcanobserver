@@ -218,7 +218,8 @@ int MessageBufferInterface::ClearAll()
     Stop = 1;
     usleep(10000);  //wait a little till the last message is added an nobody can
                     //access our internal buffer
-    close(TMPFILE);
+    if(TMPFILE)
+        close(TMPFILE);
 
 #ifdef LINUX
     if((TMPFILE = open("tmp.dat",O_CREAT|O_WRONLY|O_TRUNC,S_IRWXU|S_IRWXG|S_IRWXO))<=0)

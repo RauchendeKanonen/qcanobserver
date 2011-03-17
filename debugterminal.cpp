@@ -103,10 +103,20 @@ void DebugTerminal::addItem(CANSignal* Signal, QColor Color)
 
 void DebugTerminal::deleteItem(CANSignal* Signal)
 {
-    /*int idx = Signals.indexOf(*Signal, 0);
 
-    Signals.removeAt(idx);
-    Colors.removeAt(idx);*/
+    for(int i = 0 ; i < Signals.count() ; i ++)
+    {
+        if(Signal->Id == Signals.at(i).Id)
+        {
+            if(Signal->Name == Signals.at(i).Name)
+            {
+                Signals.removeAt(i);
+                Colors.removeAt(i);
+
+            }
+        }
+    }
+
 
 }
 

@@ -25,14 +25,16 @@
 #include <sys/time.h>
 #include <QFile>
 
-#include <linux/can.h>
-#include <linux/can/raw.h>
+//#include <linux/can.h>
+//#include <linux/can/raw.h>
 #include <syscall.h>
 
 #include "configdialog.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <linux/can.h>
+#include <linux/can/raw.h>
 
 
 void MessageBufferInterface::configChanged(__config cfg)

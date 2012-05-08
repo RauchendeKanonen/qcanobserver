@@ -23,8 +23,9 @@
 #include "aboutbox.h"
 #include <modeltest.h>
 #include <QCloseEvent>
-
-
+#include "errno.h"
+#include <sys/types.h>
+#include <unistd.h>
 
 void MainWindow::initSatelites()
 {
@@ -107,6 +108,7 @@ void MainWindow::initSatelites()
     connect(this, SIGNAL(ClearAll()), SpecEvtDlg, SLOT(ClearAll()));
 }
 
+
 void MainWindow::initSendMsgDlg(void)
 {
 
@@ -132,6 +134,8 @@ MainWindow::MainWindow(QWidget *parent)
     MaxTraceListLenght = 0;
 
     DB = NULL;
+    queueTimer = NULL;
+    Args = NULL;
 
     msgs_1 = 0;
     FreqDivFlipFlop = 0;
@@ -257,7 +261,8 @@ void MainWindow::periodicUpdate(void)
         for(int i = 0; TempDataList.count() ; i ++)
         {
             index1 = TraceModel->index(i, 0, QModelIndex());
-            TraceModel->setData(index1, &TempDataList.takeLast(),Qt::EditRole);
+            _CANMsg Msg = TempDataList.takeLast();
+            TraceModel->setData(index1, &Msg,Qt::EditRole);
         }
     }
 
@@ -269,7 +274,6 @@ void MainWindow::periodicUpdate(void)
 
     if(vis.isValid())
         ui->tableView->scrollTo(vis,QAbstractItemView::PositionAtTop);
-
 }
 
 
@@ -465,6 +469,8 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionStart_triggered()
 {
+    if((NULL == Args->parseParameter("-ss")) && (NULL == Args->parseParameter("-su")))
+        startForks();
     if(rt->isConfigured())
     {
         ui->MsgCounter->setEnabled(true);
@@ -513,6 +519,9 @@ void MainWindow::on_actionStop_triggered()
 
     ui->MsgCounter->setEnabled(false);
 
+    if((NULL == Args->parseParameter("-ss")) && (NULL == Args->parseParameter("-su")))
+        stopForks();
+
     //enable Menu Items
     QList <QAction*> act = ui->menuFile->actions();
     for(int i = 0; i < act.count() ; i ++)
@@ -559,6 +568,11 @@ void MainWindow::on_actionClear_triggered()
     ui->MsgCounter->display(0);
     ui->tableView->setModel(TraceModel);
     rt->MsgBuf->ClearAll();
+
+    if((NULL == Args->parseParameter("-ss")) && (NULL == Args->parseParameter("-su")))
+    {
+        clearForks();
+    }
 }
 
 void MainWindow::on_actionSave_triggered()
@@ -853,7 +867,7 @@ void MainWindow::on_checkBoxSendMsg_toggled(bool checked)
 
 void MainWindow::on_actionDebug_Terminal_triggered()
 {
-        if(DB)
+    if(DB)
     {
         for(int i=0;i < MAX_GRAPH_WINDOWS;i++)
         {
@@ -879,7 +893,7 @@ void MainWindow::on_actionDebug_Terminal_triggered()
 
 void MainWindow::on_ClearButton_clicked()
 {
-        on_actionClear_triggered();
+    on_actionClear_triggered();
 }
 
 void MainWindow::on_RunButton_clicked()
@@ -889,8 +903,166 @@ void MainWindow::on_RunButton_clicked()
     DevDlg->accept();
 }
 
- void MainWindow::configChanged(__config cfg)
- {
-     MaxTraceListLenght = cfg.MainMemByte/sizeof(_CANMsg);
- }
+void MainWindow::configChanged(__config cfg)
+{
+    MaxTraceListLenght = cfg.MainMemByte/sizeof(_CANMsg);
+}
 
+void MainWindow::setArgs(cpparglib *argsa)
+{
+    Args = argsa;
+    char *sec = Args->parseParameterForValue("-ss");
+    char *usec = Args->parseParameterForValue("-su");
+
+    if(sec == NULL || usec == NULL)
+        return;
+    struct timeval tv;
+    tv.tv_sec = atoi(sec);
+    tv.tv_usec = atoi(usec);
+    rt->setStartTime(tv);
+    open_queues();
+    if(queueTimer != NULL)
+        delete queueTimer;
+    queueTimer = new QTimer( );
+    connect(queueTimer, SIGNAL(timeout()), this, SLOT(queueTimerUpdate()));
+    queueTimer->setInterval(10);
+    queueTimer->start();
+}
+
+int MainWindow::create_queues(void)
+{
+    char QueueName[256];
+    struct mq_attr attr;
+
+    memset((void*)&attr, 0, sizeof(struct mq_attr));
+    attr.mq_maxmsg = 1;
+    attr.mq_msgsize = 1;
+    sprintf(QueueName, "/QCANCMD");
+    CommandQueue = mq_open(QueueName, O_RDWR | O_CREAT, S_IWUSR | S_IRUSR, &attr);
+    return 0;
+}
+
+int MainWindow::open_queues(void)
+{
+    char QueueName[256];
+    struct mq_attr attr;
+
+    memset((void*)&attr, 0, sizeof(struct mq_attr));
+    attr.mq_maxmsg = 1;
+    attr.mq_msgsize = 1;
+    sprintf(QueueName, "/QCANCMD");
+    CommandQueue = mq_open(QueueName, O_RDONLY, S_IWUSR | S_IRUSR, &attr);
+    return 0;
+}
+
+int MainWindow::startForks(void)
+{
+    struct timespec timesp;
+    timesp.tv_sec = 0;
+    timesp.tv_nsec = 0;
+    int ret = mq_timedsend(CommandQueue, "s", 1, 0, &timesp);
+
+    char *sterr = strerror(errno);
+    QString Err(sterr);
+    return 0;
+
+}
+
+int MainWindow::stopForks(void)
+{
+
+    struct timespec timesp;
+    timesp.tv_sec = 0;
+    timesp.tv_nsec = 0;
+    int ret = mq_timedsend(CommandQueue, "e", 1, 0, &timesp);
+
+    char *sterr = strerror(errno);
+    QString Err(sterr);
+    return 0;
+}
+
+int MainWindow::clearForks(void)
+{
+
+    struct timespec timesp;
+    timesp.tv_sec = 0;
+    timesp.tv_nsec = 0;
+    int ret = mq_timedsend(CommandQueue, "c", 1, 0, &timesp);
+
+    char *sterr = strerror(errno);
+    QString Err(sterr);
+    return 0;
+}
+
+void MainWindow::queueTimerUpdate(void)
+{
+    if((NULL != Args->parseParameter("-ss")) && (NULL != Args->parseParameter("-su")))
+    {
+
+        struct timespec timesp;
+        timesp.tv_sec = 0;
+        timesp.tv_nsec = 0;
+        char Cmd[2];
+
+        int read = mq_timedreceive(CommandQueue, Cmd, 1, NULL, &timesp);
+        if(read)
+        {
+            if(Cmd[0] == 's')
+            {
+                on_actionStart_triggered();
+                on_actionClear_triggered();
+            }
+            if(Cmd[0] == 'e')
+            {
+                this->on_actionStop_triggered();
+            }
+
+            if(Cmd[0] == 'c')
+            {
+                on_actionClear_triggered();
+            }
+
+        }
+    }
+}
+
+void MainWindow::on_actionFork_triggered()
+{
+    //int spawn (char* program, char** arg_list)
+    create_queues();
+
+    char *arg_list[5];
+
+
+    struct timeval val;
+    val = rt->getStartTime();
+
+    arg_list[0] = (char*)malloc(32);
+    arg_list[1] = (char*)malloc(32);
+    arg_list[2] = (char*)malloc(32);
+    arg_list[3] = (char*)malloc(32);
+    arg_list[4] = (char*)malloc(32);
+
+    sprintf(arg_list[0], "QCanObserver");
+    sprintf(arg_list[1], "-ss");
+    sprintf(arg_list[2], "%d" , val.tv_sec);
+    sprintf(arg_list[3], "-su");
+    sprintf(arg_list[4], "%d" , val.tv_usec);
+    arg_list[5] = NULL;
+
+    pid_t child_pid;
+
+    /* Duplicate this process.  */
+    child_pid = fork ();
+    if (child_pid != 0)
+        return;
+    else
+    {
+        /* Now execute PROGRAM, searching for it in the path.  */
+        execvp ("./QCanObserver", (char**)arg_list);
+        /* The execvp function returns only if an error occurs.  */
+        fprintf (stderr, "an error occurred in execvp\n");
+        abort ();
+    }
+
+}

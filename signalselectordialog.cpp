@@ -43,7 +43,7 @@ SignalSelectorDialog::SignalSelectorDialog(QWidget *parent, CANSignalCollection 
     {
 	QString ID;
 	ID.sprintf("<0x%x>",Collection->getSignal(i)->Id);
-	m_ui->ComboItemSelector->addItem(ID+Collection->getSignal(i)->Name,NULL);
+    m_ui->ComboItemSelector->addItem(ID+Collection->getSignal(i)->Name,QVariant());
     }
     switchMode(SELECTORMODE);
 }

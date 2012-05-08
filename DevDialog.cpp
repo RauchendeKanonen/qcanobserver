@@ -131,11 +131,13 @@ void DevDialog::on_buttonBox1_accepted()
 
 #endif
     //Load the interface to the hardware
-    const char *libstr;
-    libstr =  (char*)CANLibFilePath->toStdString().c_str();
+    char libstr[1024];
+    char *ptr =  (char*)CANLibFilePath->toStdString().c_str();
+    strcpy(libstr, ptr);
     void* libhandle = dlopen(libstr, RTLD_LAZY);
 
     char *est  = dlerror();
+
 
     if(!libhandle)
     {

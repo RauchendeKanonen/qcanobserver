@@ -46,7 +46,8 @@
 #include "rawdatamodel.h"
 #include <QMutex>
 #include "configdialog.h"
-
+#include "cpparglib.h"
+#include <mqueue.h>
 using namespace std;
 
 
@@ -68,10 +69,18 @@ public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void closeEvent( QCloseEvent *e );
-
+    void setArgs(cpparglib *argsa);
 
 
 private:
+    QTimer *queueTimer;
+    int clearForks(void);
+    mqd_t CommandQueue;
+    int open_queues(void);
+    int create_queues(void);
+    int startForks(void);
+    int stopForks(void);
+    cpparglib *Args;
     QList <_CANMsg> TempDataList;
     RawDataModel *TraceModel;
     Ui::MainWindow *ui;
@@ -113,6 +122,7 @@ signals:
 
 
 public slots:
+    void queueTimerUpdate(void);
     void addnewMessage(_CANMsg , int);
     void periodicUpdate(void);
     void SateliteDestroyed(QObject *);
@@ -142,7 +152,7 @@ private slots:
     void on_actionStop_triggered();
     void on_actionStart_triggered();
     void on_actionDevice_triggered();
-
+    void on_actionFork_triggered();
 };
 
 #endif // MAINWINDOW_H

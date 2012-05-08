@@ -46,6 +46,8 @@ class ReadThread : public QThread
 {
     Q_OBJECT
 public:
+    struct timeval getStartTime(void);
+    void setStartTime(struct timeval tv);
     ReadThread();
     ~ReadThread();
     virtual void run();

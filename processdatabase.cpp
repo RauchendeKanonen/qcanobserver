@@ -105,14 +105,24 @@ ProcessDataBase::ProcessDataBase(QString FileName)
                 if(MaskStr.count()==8)
                 {
                     for(int c = 0 ; c < 8 ; c++ )
-                        Mask[c] = atoi((char*)&MaskStr.at(c));
+                    {
+                        char ptr[2];
+                        ptr[0] = (char)MaskStr.at(c).toAscii();
+                        ptr[1] = 0;
+                        Mask[c] = atoi(ptr);
+                    }
                 }
 
                 int ConstrainMask[8];
                 if(ConstrainMaskStr.count()==8)
                 {
                     for(int c = 0 ; c < 8 ; c++ )
-                        ConstrainMask[c] = atoi((char*)&ConstrainMaskStr.at(c));
+                    {
+                        char ptr[2];
+                        ptr[0] = (char)ConstrainMaskStr.at(c).toAscii();
+                        ptr[1] = 0;
+                        ConstrainMask[c] = atoi(ptr);
+                    }
                 }
 
 		Name = QString("(")+Name+QString(")");

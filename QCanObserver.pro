@@ -33,7 +33,8 @@ SOURCES += main.cpp \
     averagefilter.cpp \
     debugterminal.cpp \
     qconsole.cpp \
-    rawdatamodel.cpp
+    rawdatamodel.cpp \
+    cpparglib.cpp
 HEADERS += mainwindow.h \
     readthread.h \
     DevDialog.h \
@@ -62,7 +63,8 @@ HEADERS += mainwindow.h \
     averagefilter.h \
     debugterminal.h \
     qconsole.h \
-    rawdatamodel.h
+    rawdatamodel.h \
+    cpparglib.h
 FORMS += mainwindow.ui \
     DevDialog.ui \
     errordialog.ui \

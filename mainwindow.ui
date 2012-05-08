@@ -136,7 +136,7 @@
      <x>0</x>
      <y>0</y>
      <width>510</width>
-     <height>19</height>
+     <height>15</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -163,6 +163,7 @@
     <addaction name="actionSave_Config_as_Default"/>
     <addaction name="separator"/>
     <addaction name="actionClose"/>
+    <addaction name="actionFork"/>
    </widget>
    <widget class="QMenu" name="menuNew">
     <property name="title">
@@ -281,6 +282,11 @@
   <action name="actionDebug_Terminal">
    <property name="text">
     <string>Debug Terminal</string>
+   </property>
+  </action>
+  <action name="actionFork">
+   <property name="text">
+    <string>fork</string>
    </property>
   </action>
  </widget>

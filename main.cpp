@@ -17,13 +17,14 @@
 */
 #include <QtGui/QApplication>
 #include "mainwindow.h"
-
+#include "cpparglib.h"
 
 int main(int argc, char *argv[])
 {
-
+    cpparglib args(argc, argv);
     QApplication a(argc, argv);
     MainWindow *MainWin = new MainWindow;
+    MainWin->setArgs(&args);
     MainWin->show();
 
     a.exec();

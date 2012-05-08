@@ -36,6 +36,9 @@ ReadThread::ReadThread()
     connect(this, SIGNAL(configChanged(__config)),
 		     MsgBuf,SLOT(configChanged(__config)));
     Dev = NULL;
+
+    starttime.tv_sec = 0;
+    starttime.tv_usec = 0;
 }
 
 ReadThread::~ReadThread()
@@ -45,6 +48,16 @@ ReadThread::~ReadThread()
         destroy(Dev);
 }
 
+struct timeval ReadThread::getStartTime(void)
+{
+    return starttime;
+}
+
+void ReadThread::setStartTime(struct timeval tv)
+{
+    starttime.tv_sec = tv.tv_sec;
+    starttime.tv_usec = tv.tv_usec;
+}
 //!SLOT for setting the device
 //!PathArg is the path to the Device eg. /dev/pcanusb
 //!For Baudrate see the Datasheet of the PCAN devices
@@ -195,7 +208,9 @@ void ReadThread::setDev(void *ConfData, QString InterfaceLib, bool shareDevLib)
     if(shareDevLib)
         emit setDevLibInstance(Dev);
 
-    gettimeofday( &starttime, NULL);
+    if(starttime.tv_sec == 0)
+        gettimeofday( &starttime, NULL);
+
     emit DevIsConfigured(true);
 }
 //!SLOT for setting the Hardware Filter Place == HWFILTER makes this function acting

@@ -22,7 +22,7 @@ QConsole::QConsole()
 
 {
     this->setReadOnly(true);
-    QTextEdit::QTextEdit(NULL);
+    QTextEdit(NULL);
 }
 
 

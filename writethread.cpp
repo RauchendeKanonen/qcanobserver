@@ -69,7 +69,7 @@ void WriteThread::setDev(void *ConfData, QString InterfaceLib, bool shareDevLib)
     if(!handle)
     {
         QString *ErrStr = new QString(" ");
-        ErrStr->sprintf("%s %s","Could not load Device Mapper: ", InterfaceLib);
+        ErrStr->sprintf("%s %s","Could not load Device Mapper: ", InterfaceLib.toStdString().c_str());
         ErrorDialog *ed = new ErrorDialog;
         ed->SetErrorMessage(*ErrStr);
         delete ErrStr;

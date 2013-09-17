@@ -85,16 +85,16 @@ public:
     {
         if(autosc)
         {
-        this->setAxisAutoScale(QwtPlot::xBottom);
-        this->setAxisAutoScale(QwtPlot::yLeft);
+            this->setAxisAutoScale(QwtPlot::xBottom);
+            this->setAxisAutoScale(QwtPlot::yLeft);
 
-        ActCanvas = canvas();
+            ActCanvas = canvas();
 
-        delete CanvasZoomer;
-        CanvasZoomer = new QwtPlotZoomer( QwtPlot::xBottom, QwtPlot::yLeft,  ActCanvas);
-        CanvasZoomer->setSelectionFlags( QwtPicker::DragSelection );
-        CanvasZoomer->setTrackerMode(QwtPicker::AlwaysOn);
-    }
+            delete CanvasZoomer;
+            CanvasZoomer = new QwtPlotZoomer( QwtPlot::xBottom, QwtPlot::yLeft,  ActCanvas);
+            CanvasZoomer->setSelectionFlags( QwtPicker::DragSelection );
+            CanvasZoomer->setTrackerMode(QwtPicker::AlwaysOn);
+        }
         else
         {
             QRect  a = CanvasZoomer->pickRect();
@@ -180,6 +180,7 @@ private slots:
     void on_ConnectedCheckBox_toggled(bool checked);
     void on_GraphFromDB_clicked();
     void on_GraphFromScratch_clicked();
+    void on_checkBoxDottedLine_clicked();
 };
 
 #endif // GRAPHICWINDOW_H

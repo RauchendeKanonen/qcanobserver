@@ -33,7 +33,14 @@
 #include <list>
 #include "stringlistmodel.h"
 #include "FilterDialog.h"
+
+
+#ifdef QWT6
+#include "graphicwindowqwt6.h"
+#else
 #include "graphicwindow.h"
+#endif
+
 #include "processdatabase.h"
 #include "observerdialog.h"
 #include "sendmsgdialog.h"

@@ -193,7 +193,7 @@ void GraphicWindow::deleteItemToDraw(CANSignal* Signal)
             Curves.removeAt(i);
         }
     }
-
+    Curves.last()->PlotCurve->updateLegend(Plot->legend);
     Plot->replot();
     setConfig(MemBytesMax);
 }
@@ -395,4 +395,9 @@ void GraphicWindow::setConfig(int AMemBytesMax)
         MaxDots = MemBytesMax/(Curves.count()*2*sizeof(double));
     else
         MaxDots = 0;
+}
+
+void GraphicWindow::on_checkBoxDottedLine_clicked()
+{
+
 }

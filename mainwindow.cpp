@@ -26,6 +26,8 @@
 #include "errno.h"
 #include <sys/types.h>
 #include <unistd.h>
+#include "suggestiondialog.h"
+
 
 void MainWindow::initSatelites()
 {
@@ -188,6 +190,20 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     initSendMsgDlg();
+
+
+    if(!QFile("DialogShown").exists())
+    {
+        SuggestionDialog Dlg;
+        Dlg.setModal(true);
+        Dlg.exec();
+
+        QFile Mark("DialogShown");
+        Mark.open(QFile::WriteOnly);
+        Mark.write("Shown");
+        Mark.close();
+    }
+
 }
 
 MainWindow::~MainWindow()

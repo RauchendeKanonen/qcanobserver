@@ -32,7 +32,8 @@ SOURCES += main.cpp \
     debugterminal.cpp \
     qconsole.cpp \
     rawdatamodel.cpp \
-    cpparglib.cpp
+    cpparglib.cpp \
+    suggestiondialog.cpp
 HEADERS += mainwindow.h \
     readthread.h \
     DevDialog.h \
@@ -60,7 +61,8 @@ HEADERS += mainwindow.h \
     debugterminal.h \
     qconsole.h \
     rawdatamodel.h \
-    cpparglib.h
+    cpparglib.h \
+    suggestiondialog.h
 FORMS += mainwindow.ui \
     DevDialog.ui \
     errordialog.ui \
@@ -75,7 +77,8 @@ FORMS += mainwindow.ui \
     configdialog.ui \
     signalselectordialog.ui \
     specialeventdialog.ui \
-    debugterminal.ui
+    debugterminal.ui \
+    suggestiondialog.ui
 
 QWT6 {
     DEFINES += QWT6

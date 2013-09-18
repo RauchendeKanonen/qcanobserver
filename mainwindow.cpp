@@ -203,7 +203,6 @@ MainWindow::MainWindow(QWidget *parent)
         Mark.write("Shown");
         Mark.close();
     }
-
 }
 
 MainWindow::~MainWindow()

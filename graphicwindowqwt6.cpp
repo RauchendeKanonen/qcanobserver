@@ -148,8 +148,14 @@ void GraphicWindow::MainTimerSlot()
         RectList.append(Curvelist.at(i)->boundingRect());
     }
 
-    United = RectList.at(0);
-
+    for( int i = 0 ; i < RectList.count() ; i ++)
+    {
+        if(RectList.at(i).width() > -1.0 && RectList.at(i).height() > -1.0)
+        {
+            United = RectList.at(i);
+            break;
+        }
+    }
 
     for( int i = 0 ; i < RectList.count() ; i ++)
     {
@@ -176,7 +182,7 @@ void GraphicWindow::MainTimerSlot()
 
     Plot->setAxisScale(QwtPlot::yLeft, lower, upper);
 
-    if(Plot->axisInterval(QwtPlot::xBottom).maxValue() <= United.right())
+    if(Plot->axisInterval(QwtPlot::xBottom).maxValue() <= United.right() || Plot->axisInterval(QwtPlot::xBottom).minValue() <= United.left())
         Plot->setAxisScale(QwtPlot::xBottom, United.left(), United.right()+(United.right()-United.left())/5);
 
     Plot->replot();

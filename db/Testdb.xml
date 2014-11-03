@@ -1,176 +1,53 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
-<Database Name="KBL7">
-    <ID Id="1">
-	<Item0>
-	    <interpret Multiplier="1.0" Name="8BitCounter" Offset="0" Datamask="10000000">
-	    </interpret>
-	</Item0>
-	</ID>
-	    <ID Id="3">
-	<Item0>
-	    <interpret Multiplier="1.0" Name="block" Offset="0" Datamask="10000000">
-	    </interpret>
-	</Item0>
-	</ID>
-	    <ID Id="4">
-	<Item0>
-	    <interpret Multiplier="1.0" Name="reinit" Offset="0" Datamask="10000000">
-	    </interpret>
-	</Item0>
-	</ID>
-	    <ID Id="5">
-	<Item0>
-	    <interpret Multiplier="1.0" Name="start" Offset="0" Datamask="10000000">
-	    </interpret>
-	</Item0>
-	</ID>
-	<ID Id="7">
-	<Item0>
-	    <interpret Multiplier="1.0" Name="Timer0 OverFlow" Offset="0" Datamask="10000000">
-	    </interpret>
-	</Item0>
-	</ID>
-	<ID Id="2">
-	<Item0>
-	<interpret Multiplier="1.0" Name="Trigval" Offset="0" Datamask="02100000">
+<Database Name="ControllerPlatform">
+<ID Id="0x17">
+<Item0>
+	<interpret Multiplier="1.0" Name="I1" Offset="0" 
+		Datamask="12340000" Unit="A" Type="float">
 	</interpret>
-	</Item0>
-	<Item1>
-		<interpret Multiplier="1.0" Name="ForceVal" Offset="0" Datamask="00021000">
-		</interpret>
-	</Item1>
-	</ID>
+</Item0>
+<Item1>
+	<interpret Multiplier="1.0" Name="V1" Offset="0" 
+		Datamask="00001234" Unit="V" Type="float">
+	</interpret>
+</Item1>
+</ID>  
+<ID Id="0x18">
+<Item0>
+	<interpret Multiplier="1.0" Name="I2" Offset="0" 
+		Datamask="12340000" Unit="A" Type="float">
+	</interpret>
+</Item0>
+<Item1>
+	<interpret Multiplier="1.0" Name="V2" Offset="0" 
+		Datamask="00001234" Unit="V" Type="float">
+	</interpret>
+</Item1>
+</ID>   
 
-
-    <ID Id="21">
-        <Item0>
-            <interpret EventItem="true" Constrain="0xf0" ConstrainMask="10000000"  Multiplier="1.0" Name="EC-Start" Offset="0" 
-		Datamask="00000000" Unit="none">
-            </interpret>
-        </Item0>
-        <Item1>
-            <interpret EventItem="true" Constrain="0xf2" ConstrainMask="10000000"  Multiplier="1.0" Name="EC-Version" Offset="0"
-		Datamask="00000000" Unit="none">
-            </interpret>
-        </Item1>
-        <Item2>
-            <interpret EventItem="true" Constrain="0x80" ConstrainMask="01000000"  Multiplier="1.0" Name="EC-Reset" Offset="0"
-		Datamask="00000000" Unit="none">
-            </interpret>
-       	</Item2>
-        <Item3>
-            <interpret EventItem="true" Constrain="0xf4" ConstrainMask="10000000"  Multiplier="1.0" Name="EC-BLVersion" Offset="0"
-                Datamask="00000000" Unit="none">
-            </interpret>
-	</Item3>
-    </ID>
-
-    <ID Id="22">
-        <Item0>
-            <interpret EventItem="true" Constrain="0xf0" ConstrainMask="10000000"  Multiplier="1.0" Name="EC-Start:" Offset="0"
-                Datamask="00000000" Unit="none">
-            </interpret>
-        </Item0>
-        <Item1>
-            <interpret EventItem="true" Constrain="0xf2" ConstrainMask="10000000"  Multiplier="1.0" Name="EC-Version:"
-Offset="0"
-                Datamask="01200000" Unit="Ver.">
-            </interpret>
-        </Item1>
-        <Item2>
-            <interpret EventItem="true" Constrain="0x80" ConstrainMask="01000000"  Multiplier="1.0" Name="EC-Reset:" Offset="0"
-                Datamask="00000000" Unit="none">
-            </interpret>
-        </Item2>
-        <Item3>
-            <interpret EventItem="true" Constrain="0xf4" ConstrainMask="10000000"  Multiplier="1.0" Name="EC-BLVersion:" 
-Offset="0"
-                Datamask="01000000" Unit="none">
-            </interpret>
-        </Item3>
-    </ID>
-    
-<!-- Basis an Luefter -->
-    <ID Id="23">
-        <Item0>
-            <interpret EventItem="true" Constrain="0xf0" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-Start" Offset="0" 
-		Datamask="00000000" Unit="none">
-            </interpret>
-        </Item0>
-        <Item1>
-            <interpret EventItem="true" Constrain="0xf2" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-Version" Offset="0"
-		Datamask="00000000" Unit="none">
-            </interpret>
-        </Item1>
-        <Item2>
-            <interpret EventItem="true" Constrain="0xff" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-Reset" Offset="0"
-		Datamask="00000000" Unit="none">
-            </interpret>
-       	</Item2>
-        <Item3>
-            <interpret EventItem="true" Constrain="0xf4" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-BLVersion" Offset="0"
-                Datamask="00000000" Unit="none">
-            </interpret>
-		</Item3>
-		<Item4>
-            <interpret EventItem="true" Constrain="0xf7" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-SetSpeed1" Offset="0"
-                Datamask="01000000" Unit="%">
-            </interpret>
-		</Item4>
-		<Item5>
-            <interpret EventItem="true" Constrain="0xf7" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-SetSpeed2" Offset="0"
-                Datamask="00100000" Unit="%">
-            </interpret>
-		</Item5>
-		<Item5>
-            <interpret EventItem="true" Constrain="0xf1" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-StartDl" Offset="0"
-                Datamask="00000000" Unit="%">
-            </interpret>
-		</Item5>
-		<Item6>
-            <interpret EventItem="true" Constrain="0xf3" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-SendDlPack" Offset="0"
-                Datamask="00120000" Unit="%">
-            </interpret>
-		</Item6>
-    </ID>
-    
- <!-- Luefter an Basis -->
-    <ID Id="24">
-        <Item0>
-            <interpret EventItem="true" Constrain="0xf0" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-Start:" Offset="0" 
-		Datamask="00000000" Unit="none">
-            </interpret>
-        </Item0>
-        <Item1>
-            <interpret EventItem="true" Constrain="0xf2" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-Version:" Offset="0"
-		Datamask="01200000" Unit="Ver.">
-            </interpret>
-        </Item1>
-        <Item2>
-            <interpret EventItem="true" Constrain="0xff" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-Reset:" Offset="0"
-		Datamask="00000000" Unit="none">
-            </interpret>
-       	</Item2>
-        <Item3>
-            <interpret EventItem="true" Constrain="0xf4" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-BLVersion" Offset="0"
-                Datamask="01000000" Unit="Ver.">
-            </interpret>
-		</Item3>
-		<Item4>
-            <interpret EventItem="true" Constrain="0xf7" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-SetSpeed1:" Offset="0"
-                Datamask="01000000" Unit="%">
-            </interpret>
-		</Item4>
-		<Item5>
-            <interpret EventItem="true" Constrain="0xf7" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-SetSpeed2:" Offset="0"
-                Datamask="00100000" Unit="%">
-            </interpret>
-		</Item5>
-		<Item6>
-            <interpret EventItem="true" Constrain="0xf3" ConstrainMask="10000000"  Multiplier="1.0" Name="ACS-SendDlPack:" Offset="0"
-                Datamask="00120000" Unit="%">
-            </interpret>
-		</Item6>
-    </ID>   
+<ID Id="0x19">
+<Item0>
+	<interpret Multiplier="1.0" Name="FilV1" Offset="0" 
+		Datamask="12340000" Unit="A" Type="float">
+	</interpret>
+</Item0>
+<Item1>
+	<interpret Multiplier="1.0" Name="DState1" Offset="0" 
+		Datamask="00001234" Unit="V" Type="float">
+	</interpret>
+</Item1>
+</ID>  
+<ID Id="0x20">
+<Item0>
+	<interpret Multiplier="1.0" Name="FilV2" Offset="0" 
+		Datamask="12340000" Unit="A" Type="float">
+	</interpret>
+</Item0>
+<Item1>
+	<interpret Multiplier="1.0" Name="DState2" Offset="0" 
+		Datamask="00001234" Unit="V" Type="float">
+	</interpret>
+</Item1>
+</ID>   
 </Database>

@@ -3,7 +3,7 @@
 # -------------------------------------------------
 TARGET = QCanObserver
 TEMPLATE = app
-CONFIG += QWT6
+# CONFIG += QWT6
 # CONFIG(release, debug|release)
 # CONFIG += release
 CONFIG += debug
@@ -103,3 +103,4 @@ else {
 
 QT += xml
 include(modeltest/modeltest.pri)
+LIBS += -ldl
